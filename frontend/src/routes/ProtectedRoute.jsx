@@ -13,10 +13,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     return <Navigate to="/login" replace />;
   }
 
-  // Force password change for students if flagged
-  if (currentUser.role === 'student' && currentUser.mustChangePassword && window.location.pathname !== '/change-password') {
-    return <Navigate to="/change-password" replace />;
-  }
+  // (Removed mandatory password change redirect for students)
 
   if (allowedRoles && !allowedRoles.includes(currentUser.role)) {
     // Exact main_principal check

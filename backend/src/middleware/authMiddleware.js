@@ -23,17 +23,7 @@ const protect = async (req, res, next) => {
         return res.status(401).json({ success: false, message: "Session expired or revoked" });
       }
 
-      // Enforce mandatory password change for students
-      if (req.user.mustChangePassword && req.user.role === "student") {
-        const allowedPaths = ["/api/auth/change-password", "/api/auth/me", "/api/auth/logout"];
-        const path = req.baseUrl + req.path;
-        const isAllowed = allowedPaths.some(p => path.includes(p));
-        
-        if (!isAllowed) {
-          return res.status(403).json({ success: false, message: "Password change required", code: "PASSWORD_CHANGE_REQUIRED" });
-        }
-      }
-
+      // (Removed mandatory password change block for students)
       next();
     } catch (error) {
       console.error(error);
