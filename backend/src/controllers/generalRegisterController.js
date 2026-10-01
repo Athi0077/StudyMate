@@ -59,7 +59,7 @@ exports.registerStudent = async (req, res) => {
       name,
       email: email || `${studentId.toLowerCase()}.${grNumber.toLowerCase()}@studymate.school`,
       password: tempPassword,
-      mustChangePassword: true,
+      mustChangePassword: false,
       role: 'student',
       studentId,
       grNumber,
