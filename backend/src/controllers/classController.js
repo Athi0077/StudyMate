@@ -209,7 +209,8 @@ const getClassById = async (req, res) => {
       return {
         ...student.toObject(),
         parentName: parent ? parent.name : null,
-        parentPhone: parent ? parent.phone : null
+        parentPhone: parent ? parent.phone : null,
+        address: student.address || (parent ? parent.address : null)
       };
     }));
     
