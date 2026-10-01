@@ -83,7 +83,8 @@ const TeacherClassDetails = () => {
                       <td className="p-3 text-gray-500">{index + 1}</td>
                       <td className="p-3 whitespace-nowrap">
                         <div className="font-bold text-gray-800">{student.name}</div>
-                        <div className="text-gray-500 text-xs mt-0.5">{student.email || 'N/A'}</div>
+                        <div className="text-gray-500 text-xs mt-0.5 font-mono">ID: {student.studentId || 'N/A'}</div>
+                        {student.email && !student.email.endsWith('@studymate.school') && <div className="text-gray-500 text-xs mt-0.5">{student.email}</div>}
                         {student.phone && <div className="text-blue-600 font-medium text-xs mt-1 bg-blue-50 inline-block px-2 py-0.5 rounded-md">📞 {student.phone}</div>}
                       </td>
                       <td className="p-3 whitespace-nowrap">

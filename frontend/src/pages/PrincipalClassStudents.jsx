@@ -33,7 +33,7 @@ const PrincipalClassStudents = () => {
     const tableRows = classData.students.map((student, index) => [
       index + 1,
       student.name,
-      student.email || 'N/A',
+      student.email?.endsWith('@studymate.school') ? student.studentId || 'N/A' : (student.email || 'N/A'),
       student.phone || 'N/A',
       student.address || 'N/A',
       student.parentName || 'N/A',
@@ -54,7 +54,7 @@ const PrincipalClassStudents = () => {
     const rows = classData.students.map((student, index) => [
       index + 1,
       `"${student.name}"`, // Quote to handle commas in names
-      `"${student.email || 'N/A'}"`,
+      `"${student.email?.endsWith('@studymate.school') ? student.studentId || 'N/A' : (student.email || 'N/A')}"`,
       `"${student.phone || 'N/A'}"`,
       `"${(student.address || 'N/A').replace(/"/g, '""')}"`,
       `"${student.parentName || 'N/A'}"`,
@@ -127,7 +127,8 @@ const PrincipalClassStudents = () => {
                     <td className="p-4 text-gray-500">{index + 1}</td>
                     <td className="p-4 font-bold text-gray-800 whitespace-nowrap">{student.name}</td>
                     <td className="p-4 whitespace-nowrap">
-                      <div className="text-gray-800">{student.email || 'N/A'}</div>
+                      <div className="text-gray-500 font-mono text-xs">ID: {student.studentId || 'N/A'}</div>
+                      {student.email && !student.email.endsWith('@studymate.school') && <div className="text-gray-800 text-sm">{student.email}</div>}
                       <div className="text-blue-600 font-medium text-xs mt-1 bg-blue-50 inline-block px-2 py-0.5 rounded-md">📞 {student.phone || 'N/A'}</div>
                     </td>
                     <td className="p-4 whitespace-nowrap">
