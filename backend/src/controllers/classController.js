@@ -168,7 +168,7 @@ const getClassById = async (req, res) => {
     const classId = req.params.id;
     const classData = await Class.findById(classId)
       .populate("teacherId", "name email")
-      .populate("students", "name email phone address");
+      .populate("students", "name email phone address studentId");
 
     if (!classData) {
       return res.status(404).json({ success: false, message: "Class not found" });
