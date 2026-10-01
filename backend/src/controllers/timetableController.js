@@ -78,7 +78,7 @@ const getClassTimetable = async (req, res) => {
       .populate('periods.subjectTeacherId', 'name');
 
     if (!timetable) {
-      return res.status(404).json({ success: false, message: "Timetable not found for this class." });
+      return res.status(200).json({ success: true, data: null, message: "Timetable not found for this class." });
     }
 
     // Role-based access checks
