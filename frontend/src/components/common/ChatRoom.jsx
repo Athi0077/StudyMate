@@ -25,7 +25,7 @@ const ChatRoom = ({ entityType, entityId }) => {
     fetchHistory();
 
     // 2. Initialize Socket Connection
-    const newSocket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000', {
+    const newSocket = io(import.meta.env.VITE_API_URL || 'https://studymate-wbb6.onrender.com', {
       auth: { token }
     });
 

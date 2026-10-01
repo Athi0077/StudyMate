@@ -12,7 +12,7 @@ const VerifyID = () => {
   useEffect(() => {
     const verify = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/id-card/verify/${verificationId}`);
+        const res = await axios.get(`https://studymate-wbb6.onrender.com/api/id-card/verify/${verificationId}`);
         setData(res.data.data);
       } catch (err) {
         setError(err.response?.data?.message || 'Verification Failed');
