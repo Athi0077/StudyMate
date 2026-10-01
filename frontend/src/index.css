@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: var(--primary);
+  --color-primary-light: var(--primary-light);
+  --color-primary-dark: var(--primary-dark);
+  --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 font-sans antialiased;
+    background-image: radial-gradient(circle at 80% 20%, rgba(var(--primary-rgb, 37, 99, 235), 0.08) 0%, transparent 50%),
+                      radial-gradient(circle at 20% 80%, rgba(var(--primary-rgb, 37, 99, 235), 0.05) 0%, transparent 50%);
+    background-attachment: fixed;
+  }
+  
+  :root {
+    --primary: #2563EB; /* Default to student blue */
+    --primary-light: #EFF6FF;
+    --primary-dark: #1D4ED8;
+  }
+
+  /* Unified Brand Theme (Dark Mode) */
+  .dark {
+    --primary: #3b82f6; /* Bright neon blue */
+    --primary-light: rgba(59, 130, 246, 0.15); /* Soft transparent blue */
+    --primary-dark: #60a5fa; /* Lighter hover */
+  }
+}
+
+/* Global Dark Mode Overrides (Sleek Slate Theme) */
+.dark body {
+  background-color: #0f172a !important; /* slate-900 */
+  background-image: radial-gradient(circle at 80% 20%, rgba(var(--primary-rgb, 96, 165, 250), 0.15) 0%, transparent 50%),
+                    radial-gradient(circle at 20% 80%, rgba(var(--primary-rgb, 96, 165, 250), 0.1) 0%, transparent 50%) !important;
+  background-attachment: fixed !important;
+  color: #f8fafc !important; /* slate-50 */
+}
+.dark .bg-white {
+  background-color: #1e293b !important; /* slate-800 */
+}
+.dark .bg-white\/80 {
+  background-color: rgba(30, 41, 59, 0.8) !important;
+}
+.dark .bg-white\/70 {
+  background-color: rgba(30, 41, 59, 0.7) !important;
+}
+.dark .bg-gray-50 {
+  background-color: #0f172a !important; 
+}
+.dark .text-gray-800, .dark .text-gray-900, .dark h1, .dark h2, .dark h3, .dark h4 {
+  color: #f8fafc !important;
+}
+.dark .text-gray-700, .dark .text-gray-600, .dark .text-gray-500, .dark p.text-xs.text-gray-400 {
+  color: #94a3b8 !important; /* slate-400 */
+}
+.dark .border, .dark .border-b, .dark .border-t, .dark .border-l, .dark .border-r, .dark .border-gray-100, .dark .border-gray-200 {
+  border-color: #334155 !important; /* slate-700 */
+}
+.dark .border-gray-200\/50 {
+  border-color: rgba(51, 65, 85, 0.5) !important;
+}
+.dark .hover\:bg-gray-50:hover, .dark .hover\:bg-gray-100:hover {
+  background-color: #334155 !important;
+}
+.dark .bg-gray-100 {
+  background-color: #334155 !important;
+}
+.dark input, .dark select, .dark textarea {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+  border-color: #475569 !important;
+}
+.dark .shadow, .dark .shadow-md, .dark .shadow-lg, .dark .shadow-xl {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.4) !important;
+}
+.dark header.bg-blue-600, .dark header.bg-red-600, .dark header.bg-green-600, .dark header.bg-purple-600 {
+  background-color: var(--primary-light) !important;
+  color: var(--primary-dark) !important;
+}
+.dark header .text-white, .dark header .text-white\/90 {
+  color: #f8fafc !important;
+}
+.dark button.bg-blue-600, .dark button.bg-green-600, .dark button.bg-red-600 {
+  background-color: var(--primary) !important;
+  color: #111827 !important;
+  font-weight: bold;
+}
+.dark button.bg-blue-600:hover, .dark button.bg-green-600:hover, .dark button.bg-red-600:hover {
+  background-color: var(--primary-dark) !important;
+}

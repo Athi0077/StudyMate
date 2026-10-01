@@ -1,0 +1,78 @@
+import React, { createContext, useState, useEffect } from 'react';
+import api from '../utils/api';
+import { initSocket, disconnectSocket } from '../services/socket';
+
+export const AuthContext = createContext();
+
+export const AuthProvider = ({ children }) => {
+  const [currentUser, setCurrentUser] = useState(null);
+  const [token, setToken] = useState(localStorage.getItem('token') || null);
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      if (token) {
+        try {
+          const res = await api.get('/auth/me');
+          setCurrentUser(res.data.user);
+          setIsAuthenticated(true);
+          initSocket(token);
+        } catch (error) {
+          console.error("Auth check failed", error);
+          logout();
+        }
+      }
+      setLoading(false);
+    };
+    checkAuth();
+  }, [token]);
+
+  const login = async (email, password) => {
+    const res = await api.post('/auth/login', { email, password });
+    if (res.data.success) {
+      localStorage.setItem('token', res.data.token);
+      setToken(res.data.token);
+      setCurrentUser(res.data.user);
+      setIsAuthenticated(true);
+      initSocket(res.data.token);
+      return res.data;
+    }
+  };
+
+  const register = async (name, email, password, role, classId) => {
+    const res = await api.post('/auth/register', { name, email, password, role, classId });
+    if (res.data.success && res.data.token) {
+      localStorage.setItem('token', res.data.token);
+      setToken(res.data.token);
+      setCurrentUser(res.data.user);
+      setIsAuthenticated(true);
+      initSocket(res.data.token);
+    }
+    return res.data;
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    setToken(null);
+    setCurrentUser(null);
+    setIsAuthenticated(false);
+    disconnectSocket();
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        currentUser,
+        token,
+        loading,
+        isAuthenticated,
+        login,
+        register,
+        logout,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};

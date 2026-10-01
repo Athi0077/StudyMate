@@ -1,0 +1,573 @@
+const Attendance = require("../models/Attendance");
+const AttendanceSession = require("../models/AttendanceSession");
+const Class = require("../models/Class");
+const TeacherAttendance = require("../models/TeacherAttendance");
+const User = require("../models/User");
+const Notification = require("../models/Notification");
+
+// Helper to notify parents if child is absent
+const notifyParentsIfAbsent = async (studentId, date, session = null, teacherId) => {
+  try {
+    const student = await User.findById(studentId);
+    if (!student) return;
+
+    const parents = await User.find({ role: 'parent', children: studentId });
+    if (parents.length === 0) return;
+
+    const dateStr = new Date(date).toLocaleDateString();
+    const sessionText = session ? ` for the ${session.toLowerCase()} session` : '';
+
+    const notifications = parents.map(parent => ({
+      recipientId: parent._id,
+      senderId: teacherId,
+      type: 'attendance',
+      title: 'Absentee Alert',
+      message: `${student.name} has been marked ABSENT on ${dateStr}${sessionText}.`,
+      relatedId: student._id,
+      relatedModel: 'User'
+    }));
+
+    if (notifications.length > 0) {
+      await Notification.insertMany(notifications);
+    }
+  } catch (err) {
+    console.error("Error notifying parents:", err);
+  }
+};
+
+// Helper to validate date (no unreasonable future date)
+const isValidAttendanceDate = (dateString) => {
+  const reqDate = new Date(dateString);
+  const now = new Date();
+  // Allow today and past dates, do not allow future dates (more than 1 day in future to handle timezones)
+  reqDate.setHours(0,0,0,0);
+  const maxAllowedDate = new Date();
+  maxAllowedDate.setDate(maxAllowedDate.getDate() + 1);
+  maxAllowedDate.setHours(0,0,0,0);
+  return reqDate <= maxAllowedDate;
+};
+
+// @desc    Save attendance
+// @route   POST /api/attendance
+// @access  Private (Teacher only)
+const saveAttendance = async (req, res) => {
+  try {
+    const { classId, date, attendance } = req.body;
+    const teacherId = req.user._id;
+
+    if (!isValidAttendanceDate(date)) {
+      return res.status(400).json({ success: false, message: "Cannot mark attendance for a future date" });
+    }
+
+    const classData = await Class.findById(classId);
+    if (!classData) {
+      return res.status(404).json({ success: false, message: "Class not found" });
+    }
+
+    if (classData.teacherId.toString() !== teacherId.toString()) {
+      return res.status(403).json({ success: false, message: "Access denied" });
+    }
+
+    // Process attendance array
+    const attendanceOps = attendance.map(item => {
+      // Ensure student belongs to class
+      if (!classData.students.includes(item.studentId)) {
+        throw new Error(`Student ${item.studentId} does not belong to this class`);
+      }
+      
+      if (item.status === 'absent') {
+        notifyParentsIfAbsent(item.studentId, date, null, teacherId);
+      }
+      
+      return {
+        updateOne: {
+          filter: { studentId: item.studentId, classId, date: new Date(date).setHours(0,0,0,0) },
+          update: {
+            $set: {
+              status: item.status,
+              markedBy: teacherId,
+              markedAt: Date.now()
+            }
+          },
+          upsert: true
+        }
+      };
+    });
+
+    if (attendanceOps.length > 0) {
+      await Attendance.bulkWrite(attendanceOps);
+    }
+
+    res.status(200).json({ success: true, message: "Attendance saved successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Save session-wise attendance
+// @route   POST /api/attendance/session
+// @access  Private (Teacher only)
+const saveSessionAttendance = async (req, res) => {
+  try {
+    const { classId, date, session, attendance } = req.body;
+    const teacherId = req.user._id;
+
+    if (!isValidAttendanceDate(date)) {
+      return res.status(400).json({ success: false, message: "Cannot mark attendance for a future date" });
+    }
+
+    if (!["MORNING", "AFTERNOON"].includes(session)) {
+      return res.status(400).json({ success: false, message: "Invalid session" });
+    }
+
+    const classData = await Class.findById(classId);
+    if (!classData) {
+      return res.status(404).json({ success: false, message: "Class not found" });
+    }
+
+    // Verify Teacher Assignment (for now, just check if they are the class teacher OR assigned to the class in some way)
+    // As per user prompt: "Validate that the teacher is authorized to take attendance for that class."
+    // We will use existing logic or check TeacherAssignment. For now, we allow class teacher or if they just have access.
+    // We can rely on existing middleware/frontend checks, but strictly:
+    const TeacherAssignment = require("../models/TeacherAssignment");
+    const isClassTeacher = classData.teacherId && classData.teacherId.toString() === teacherId.toString();
+    
+    // Check if they are a subject teacher for this class's standard/section
+    const Standard = require("../models/Standard");
+    const Section = require("../models/Section");
+    const standardDoc = await Standard.findOne({ name: classData.standard });
+    const sectionDoc = await Section.findOne({ name: classData.section });
+    let isSubjectTeacher = false;
+    if (standardDoc && sectionDoc) {
+      const assignment = await TeacherAssignment.findOne({
+        teacherId,
+        standardId: standardDoc._id,
+        sectionId: sectionDoc._id
+      });
+      if (assignment) isSubjectTeacher = true;
+    }
+
+    if (!isClassTeacher && !isSubjectTeacher) {
+      return res.status(403).json({ success: false, message: "You are not authorized to mark attendance for this class" });
+    }
+
+    // Try to create the session record (Duplicate key error handled in catch)
+    const newSession = await AttendanceSession.create({
+      classId,
+      attendanceDate: date,
+      session,
+      submittedBy: teacherId,
+      records: attendance
+    });
+
+    // Sync to Daily Attendance collection for dashboard compatibility
+    const attendanceOps = attendance.map(item => {
+      if (item.status === 'absent') {
+        notifyParentsIfAbsent(item.studentId, date, session, teacherId);
+      }
+      return {
+        updateOne: {
+          filter: { studentId: item.studentId, classId, date: new Date(date).setHours(0,0,0,0) },
+          update: {
+            $set: {
+              status: item.status,
+              markedBy: teacherId,
+              markedAt: Date.now()
+            }
+          },
+          upsert: true
+        }
+      };
+    });
+
+    if (attendanceOps.length > 0) {
+      await Attendance.bulkWrite(attendanceOps);
+    }
+
+    res.status(201).json({ success: true, message: "Attendance saved successfully", data: newSession });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({ success: false, message: "Attendance has already been submitted for this class and session." });
+    }
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Get session-wise attendance
+// @route   GET /api/attendance/session/:classId
+// @access  Private
+const getSessionAttendance = async (req, res) => {
+  try {
+    const { classId } = req.params;
+    const { date, session } = req.query;
+
+    if (!date || !session) {
+      return res.status(400).json({ success: false, message: "Date and session are required" });
+    }
+
+    const sessionRecord = await AttendanceSession.findOne({ classId, attendanceDate: date, session })
+      .populate("submittedBy", "name email")
+      .populate("records.studentId", "name email");
+
+    res.json({ success: true, data: sessionRecord });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+// @desc    Get class attendance for a specific date
+// @route   GET /api/attendance/class/:classId
+// @access  Private
+const getClassAttendance = async (req, res) => {
+  try {
+    const { classId } = req.params;
+    const dateStr = req.query.date;
+    
+    const classData = await Class.findById(classId);
+    if (!classData) {
+      return res.status(404).json({ success: false, message: "Class not found" });
+    }
+
+    if (req.user.role === "teacher" && classData.teacherId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: "Access denied" });
+    }
+
+    let filter = { classId };
+    if (dateStr) {
+      const searchDate = new Date(dateStr);
+      searchDate.setHours(0,0,0,0);
+      filter.date = searchDate;
+    }
+
+    const records = await Attendance.find(filter)
+      .populate("studentId", "name email")
+      .sort({ date: -1 });
+
+    res.json({ success: true, data: records });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Get student's own attendance
+// @route   GET /api/attendance/my
+// @access  Private (Student only)
+const getStudentAttendance = async (req, res) => {
+  try {
+    const records = await Attendance.find({ studentId: req.user._id })
+      .populate("classId", "className")
+      .sort({ date: -1 });
+
+    let present = 0;
+    let absent = 0;
+    let leave = 0;
+
+    records.forEach(r => {
+      if (r.status === "present") present++;
+      if (r.status === "absent") absent++;
+      if (r.status === "leave") leave++;
+    });
+
+    const totalCalculated = present + absent;
+    const percentage = totalCalculated === 0 ? 0 : Math.round((present / totalCalculated) * 100);
+
+    res.json({ 
+      success: true, 
+      data: {
+        records,
+        stats: {
+          present,
+          absent,
+          leave,
+          percentage
+        }
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Update single attendance record
+// @route   PATCH /api/attendance/:attendanceId
+// @access  Private (Teacher only)
+const updateAttendance = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const record = await Attendance.findById(req.params.attendanceId).populate("classId");
+    
+    if (!record) {
+      return res.status(404).json({ success: false, message: "Attendance record not found" });
+    }
+
+    if (record.classId.teacherId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: "Access denied" });
+    }
+
+    record.status = status;
+    record.markedBy = req.user._id;
+    record.markedAt = Date.now();
+    await record.save();
+
+    if (status === 'absent') {
+      notifyParentsIfAbsent(record.studentId, record.date, null, req.user._id);
+    }
+
+    res.json({ success: true, message: "Attendance updated", data: record });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Principal Overview
+// @route   GET /api/attendance/overview
+// @access  Private (Principal only)
+const getOverview = async (req, res) => {
+  try {
+    const dateStr = req.query.date || new Date().toISOString();
+    const searchDate = new Date(dateStr).toISOString().split('T')[0];
+
+    const sessionRecords = await AttendanceSession.find({ attendanceDate: searchDate })
+      .populate("classId")
+      .populate("submittedBy", "name");
+    
+    let present = 0, absent = 0, leave = 0;
+    
+    const classSessionStatus = {};
+
+    sessionRecords.forEach(record => {
+      if (!classSessionStatus[record.classId._id]) {
+        classSessionStatus[record.classId._id] = { classId: record.classId, morning: null, afternoon: null };
+      }
+      
+      let pCount = 0, aCount = 0, lCount = 0;
+      record.records.forEach(r => {
+        if (r.status === "present") { present++; pCount++; }
+        if (r.status === "absent") { absent++; aCount++; }
+        if (r.status === "leave") { leave++; lCount++; }
+      });
+
+      const sessionData = {
+        submittedBy: record.submittedBy?.name || 'Unknown',
+        submittedAt: record.submittedAt,
+        present: pCount,
+        absent: aCount,
+        leave: lCount,
+        status: "Completed"
+      };
+
+      if (record.session === 'MORNING') classSessionStatus[record.classId._id].morning = sessionData;
+      if (record.session === 'AFTERNOON') classSessionStatus[record.classId._id].afternoon = sessionData;
+    });
+
+    // Also get total students count
+    const User = require("../models/User");
+    const totalStudents = await User.countDocuments({ role: "student", status: "active" });
+
+    // Since we now have morning and afternoon sessions, the total "present" across all records might be double the number of students.
+    // To give a daily average, we can divide by the number of sessions, or we can just report the raw numbers.
+    // For simplicity, let's keep it as raw numbers or calculate unique student presence.
+    // Assuming the user just wants the raw counts in the overview cards:
+    const totalCalculated = present + absent;
+    const percentage = totalCalculated === 0 ? 0 : Math.round((present / totalCalculated) * 100);
+
+    res.json({
+      success: true,
+      data: {
+        totalStudents,
+        present,
+        absent,
+        leave,
+        percentage,
+        classSessions: Object.values(classSessionStatus)
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Get total attendance report (for charts)
+// @route   GET /api/attendance/report/total
+// @access  Private (Principal only)
+const getTotalAttendanceReport = async (req, res) => {
+  try {
+    const { startDate, endDate, classId } = req.query;
+    
+    if (!startDate || !endDate) {
+      return res.status(400).json({ success: false, message: "startDate and endDate are required" });
+    }
+
+    const start = new Date(startDate);
+    start.setHours(0,0,0,0);
+    const end = new Date(endDate);
+    end.setHours(23,59,59,999);
+
+    // Enforce Principal's school isolation
+    const User = require("../models/User");
+    const studentsInSchool = await User.find({ role: "student", schoolId: req.user.schoolId }).select("_id");
+    const studentIds = studentsInSchool.map(s => s._id);
+
+    // Build filter
+    const matchFilter = {
+      date: { $gte: start, $lte: end },
+      studentId: { $in: studentIds }
+    };
+
+    if (classId) {
+      matchFilter.classId = new mongoose.Types.ObjectId(classId);
+    }
+
+    const mongoose = require("mongoose");
+    const records = await Attendance.aggregate([
+      { $match: matchFilter },
+      { 
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+          presentCount: {
+            $sum: { $cond: [{ $eq: ["$status", "present"] }, 1, 0] }
+          },
+          absentCount: {
+            $sum: { $cond: [{ $eq: ["$status", "absent"] }, 1, 0] }
+          },
+          leaveCount: {
+            $sum: { $cond: [{ $eq: ["$status", "leave"] }, 1, 0] }
+          },
+          totalRecords: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    const formattedData = records.map(r => {
+      // Calculate percentage based on present vs total marked (eligible)
+      // Including absent and leave as part of total eligible.
+      const totalStudents = r.totalRecords;
+      const attendancePercentage = totalStudents === 0 ? 0 : Number(((r.presentCount / totalStudents) * 100).toFixed(2));
+      
+      return {
+        date: r._id,
+        presentCount: r.presentCount,
+        absentCount: r.absentCount,
+        leaveCount: r.leaveCount,
+        totalStudents,
+        attendancePercentage
+      };
+    });
+
+    res.json({ success: true, data: formattedData });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Mark teacher own attendance (Present)
+// @route   POST /api/attendance/teacher/mark
+// @access  Private (Teacher)
+const markTeacherAttendance = async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    
+    // Check if already marked
+    const existing = await TeacherAttendance.findOne({ teacherId: req.user._id, date: today });
+    if (existing) {
+      return res.status(400).json({ success: false, message: "Attendance already marked for today" });
+    }
+    
+    const record = await TeacherAttendance.create({
+      teacherId: req.user._id,
+      date: today,
+      status: "present"
+    });
+    
+    res.json({ success: true, data: record });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Get teacher's today attendance status
+// @route   GET /api/attendance/teacher/today
+// @access  Private (Teacher)
+const getTeacherTodayAttendance = async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    
+    const record = await TeacherAttendance.findOne({ teacherId: req.user._id, date: today });
+    res.json({ success: true, data: record });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Get all teachers' attendance for a specific date
+// @route   GET /api/attendance/teacher/all
+// @access  Private (Principal)
+const getAllTeachersTodayAttendance = async (req, res) => {
+  try {
+    const dateStr = req.query.date;
+    const searchDate = dateStr ? new Date(dateStr) : new Date();
+    searchDate.setHours(0,0,0,0);
+    
+    const User = require("../models/User");
+    const allTeachers = await User.find({ role: "teacher", status: "active" }).select("_id name email profilePic");
+    
+    const markedAttendances = await TeacherAttendance.find({ date: searchDate });
+    
+    const result = allTeachers.map(teacher => {
+      const attendance = markedAttendances.find(a => a.teacherId.toString() === teacher._id.toString());
+      return {
+        _id: teacher._id,
+        name: teacher.name,
+        email: teacher.email,
+        profilePic: teacher.profilePic,
+        status: attendance ? attendance.status : "absent" // Default to absent if not marked
+      };
+    });
+    
+    res.json({ success: true, data: result, date: searchDate });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Get teacher's attendance history
+// @route   GET /api/attendance/teacher/:id/history
+// @access  Private (Principal)
+const getTeacherAttendanceHistory = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { month, year } = req.query; // optional, month is 1-12
+    
+    let filter = { teacherId: id };
+    
+    if (month && year) {
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+      filter.date = { $gte: startDate, $lte: endDate };
+    }
+    
+    const records = await TeacherAttendance.find(filter).sort({ date: 1 });
+    res.json({ success: true, data: records });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = {
+  saveAttendance,
+  saveSessionAttendance,
+  getSessionAttendance,
+  getClassAttendance,
+  getStudentAttendance,
+  updateAttendance,
+  getOverview,
+  getTotalAttendanceReport,
+  markTeacherAttendance,
+  getTeacherTodayAttendance,
+  getAllTeachersTodayAttendance,
+  getTeacherAttendanceHistory,
+};

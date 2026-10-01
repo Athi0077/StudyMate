@@ -1,0 +1,93 @@
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const helmet = require("helmet");
+const connectDB = require("./src/config/db");
+const dns = require("node:dns")
+dns.setServers(['8.8.8.8', '8.8.4.4'])
+
+// Routes 
+const authRoutes = require("./src/routes/authRoutes");
+const dashboardRoutes = require("./src/routes/dashboardRoutes");
+
+const app = express();
+// Socket is initialized conditionally later
+let server, initSocket;
+if (process.env.NODE_ENV !== 'test') {
+  const http = require("http");
+  initSocket = require("./src/utils/socket").initSocket;
+  server = http.createServer(app);
+  initSocket(server);
+}
+
+// Middleware
+app.use(helmet());
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// API Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/classes", require("./src/routes/classRoutes"));
+app.use("/api/class-requests", require("./src/routes/classRequestRoutes"));
+app.use("/api/subjects", require("./src/routes/subjectRoutes"));
+app.use("/api/homework", require("./src/routes/homeworkRoutes"));
+app.use("/api/submissions", require("./src/routes/submissionRoutes"));
+app.use("/api/attendance", require("./src/routes/attendanceRoutes"));
+app.use("/api/leave-requests", require("./src/routes/leaveRoutes"));
+app.use("/api/notifications", require("./src/routes/notificationRoutes"));
+app.use("/api/dashboard", require("./src/routes/dashboardRoutes"));
+app.use("/api/users", require("./src/routes/userRoutes"));
+app.use("/api/standards", require("./src/routes/standardRoutes"));
+app.use("/api/teacher-assignments", require("./src/routes/teacherAssignmentRoutes"));
+app.use("/api/principal/teachers", require("./src/routes/principalTeacherRoutes"));
+app.use("/api/projects", require("./src/routes/projectRoutes"));
+app.use("/api/tests", require("./src/routes/testRoutes"));
+app.use("/api/academic-years", require("./src/routes/academicYearRoutes"));
+app.use("/api/promotions", require("./src/routes/promotionRoutes"));
+app.use("/api/admissions", require("./src/routes/admissionRoutes"));
+app.use("/api/general-register", require("./src/routes/generalRegisterRoutes"));
+app.use("/api/parents", require("./src/routes/parentRoutes"));
+app.use("/api/syllabus", require("./src/routes/syllabusRoutes"));
+app.use("/api/exams", require("./src/routes/examRoutes"));
+app.use("/api/chat", require("./src/routes/chatRoutes"));
+app.use("/api/reports", require("./src/routes/reportRoutes"));
+app.use("/api/quotes", require("./src/routes/quoteRoutes"));
+app.use("/api/announcements", require("./src/routes/announcementRoutes"));
+app.use("/api/resources", require("./src/routes/resourceRoutes"));
+app.use("/api/timetable", require("./src/routes/timetableRoutes"));
+app.use("/api/todos", require("./src/routes/todoRoutes"));
+app.use("/api/temporary-principal-access", require("./src/routes/temporaryAccessRoutes"));
+app.use("/api/id-card", require("./src/routes/idCardRoutes"));
+app.use("/api/super-admin", require("./src/routes/superAdminRoutes"));
+app.use("/api/principal/ai", require("./src/routes/principalAiRoutes"));
+app.use("/api", dashboardRoutes);
+
+// Root route
+app.get("/", (req, res) => {
+  res.json({ message: "School Management API Step 1" });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ success: false, message: err.message || "Server Error" });
+});
+
+const PORT = process.env.PORT || 5000;
+
+if (process.env.NODE_ENV !== 'test') {
+  // Connect to MongoDB
+  connectDB().then(() => {
+    // Seed principal after DB connection
+    const { seedPrincipal, seedSuperAdmin } = require("./src/utils/seed");
+    seedPrincipal();
+    seedSuperAdmin();
+  });
+
+  server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+module.exports = app;

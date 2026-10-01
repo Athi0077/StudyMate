@@ -1,0 +1,231 @@
+// import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
+import ProtectedRoute from './routes/ProtectedRoute';
+import { Toaster } from 'react-hot-toast';
+
+import Login from './pages/Login';
+import Register from './pages/Register';
+import ChangePassword from './pages/ChangePassword';
+import NotificationsPage from './pages/NotificationsPage';
+import VerifyID from './pages/VerifyID';
+import DigitalIDCard from './pages/DigitalIDCard';
+import IDCardManagement from './pages/IDCardManagement';
+
+import PrincipalDashboard from './pages/PrincipalDashboard';
+import PrincipalClasses from './pages/PrincipalClasses';
+import PrincipalHomework from './pages/PrincipalHomework';
+import PrincipalAttendance from './pages/PrincipalAttendance';
+import PrincipalClassAttendance from './pages/PrincipalClassAttendance';
+import PrincipalTeachers from './pages/PrincipalTeachers';
+import PrincipalStandards from './pages/PrincipalStandards';
+import PrincipalAssignments from './pages/PrincipalAssignments';
+import PrincipalAcademicYears from './pages/PrincipalAcademicYears';
+import PrincipalAcademicYearCreate from './pages/PrincipalAcademicYearCreate';
+import PrincipalPromotionPreview from './pages/PrincipalPromotionPreview';
+import PrincipalAdmissions from './pages/PrincipalAdmissions';
+import PrincipalStudents from './pages/PrincipalStudents';
+import PrincipalClassStudents from './pages/PrincipalClassStudents';
+import PrincipalParents from './pages/PrincipalParents';
+import PrincipalExams from './pages/PrincipalExams';
+import PrincipalCreateExam from './pages/PrincipalCreateExam';
+import PrincipalEditExam from './pages/PrincipalEditExam';
+import PrincipalAnnouncements from './pages/PrincipalAnnouncements';
+import PrincipalQuotes from './pages/PrincipalQuotes';
+import PrincipalAIDashboard from './pages/PrincipalAIDashboard';
+import PrincipalAIStudentAnalysis from './pages/PrincipalAIStudentAnalysis';
+import PrincipalAIClassAnalytics from './pages/PrincipalAIClassAnalytics';
+import PrincipalAIAssistant from './pages/PrincipalAIAssistant';
+import PrincipalAIReports from './pages/PrincipalAIReports';
+import PrincipalAIProgress from './pages/PrincipalAIProgress';
+
+import TeacherDashboard from './pages/TeacherDashboard';
+import TeacherClasses from './pages/TeacherClasses';
+import TeacherClassDetails from './pages/TeacherClassDetails';
+import TeacherJoinRequests from './pages/TeacherJoinRequests';
+import TeacherHomeworkList from './pages/TeacherHomeworkList';
+import TeacherHomeworkApprovals from './pages/TeacherHomeworkApprovals';
+import TeacherHomeworkCreate from './pages/TeacherHomeworkCreate';
+import TeacherHomeworkDetails from './pages/TeacherHomeworkDetails';
+import TeacherSubmissionReview from './pages/TeacherSubmissionReview';
+import TeacherProjects from './pages/TeacherProjects';
+import TeacherProjectCreate from './pages/TeacherProjectCreate';
+import TeacherProjectApprovals from './pages/TeacherProjectApprovals';
+import TeacherTests from './pages/TeacherTests';
+import TeacherTestCreate from './pages/TeacherTestCreate';
+import TeacherTestDetails from './pages/TeacherTestDetails';
+import TeacherAttendanceList from './pages/TeacherAttendanceList';
+import TeacherAttendance from './pages/TeacherAttendance';
+import TeacherLeaveRequests from './pages/TeacherLeaveRequests';
+import TeacherGeneralRegister from './pages/TeacherGeneralRegister';
+import TeacherSyllabus from './pages/TeacherSyllabus';
+import TeacherExams from './pages/TeacherExams';
+import TeacherAnnouncements from './pages/TeacherAnnouncements';
+
+import StudentDashboard from './pages/StudentDashboard';
+import StudentClass from './pages/StudentClass';
+import StudentJoinClass from './pages/StudentJoinClass';
+import StudentHomeworkList from './pages/StudentHomeworkList';
+import StudentHomeworkDetails from './pages/StudentHomeworkDetails';
+import StudentHomeworkHistory from './pages/StudentHomeworkHistory';
+import StudentProjects from './pages/StudentProjects';
+import StudentProjectDetails from './pages/StudentProjectDetails';
+import StudentTests from './pages/StudentTests';
+import StudentTestDetails from './pages/StudentTestDetails';
+import StudentAttendance from './pages/StudentAttendance';
+import StudentLeaveRequest from './pages/StudentLeaveRequest';
+import StudentSyllabus from './pages/StudentSyllabus';
+import StudentExams from './pages/StudentExams';
+import StudentReportCard from './pages/StudentReportCard';
+import StudentResources from './pages/StudentResources';
+import StudentAnalytics from './pages/StudentAnalytics';
+import Profile from './pages/Profile';
+import ParentDashboard from './pages/ParentDashboard';
+import ParentActivities from './pages/ParentActivities';
+
+import PrincipalReports from './pages/PrincipalReports';
+import TeacherReports from './pages/TeacherReports';
+import StudentReports from './pages/StudentReports';
+import ParentReports from './pages/ParentReports';
+import TeacherTimetable from './pages/TeacherTimetable';
+import StudentTimetable from './pages/StudentTimetable';
+
+import PrincipalTodos from './pages/PrincipalTodos';
+import PrincipalTemporaryAccess from './pages/PrincipalTemporaryAccess';
+import TeacherTodos from './pages/TeacherTodos';
+import StudentTodos from './pages/StudentTodos';
+
+import SuperAdminDashboard from './pages/SuperAdminDashboard';
+import SuperAdminCalculator from './pages/SuperAdminCalculator';
+
+function App() {
+  return (
+    <AuthProvider>
+      <NotificationProvider>
+        <Router>
+          <Toaster position="top-right" />
+          <Routes>
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
+            <Route path="/verify-id/:verificationId" element={<VerifyID />} />
+
+            {/* Global Protected Routes */}
+            <Route path="/notifications" element={<ProtectedRoute allowedRoles={['principal', 'teacher', 'student', 'parent']}><NotificationsPage /></ProtectedRoute>} />
+
+            {/* Super Admin Routes */}
+            <Route path="/super-admin/dashboard" element={<ProtectedRoute allowedRoles={['superadmin']}><SuperAdminDashboard /></ProtectedRoute>} />
+            <Route path="/super-admin/calculator" element={<ProtectedRoute allowedRoles={['superadmin']}><SuperAdminCalculator /></ProtectedRoute>} />
+
+            {/* Principal Routes */}
+            <Route path="/principal/dashboard" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalDashboard /></ProtectedRoute>} />
+            <Route path="/principal/quotes" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalQuotes /></ProtectedRoute>} />
+            <Route path="/principal/announcements" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalAnnouncements /></ProtectedRoute>} />
+            <Route path="/principal/classes" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalClasses /></ProtectedRoute>} />
+            <Route path="/principal/homework" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalHomework /></ProtectedRoute>} />
+            <Route path="/principal/teachers" element={<ProtectedRoute allowedRoles={['main_principal']}><PrincipalTeachers /></ProtectedRoute>} />
+            <Route path="/principal/id-cards" element={<ProtectedRoute allowedRoles={['principal']}><IDCardManagement /></ProtectedRoute>} />
+            <Route path="/principal/my-id-card" element={<ProtectedRoute allowedRoles={['principal']}><DigitalIDCard /></ProtectedRoute>} />
+            <Route path="/principal/temporary-access" element={<ProtectedRoute allowedRoles={['main_principal']}><PrincipalTemporaryAccess /></ProtectedRoute>} />
+            <Route path="/principal/attendance" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalAttendance /></ProtectedRoute>} />
+            <Route path="/principal/attendance/:classId" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalClassAttendance /></ProtectedRoute>} />
+            <Route path="/principal/standards" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalStandards /></ProtectedRoute>} />
+            <Route path="/principal/assignments" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalAssignments /></ProtectedRoute>} />
+            <Route path="/principal/academic-years" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalAcademicYears /></ProtectedRoute>} />
+            <Route path="/principal/academic-years/create" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalAcademicYearCreate /></ProtectedRoute>} />
+            <Route path="/principal/academic-years/:id/promotion/preview" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalPromotionPreview /></ProtectedRoute>} />
+            <Route path="/principal/academic-years/:id/admissions" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalAdmissions /></ProtectedRoute>} />
+            <Route path="/principal/students" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalStudents /></ProtectedRoute>} />
+            <Route path="/principal/students/:classId" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalClassStudents /></ProtectedRoute>} />
+            <Route path="/principal/parents" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalParents /></ProtectedRoute>} />
+            <Route path="/principal/exams" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalExams /></ProtectedRoute>} />
+            <Route path="/principal/exams/create" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalCreateExam /></ProtectedRoute>} />
+            <Route path="/principal/exams/edit/:id" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalEditExam /></ProtectedRoute>} />
+            <Route path="/principal/todos" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalTodos /></ProtectedRoute>} />
+            <Route path="/principal/reports" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalReports /></ProtectedRoute>} />
+            <Route path="/principal/profile" element={<ProtectedRoute allowedRoles={['principal']}><Profile /></ProtectedRoute>} />
+            <Route path="/principal/ai-dashboard" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalAIDashboard /></ProtectedRoute>} />
+            <Route path="/principal/ai-dashboard/class-analytics" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalAIClassAnalytics /></ProtectedRoute>} />
+            <Route path="/principal/ai-assistant" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalAIAssistant /></ProtectedRoute>} />
+            <Route path="/principal/ai-reports" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalAIReports /></ProtectedRoute>} />
+            <Route path="/principal/ai-progress" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalAIProgress /></ProtectedRoute>} />
+            <Route path="/principal/ai-student/:studentId" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalAIStudentAnalysis /></ProtectedRoute>} />
+
+            {/* Teacher Routes */}
+            <Route path="/teacher/dashboard" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherDashboard /></ProtectedRoute>} />
+            <Route path="/teacher/announcements" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherAnnouncements /></ProtectedRoute>} />
+            <Route path="/teacher/classes" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherClasses /></ProtectedRoute>} />
+            <Route path="/teacher/classes/:classId" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherClassDetails /></ProtectedRoute>} />
+            <Route path="/teacher/class-requests" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherJoinRequests /></ProtectedRoute>} />
+            <Route path="/teacher/homework" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherHomeworkList /></ProtectedRoute>} />
+            <Route path="/teacher/homework-approvals" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherHomeworkApprovals /></ProtectedRoute>} />
+            <Route path="/teacher/homework/create" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherHomeworkCreate /></ProtectedRoute>} />
+            <Route path="/teacher/homework/:id" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherHomeworkDetails /></ProtectedRoute>} />
+            <Route path="/teacher/submissions/:submissionId" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherSubmissionReview /></ProtectedRoute>} />
+            
+            <Route path="/teacher/projects" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherProjects /></ProtectedRoute>} />
+            <Route path="/teacher/parents" element={<ProtectedRoute allowedRoles={['teacher']}><PrincipalParents /></ProtectedRoute>} />
+            <Route path="/teacher/projects/create" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherProjectCreate /></ProtectedRoute>} />
+            <Route path="/teacher/project-approvals" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherProjectApprovals /></ProtectedRoute>} />
+            
+            <Route path="/teacher/tests" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherTests /></ProtectedRoute>} />
+            <Route path="/teacher/tests/create" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherTestCreate /></ProtectedRoute>} />
+            <Route path="/teacher/tests/:id/edit" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherTestCreate /></ProtectedRoute>} />
+            <Route path="/teacher/tests/:id" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherTestDetails /></ProtectedRoute>} />
+            
+            <Route path="/teacher/attendance" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherAttendanceList /></ProtectedRoute>} />
+            <Route path="/teacher/attendance/:classId" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherAttendance /></ProtectedRoute>} />
+            <Route path="/teacher/leave-requests" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherLeaveRequests /></ProtectedRoute>} />
+            <Route path="/teacher/general-register" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherGeneralRegister /></ProtectedRoute>} />
+            <Route path="/teacher/syllabus" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherSyllabus /></ProtectedRoute>} />
+            <Route path="/teacher/exams" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherExams /></ProtectedRoute>} />
+            <Route path="/teacher/reports" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherReports /></ProtectedRoute>} />
+            <Route path="/teacher/timetable" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherTimetable /></ProtectedRoute>} />
+            <Route path="/teacher/todos" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherTodos /></ProtectedRoute>} />
+            <Route path="/teacher/profile" element={<ProtectedRoute allowedRoles={['teacher']}><Profile /></ProtectedRoute>} />
+            <Route path="/teacher/my-id-card" element={<ProtectedRoute allowedRoles={['teacher']}><DigitalIDCard /></ProtectedRoute>} />
+
+            {/* Student Routes */}
+            <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={['student']}><StudentDashboard /></ProtectedRoute>} />
+            <Route path="/student/class" element={<ProtectedRoute allowedRoles={['student']}><StudentClass /></ProtectedRoute>} />
+            <Route path="/student/join-class" element={<ProtectedRoute allowedRoles={['student']}><StudentJoinClass /></ProtectedRoute>} />
+            <Route path="/student/homework" element={<ProtectedRoute allowedRoles={['student']}><StudentHomeworkList /></ProtectedRoute>} />
+            <Route path="/student/homework/history" element={<ProtectedRoute allowedRoles={['student']}><StudentHomeworkHistory /></ProtectedRoute>} />
+            <Route path="/student/homework/:id" element={<ProtectedRoute allowedRoles={['student']}><StudentHomeworkDetails /></ProtectedRoute>} />
+            
+            <Route path="/student/projects" element={<ProtectedRoute allowedRoles={['student']}><StudentProjects /></ProtectedRoute>} />
+            <Route path="/student/projects/:id" element={<ProtectedRoute allowedRoles={['student']}><StudentProjectDetails /></ProtectedRoute>} />
+            
+            <Route path="/student/tests" element={<ProtectedRoute allowedRoles={['student']}><StudentTests /></ProtectedRoute>} />
+            <Route path="/student/tests/:id" element={<ProtectedRoute allowedRoles={['student']}><StudentTestDetails /></ProtectedRoute>} />
+            
+            <Route path="/student/attendance" element={<ProtectedRoute allowedRoles={['student']}><StudentAttendance /></ProtectedRoute>} />
+            <Route path="/student/leave/request" element={<ProtectedRoute allowedRoles={['student']}><StudentLeaveRequest /></ProtectedRoute>} />
+            <Route path="/student/syllabus/:subjectId" element={<ProtectedRoute allowedRoles={['student']}><StudentSyllabus /></ProtectedRoute>} />
+            <Route path="/student/exams" element={<ProtectedRoute allowedRoles={['student']}><StudentExams /></ProtectedRoute>} />
+            <Route path="/student/report-card" element={<ProtectedRoute allowedRoles={['student']}><StudentReportCard /></ProtectedRoute>} />
+            <Route path="/student/resources" element={<ProtectedRoute allowedRoles={['student']}><StudentResources /></ProtectedRoute>} />
+            <Route path="/student/analytics" element={<ProtectedRoute allowedRoles={['student']}><StudentAnalytics /></ProtectedRoute>} />
+            <Route path="/student/reports" element={<ProtectedRoute allowedRoles={['student']}><StudentReports /></ProtectedRoute>} />
+            <Route path="/student/timetable" element={<ProtectedRoute allowedRoles={['student', 'parent']}><StudentTimetable /></ProtectedRoute>} />
+            <Route path="/student/todos" element={<ProtectedRoute allowedRoles={['student']}><StudentTodos /></ProtectedRoute>} />
+            <Route path="/student/profile" element={<ProtectedRoute allowedRoles={['student']}><Profile /></ProtectedRoute>} />
+            <Route path="/student/my-id-card" element={<ProtectedRoute allowedRoles={['student']}><DigitalIDCard /></ProtectedRoute>} />
+
+            {/* Parent Routes */}
+            <Route path="/parent/dashboard" element={<ProtectedRoute allowedRoles={['parent']}><ParentDashboard /></ProtectedRoute>} />
+            <Route path="/parent/activities" element={<ProtectedRoute allowedRoles={['parent']}><ParentActivities /></ProtectedRoute>} />
+            <Route path="/parent/reports" element={<ProtectedRoute allowedRoles={['parent']}><ParentReports /></ProtectedRoute>} />
+            <Route path="/parent/profile" element={<ProtectedRoute allowedRoles={['parent']}><Profile /></ProtectedRoute>} />
+
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </Router>
+      </NotificationProvider>
+    </AuthProvider>
+  );
+}
+
+export default App;
