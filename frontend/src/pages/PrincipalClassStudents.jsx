@@ -29,11 +29,11 @@ const PrincipalClassStudents = () => {
     doc.text(`Student List - ${classData.className}`, 14, 15);
     doc.text(`Teacher: ${classData.teacherId.name}`, 14, 22);
     
-    const tableColumn = ["#", "Student Name", "Email", "Phone", "Address", "Parent Name", "Parent Phone"];
+    const tableColumn = ["#", "Student Name", "Student ID", "Phone", "Address", "Parent Name", "Parent Phone"];
     const tableRows = classData.students.map((student, index) => [
       index + 1,
       student.name,
-      student.email?.endsWith('@studymate.school') ? student.studentId || 'N/A' : (student.email || 'N/A'),
+      student.studentId || 'N/A',
       student.phone || 'N/A',
       student.address || 'N/A',
       student.parentName || 'N/A',
@@ -50,11 +50,11 @@ const PrincipalClassStudents = () => {
 
   const exportCSV = () => {
     if (!classData || classData.students.length === 0) return;
-    const headers = ["S.No", "Student Name", "Email", "Phone", "Address", "Parent Name", "Parent Phone"];
+    const headers = ["S.No", "Student Name", "Student ID", "Phone", "Address", "Parent Name", "Parent Phone"];
     const rows = classData.students.map((student, index) => [
       index + 1,
       `"${student.name}"`, // Quote to handle commas in names
-      `"${student.email?.endsWith('@studymate.school') ? student.studentId || 'N/A' : (student.email || 'N/A')}"`,
+      `"${student.studentId || 'N/A'}"`,
       `"${student.phone || 'N/A'}"`,
       `"${(student.address || 'N/A').replace(/"/g, '""')}"`,
       `"${student.parentName || 'N/A'}"`,
@@ -127,8 +127,7 @@ const PrincipalClassStudents = () => {
                     <td className="p-4 text-gray-500">{index + 1}</td>
                     <td className="p-4 font-bold text-gray-800 whitespace-nowrap">{student.name}</td>
                     <td className="p-4 whitespace-nowrap">
-                      <div className="text-gray-500 font-mono text-xs">ID: {student.studentId || 'N/A'}</div>
-                      {student.email && !student.email.endsWith('@studymate.school') && <div className="text-gray-800 text-sm">{student.email}</div>}
+                      <div className="text-gray-800 font-bold text-sm">ID: {student.studentId || 'N/A'}</div>
                       <div className="text-blue-600 font-medium text-xs mt-1 bg-blue-50 inline-block px-2 py-0.5 rounded-md">📞 {student.phone || 'N/A'}</div>
                     </td>
                     <td className="p-4 whitespace-nowrap">

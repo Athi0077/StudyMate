@@ -97,21 +97,42 @@ const PrincipalAttendance = () => {
                             <p className="font-bold text-gray-800 text-lg">{cls.section}</p>
                             <p className="text-xs text-gray-500 mt-1 uppercase tracking-wider">Section</p>
                           </div>
-                          <div className="space-y-2 mt-auto">
-                            <div className="flex justify-between items-center text-xs">
-                              <span className="font-semibold text-gray-600">Morning:</span>
-                              {m ? (
-                                <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded font-bold" title={`By ${m.submittedBy} at ${new Date(m.submittedAt).toLocaleTimeString()}`}>Completed</span>
-                              ) : (
-                                <span className="bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-bold">Not Taken</span>
+                          <div className="space-y-4 mt-auto">
+                            {/* Morning Session Stats */}
+                            <div className="bg-gray-50 border border-gray-100 p-2 rounded-lg text-xs">
+                              <div className="flex justify-between items-center mb-1 pb-1 border-b border-gray-200">
+                                <span className="font-bold text-gray-700">Morning</span>
+                                {m ? (
+                                  <span className="text-green-700 font-bold" title={`By ${m.submittedBy} at ${new Date(m.submittedAt).toLocaleTimeString()}`}>Completed</span>
+                                ) : (
+                                  <span className="text-gray-400 font-bold">Not Taken</span>
+                                )}
+                              </div>
+                              {m && (
+                                <div className="flex justify-between text-gray-600 font-medium px-1">
+                                  <span>P: <span className="text-green-600">{m.present}</span></span>
+                                  <span>A: <span className="text-red-600">{m.absent}</span></span>
+                                  <span>L: <span className="text-orange-600">{m.leave}</span></span>
+                                </div>
                               )}
                             </div>
-                            <div className="flex justify-between items-center text-xs">
-                              <span className="font-semibold text-gray-600">Afternoon:</span>
-                              {a ? (
-                                <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded font-bold" title={`By ${a.submittedBy} at ${new Date(a.submittedAt).toLocaleTimeString()}`}>Completed</span>
-                              ) : (
-                                <span className="bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-bold">Not Taken</span>
+
+                            {/* Afternoon Session Stats */}
+                            <div className="bg-gray-50 border border-gray-100 p-2 rounded-lg text-xs">
+                              <div className="flex justify-between items-center mb-1 pb-1 border-b border-gray-200">
+                                <span className="font-bold text-gray-700">Afternoon</span>
+                                {a ? (
+                                  <span className="text-green-700 font-bold" title={`By ${a.submittedBy} at ${new Date(a.submittedAt).toLocaleTimeString()}`}>Completed</span>
+                                ) : (
+                                  <span className="text-gray-400 font-bold">Not Taken</span>
+                                )}
+                              </div>
+                              {a && (
+                                <div className="flex justify-between text-gray-600 font-medium px-1">
+                                  <span>P: <span className="text-green-600">{a.present}</span></span>
+                                  <span>A: <span className="text-red-600">{a.absent}</span></span>
+                                  <span>L: <span className="text-orange-600">{a.leave}</span></span>
+                                </div>
                               )}
                             </div>
                           </div>

@@ -14,11 +14,11 @@ const stableTrend = [{ value: 50 }, { value: 52 }, { value: 49 }, { value: 55 },
 const volatileTrend = [{ value: 20 }, { value: 80 }, { value: 40 }, { value: 90 }, { value: 50 }, { value: 85 }, { value: 70 }];
 
 const StatCard = ({ icon, bgIconClass, borderClass, value, label, trendData, strokeColor }) => (
-  <div className={`bg-white/80 backdrop-blur-xl border border-white/40 p-5 rounded-2xl shadow-soft flex flex-col items-center justify-center text-center gap-2 border-b-4 ${borderClass} hover:-translate-y-1 transition duration-300 relative overflow-hidden group`}>
+  <div className={`bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border border-white/40 dark:border-slate-700 p-5 rounded-2xl shadow-soft flex flex-col items-center justify-center text-center gap-2 border-b-4 ${borderClass} hover:-translate-y-1 transition duration-300 relative overflow-hidden group`}>
     <div className={`w-12 h-12 ${bgIconClass} rounded-full flex items-center justify-center font-bold text-xl relative z-10 group-hover:scale-110 transition-transform`}>{icon}</div>
     <div className="relative z-10">
-      <p className="text-2xl font-bold text-gray-800">{value}</p>
-      <p className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mt-1">{label}</p>
+      <p className="text-2xl font-bold text-gray-800 dark:text-white">{value}</p>
+      <p className="text-[10px] md:text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider mt-1">{label}</p>
     </div>
     {trendData && (
       <div className="absolute bottom-0 left-0 right-0 h-12 opacity-30 pointer-events-none translate-y-2 group-hover:translate-y-0 group-hover:opacity-50 transition-all duration-500">
@@ -42,11 +42,12 @@ const PrincipalDashboard = () => {
 
   const [schoolNameInput, setSchoolNameInput] = useState('');
   const [savingSchoolName, setSavingSchoolName] = useState(false);
+  const [selectedSession, setSelectedSession] = useState('MORNING');
 
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const res = await api.get('/dashboard/principal');
+        const res = await api.get(`/dashboard/principal?session=${selectedSession}`);
         setDashboardData(res.data.data);
         
         const [stdsRes, asgRes, usersRes, reqRes, reportsRes, schoolNameRes] = await Promise.all([
@@ -88,7 +89,7 @@ const PrincipalDashboard = () => {
       }
     };
     fetchDashboard();
-  }, []);
+  }, [selectedSession]);
 
   const handleSetSchoolName = async (e) => {
     e.preventDefault();
@@ -114,22 +115,50 @@ const PrincipalDashboard = () => {
     <Layout>
       <div className="space-y-6">
         {/* Welcome Banner */}
-        <div className="bg-green-50 rounded-2xl p-8 flex justify-between items-center relative overflow-hidden">
+        <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/50 rounded-2xl p-8 flex justify-between items-center relative overflow-hidden">
           <div className="z-10 relative">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Good Morning, {currentUser?.name}! 👋</h1>
-            <p className="text-gray-600 max-w-md">Manage your school efficiently and build a brighter future for every student.</p>
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-emerald-100 mb-2">Good Morning, {currentUser?.name}! 👋</h1>
+            <p className="text-gray-600 dark:text-emerald-200/80 max-w-md">Manage your school efficiently and build a brighter future for every student.</p>
           </div>
           <div className="absolute right-0 bottom-0 top-0 opacity-20 w-1/3 bg-gradient-to-l from-green-500 to-transparent"></div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <StatCard icon="🎓" bgIconClass="bg-blue-100 text-blue-600" borderClass="border-blue-500" strokeColor="#3b82f6" trendData={upTrend} value={dashboardData?.totalStudents || 0} label="Total Students" />
-          <StatCard icon="✅" bgIconClass="bg-green-100 text-green-600" borderClass="border-green-500" strokeColor="#22c55e" trendData={stableTrend} value={dashboardData?.todayAttendance?.present || 0} label="Students Present" />
-          <StatCard icon="👨‍🏫" bgIconClass="bg-purple-100 text-purple-600" borderClass="border-purple-500" strokeColor="#a855f7" trendData={stableTrend} value={stats.teachers || dashboardData?.totalTeachers || 0} label="Total Teachers" />
-          <StatCard icon="✔️" bgIconClass="bg-emerald-100 text-emerald-600" borderClass="border-emerald-500" strokeColor="#10b981" trendData={volatileTrend} value={dashboardData?.presentTeachers || 0} label="Teachers Present" />
-          <StatCard icon="📊" bgIconClass="bg-orange-100 text-orange-600" borderClass="border-orange-500" strokeColor="#f97316" trendData={upTrend} value={`${dashboardData?.overallStudentAttendancePercentage || 0}%`} label="Avg. Attendance" />
-          <StatCard icon="🏫" bgIconClass="bg-pink-100 text-pink-600" borderClass="border-pink-500" strokeColor="#ec4899" trendData={stableTrend} value={dashboardData?.totalClasses || 0} label="Active Classes" />
+        {/* Attendance Session Selector */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/50 dark:bg-slate-900/50 p-4 rounded-2xl border border-gray-100 dark:border-slate-800">
+          <div>
+            <h2 className="text-xl font-bold text-gray-800 dark:text-white">Daily Attendance Overview</h2>
+            <p className="text-xs text-gray-500 dark:text-slate-400">View real-time attendance statistics by session.</p>
+          </div>
+          <div className="flex bg-gray-100 dark:bg-[#0b1120] p-1 rounded-xl border border-gray-200 dark:border-slate-700 w-full sm:w-auto">
+            <button
+              onClick={() => setSelectedSession('MORNING')}
+              className={`flex-1 sm:flex-none px-6 py-2 rounded-lg text-sm font-bold transition-all ${selectedSession === 'MORNING' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200'}`}
+            >
+              Morning
+            </button>
+            <button
+              onClick={() => setSelectedSession('AFTERNOON')}
+              className={`flex-1 sm:flex-none px-6 py-2 rounded-lg text-sm font-bold transition-all ${selectedSession === 'AFTERNOON' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200'}`}
+            >
+              Afternoon
+            </button>
+          </div>
+        </div>
+
+        {/* Daily Attendance Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <StatCard icon="🎓" bgIconClass="bg-blue-100 text-blue-600" borderClass="border-blue-500" value={dashboardData?.totalStudents || 0} label="Total Students" />
+          <StatCard icon="✅" bgIconClass="bg-green-100 text-green-600" borderClass="border-green-500" value={dashboardData?.todayAttendance?.present || 0} label={`${selectedSession === 'MORNING' ? 'Morning' : 'Afternoon'} Present`} />
+          <StatCard icon="❌" bgIconClass="bg-red-100 text-red-600" borderClass="border-red-500" value={dashboardData?.todayAttendance?.absent || 0} label={`${selectedSession === 'MORNING' ? 'Morning' : 'Afternoon'} Absent`} />
+          <StatCard icon="🛌" bgIconClass="bg-amber-100 text-amber-600" borderClass="border-amber-500" value={dashboardData?.todayAttendance?.leave || 0} label="On Leave" />
+          <StatCard icon="📊" bgIconClass="bg-indigo-100 text-indigo-600" borderClass="border-indigo-500" value={`${dashboardData?.overallStudentAttendancePercentage || 0}%`} label="Attendance Rate" />
+        </div>
+
+        {/* School Overview Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <StatCard icon="👨‍🏫" bgIconClass="bg-purple-100 text-purple-600" borderClass="border-purple-500" trendData={stableTrend} strokeColor="#a855f7" value={stats.teachers || dashboardData?.totalTeachers || 0} label="Total Teachers" />
+          <StatCard icon="✔️" bgIconClass="bg-emerald-100 text-emerald-600" borderClass="border-emerald-500" trendData={volatileTrend} strokeColor="#10b981" value={dashboardData?.presentTeachers || 0} label="Teachers Present" />
+          <StatCard icon="🏫" bgIconClass="bg-pink-100 text-pink-600" borderClass="border-pink-500" trendData={stableTrend} strokeColor="#ec4899" value={dashboardData?.totalClasses || 0} label="Active Classes" />
         </div>
 
         {/* Main Content Grid */}

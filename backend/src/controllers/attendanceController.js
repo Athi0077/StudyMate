@@ -81,7 +81,7 @@ const saveAttendance = async (req, res) => {
       
       return {
         updateOne: {
-          filter: { studentId: item.studentId, classId, date: new Date(date).setHours(0,0,0,0) },
+          filter: { studentId: item.studentId, classId, date: new Date(date).setHours(0,0,0,0), session: "MORNING" },
           update: {
             $set: {
               status: item.status,
@@ -167,7 +167,7 @@ const saveSessionAttendance = async (req, res) => {
       }
       return {
         updateOne: {
-          filter: { studentId: item.studentId, classId, date: new Date(date).setHours(0,0,0,0) },
+          filter: { studentId: item.studentId, classId, date: new Date(date).setHours(0,0,0,0), session },
           update: {
             $set: {
               status: item.status,
@@ -335,6 +335,7 @@ const getOverview = async (req, res) => {
     let present = 0, absent = 0, leave = 0;
     
     const classSessionStatus = {};
+    const targetSession = req.query.session || "MORNING";
 
     sessionRecords.forEach(record => {
       if (!classSessionStatus[record.classId._id]) {
@@ -343,9 +344,16 @@ const getOverview = async (req, res) => {
       
       let pCount = 0, aCount = 0, lCount = 0;
       record.records.forEach(r => {
-        if (r.status === "present") { present++; pCount++; }
-        if (r.status === "absent") { absent++; aCount++; }
-        if (r.status === "leave") { leave++; lCount++; }
+        if (record.session === targetSession) {
+          if (r.status === "present") present++;
+          if (r.status === "absent") absent++;
+          if (r.status === "leave") leave++;
+        }
+        
+        // Calculate per-session stats to display in UI
+        if (r.status === "present") pCount++;
+        if (r.status === "absent") aCount++;
+        if (r.status === "leave") lCount++;
       });
 
       const sessionData = {
@@ -365,12 +373,12 @@ const getOverview = async (req, res) => {
     const User = require("../models/User");
     const totalStudents = await User.countDocuments({ role: "student", status: "active" });
 
-    // Since we now have morning and afternoon sessions, the total "present" across all records might be double the number of students.
-    // To give a daily average, we can divide by the number of sessions, or we can just report the raw numbers.
-    // For simplicity, let's keep it as raw numbers or calculate unique student presence.
-    // Assuming the user just wants the raw counts in the overview cards:
-    const totalCalculated = present + absent;
-    const percentage = totalCalculated === 0 ? 0 : Math.round((present / totalCalculated) * 100);
+    const eligibleStudentsForRate = Math.max(0, totalStudents - leave);
+    const percentage = eligibleStudentsForRate === 0 && present === 0 
+      ? 0 
+      : eligibleStudentsForRate === 0 && present > 0
+      ? 100
+      : Math.round((present / eligibleStudentsForRate) * 100);
 
     res.json({
       success: true,
@@ -409,10 +417,13 @@ const getTotalAttendanceReport = async (req, res) => {
     const studentsInSchool = await User.find({ role: "student", schoolId: req.user.schoolId }).select("_id");
     const studentIds = studentsInSchool.map(s => s._id);
 
+    const targetSession = req.query.session || "MORNING";
+
     // Build filter
     const matchFilter = {
       date: { $gte: start, $lte: end },
-      studentId: { $in: studentIds }
+      studentId: { $in: studentIds },
+      session: targetSession
     };
 
     if (classId) {

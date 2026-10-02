@@ -205,7 +205,7 @@ const PrincipalParents = () => {
                     <label className="block text-sm font-bold mb-2 text-gray-700">Link Students (Optional)</label>
                     <input 
                       type="text" 
-                      placeholder="Search students by name or email..."
+                      placeholder="Search students by name or ID..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="w-full p-2 mb-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none text-sm bg-gray-50"
@@ -222,7 +222,7 @@ const PrincipalParents = () => {
                           />
                           <div>
                             <p className="font-semibold text-sm text-green-800">{student.name}</p>
-                            <p className="text-xs text-green-600">{student.email}</p>
+                            <p className="text-xs text-green-600 font-mono">ID: {student.studentId || 'N/A'}</p>
                           </div>
                         </label>
                       ))}
@@ -231,7 +231,7 @@ const PrincipalParents = () => {
                       {searchQuery.trim() !== '' ? (
                         students
                           .filter(s => !formData.childrenIds.includes(s._id))
-                          .filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.email?.toLowerCase().includes(searchQuery.toLowerCase()))
+                          .filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.studentId?.toLowerCase().includes(searchQuery.toLowerCase()))
                           .slice(0, 5)
                           .map(student => (
                             <label key={student._id} className="flex items-center gap-3 p-2 hover:bg-white rounded cursor-pointer border border-transparent hover:border-gray-200 transition">
@@ -243,7 +243,7 @@ const PrincipalParents = () => {
                               />
                               <div>
                                 <p className="font-semibold text-sm">{student.name}</p>
-                                <p className="text-xs text-gray-500">{student.email}</p>
+                                <p className="text-xs text-gray-500 font-mono">ID: {student.studentId || 'N/A'}</p>
                               </div>
                             </label>
                           ))

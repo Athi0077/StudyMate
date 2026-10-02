@@ -88,7 +88,7 @@ const TeacherAnnouncements = () => {
           <div className="p-3 bg-purple-100 text-purple-600 rounded-xl">
             <Megaphone size={28} />
           </div>
-          <h1 className="text-3xl font-bold text-gray-800">Class Announcements</h1>
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Class Announcements</h1>
         </div>
 
         {myClasses.length === 0 && !loading ? (
@@ -102,14 +102,14 @@ const TeacherAnnouncements = () => {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl shadow-soft p-6 sticky top-6">
-                <h2 className="text-xl font-bold mb-4">Create Announcement</h2>
+              <div className="bg-white dark:bg-card-dark rounded-2xl shadow-soft p-6 sticky top-6">
+                <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">Create Announcement</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold mb-1">Select Class</label>
+                    <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">Select Class</label>
                     <select 
                       required 
-                      className="w-full border rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary bg-white"
+                      className="w-full border border-gray-200 dark:border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
                       value={formData.classId} onChange={e => setFormData({...formData, classId: e.target.value})}
                     >
                       {myClasses.map(c => (
@@ -119,25 +119,25 @@ const TeacherAnnouncements = () => {
                     <p className="text-xs text-gray-400 mt-1">Sent only to students of this class</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold mb-1">Title</label>
+                    <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">Title</label>
                     <input 
                       required type="text" 
-                      className="w-full border rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full border border-gray-200 dark:border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
                       placeholder="E.g., Bring craft materials tomorrow"
                       value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold mb-1">Message</label>
+                    <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">Message</label>
                     <textarea 
                       required rows="4"
-                      className="w-full border rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                      className="w-full border border-gray-200 dark:border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary resize-none bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
                       placeholder="Enter announcement details..."
                       value={formData.message} onChange={e => setFormData({...formData, message: e.target.value})}
                     />
                   </div>
                   <div className="pt-2">
-                    <label className="flex items-center gap-2 cursor-pointer p-3 bg-red-50 text-red-700 rounded-xl border border-red-100">
+                    <label className="flex items-center gap-2 cursor-pointer p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-xl border border-red-100 dark:border-red-900/30">
                       <input type="checkbox" checked={formData.isImportant} onChange={e => setFormData({...formData, isImportant: e.target.checked})} className="w-5 h-5 text-red-600 rounded focus:ring-red-500" />
                       <span className="font-bold">Mark as Important</span>
                     </label>
@@ -150,8 +150,8 @@ const TeacherAnnouncements = () => {
             </div>
 
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-2xl shadow-soft p-6">
-                <h2 className="text-xl font-bold mb-4">My Past Broadcasts</h2>
+              <div className="bg-white dark:bg-card-dark rounded-2xl shadow-soft p-6">
+                <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">My Past Broadcasts</h2>
                 {loading ? (
                   <p className="text-gray-500">Loading announcements...</p>
                 ) : announcements.length === 0 ? (
@@ -161,16 +161,16 @@ const TeacherAnnouncements = () => {
                 ) : (
                   <div className="space-y-4">
                     {announcements.map(a => (
-                      <div key={a._id} className={`p-5 rounded-xl border relative ${a.isImportant ? 'border-red-200 bg-red-50/30' : 'border-gray-100 bg-white'}`}>
+                      <div key={a._id} className={`p-5 rounded-xl border relative ${a.isImportant ? 'border-red-200 dark:border-red-900/40 bg-red-50/30 dark:bg-red-900/10' : 'border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800/50'}`}>
                         <div className="flex justify-between items-start mb-2 pr-8">
-                          <h3 className="font-bold text-lg text-gray-800">{a.title}</h3>
-                          <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-2 py-1 rounded-full whitespace-nowrap">
+                          <h3 className="font-bold text-lg text-gray-800 dark:text-gray-100">{a.title}</h3>
+                          <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full whitespace-nowrap">
                             {new Date(a.createdAt).toLocaleDateString()}
                           </span>
                         </div>
-                        <p className="text-sm text-gray-500 mb-3 font-medium">Broadcasted to: {a.classId?.className || 'Class'}</p>
-                        <p className="text-gray-700 whitespace-pre-wrap text-sm bg-white p-4 rounded-lg border border-gray-50">{a.message}</p>
-                        <button onClick={() => handleDelete(a._id)} className="absolute top-5 right-5 text-gray-400 hover:text-red-500 transition bg-white rounded-full p-1.5 hover:bg-red-50">
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 font-medium">Broadcasted to: {a.classId?.className || 'Class'}</p>
+                        <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap text-sm bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-50 dark:border-gray-700">{a.message}</p>
+                        <button onClick={() => handleDelete(a._id)} className="absolute top-5 right-5 text-gray-400 hover:text-red-500 transition bg-white dark:bg-gray-800 rounded-full p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20">
                           <Trash2 size={18} />
                         </button>
                       </div>

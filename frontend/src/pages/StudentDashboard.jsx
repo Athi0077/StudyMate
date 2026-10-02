@@ -68,46 +68,46 @@ const StudentDashboard = () => {
       <AnnouncementPopup />
       <div className="space-y-6">
         {/* Banner Section */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-100 rounded-3xl p-8 relative overflow-hidden flex flex-col md:flex-row items-center justify-between shadow-sm">
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-100 dark:from-blue-950/40 dark:to-indigo-950/30 rounded-3xl p-8 relative overflow-hidden flex flex-col md:flex-row items-center justify-between shadow-sm border border-blue-100/50 dark:border-blue-900/40">
           <div className="z-10 w-full md:w-1/2">
             <div className="flex items-center gap-6 mb-4">
               {currentUser?.profilePic ? (
-                <img src={currentUser.profilePic} alt="Profile" className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-md" />
+                <img src={currentUser.profilePic} alt="Profile" className="w-20 h-20 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-md" />
               ) : (
-                <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center text-3xl font-bold text-blue-600 shadow-md border-4 border-blue-50">
+                <div className="w-20 h-20 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center text-3xl font-bold text-blue-600 dark:text-blue-400 shadow-md border-4 border-blue-50 dark:border-blue-900/50">
                   {currentUser?.name?.charAt(0).toUpperCase()}
                 </div>
               )}
               <div>
-                <h1 className="text-3xl text-gray-700 font-medium mb-1">Good Morning,</h1>
-                <h2 className="text-4xl lg:text-5xl font-bold text-blue-900">{currentUser?.name}! 👋</h2>
+                <h1 className="text-3xl text-gray-700 dark:text-blue-200 font-medium mb-1">Good Morning,</h1>
+                <h2 className="text-4xl lg:text-5xl font-bold text-blue-900 dark:text-blue-100">{currentUser?.name}! 👋</h2>
               </div>
             </div>
             <div className="flex gap-2 mb-4">
               {dashboardData?.className && (
-                <span className="inline-block bg-blue-100 text-blue-800 px-4 py-1.5 rounded-lg font-bold shadow-sm border border-blue-200">
+                <span className="inline-block bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 px-4 py-1.5 rounded-lg font-bold shadow-sm border border-blue-200 dark:border-blue-700">
                   {dashboardData.className}
                 </span>
               )}
               {dashboardData?.isClassLeader && (
-                <span className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-800 px-4 py-1.5 rounded-lg font-bold shadow-sm border border-yellow-300">
-                  <span className="text-yellow-600">👑</span> Class Leader
+                <span className="inline-flex items-center gap-1 bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200 px-4 py-1.5 rounded-lg font-bold shadow-sm border border-yellow-300 dark:border-yellow-700">
+                  <span className="text-yellow-600 dark:text-yellow-400">👑</span> Class Leader
                 </span>
               )}
             </div>
             <div className="flex gap-3 mb-6">
-              <div className="bg-white/60 backdrop-blur-sm px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm border border-white/50">
+              <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm border border-white/50 dark:border-slate-700/50">
                 <span className="text-xl">🔥</span>
                 <div>
-                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Current Streak</p>
-                  <p className="font-black text-orange-600 leading-tight">{dashboardData?.streak || 0} Days</p>
+                  <p className="text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Current Streak</p>
+                  <p className="font-black text-orange-600 dark:text-orange-400 leading-tight">{dashboardData?.streak || 0} Days</p>
                 </div>
               </div>
-              <div className="bg-white/60 backdrop-blur-sm px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm border border-white/50">
+              <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm border border-white/50 dark:border-slate-700/50">
                 <span className="text-xl">🏆</span>
                 <div>
-                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Rank</p>
-                  <p className="font-black text-yellow-600 leading-tight">{dashboardData?.rank || 'N/A'}</p>
+                  <p className="text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Rank</p>
+                  <p className="font-black text-yellow-600 dark:text-yellow-400 leading-tight">{dashboardData?.rank || 'N/A'}</p>
                 </div>
               </div>
             </div>
@@ -116,22 +116,22 @@ const StudentDashboard = () => {
               <Link to="/student/homework" className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition flex items-center gap-2">
                 View Today's Homework <span className="text-xl">→</span>
               </Link>
-              <Link to="/student/class" className="bg-white text-blue-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-50 transition">
+              <Link to="/student/class" className="bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 px-6 py-3 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition">
                 Explore Subjects
               </Link>
             </div>
           </div>
           <div className={`w-full md:w-1/2 md:relative md:h-64 ${quote ? 'mt-6 md:mt-0 flex justify-end' : 'hidden md:block'}`}>
             {quote ? (
-              <div className="bg-white/80 backdrop-blur rounded-2xl p-4 shadow-lg max-w-[500px] z-20 w-full md:absolute md:right-10 md:top-10">
-                <p className="font-bold text-blue-900 text-sm italic leading-tight">"{quote.quote}"</p>
+              <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur rounded-2xl p-4 shadow-lg max-w-[500px] z-20 w-full md:absolute md:right-10 md:top-10">
+                <p className="font-bold text-blue-900 dark:text-blue-200 text-sm italic leading-tight">"{quote.quote}"</p>
                 {quote.author && (
-                  <p className="text-indigo-600 text-[10px] font-bold mt-2 text-right">— {quote.author}</p>
+                  <p className="text-indigo-600 dark:text-indigo-400 text-[10px] font-bold mt-2 text-right">— {quote.author}</p>
                 )}
               </div>
             ) : (
-              <div className="absolute right-10 top-10 bg-white/70 backdrop-blur rounded-2xl p-4 shadow-lg transform rotate-3 z-20 hidden md:block">
-                <p className="font-bold text-blue-900 leading-tight">Better<br/><span className="text-indigo-600">Students</span><br/>Brighter<br/>Tomorrows<br/>!! ✨</p>
+              <div className="absolute right-10 top-10 bg-white/70 dark:bg-slate-800/70 backdrop-blur rounded-2xl p-4 shadow-lg transform rotate-3 z-20 hidden md:block">
+                <p className="font-bold text-blue-900 dark:text-blue-200 leading-tight">Better<br/><span className="text-indigo-600 dark:text-indigo-400">Students</span><br/>Brighter<br/>Tomorrows<br/>!! ✨</p>
               </div>
             )}
           </div>

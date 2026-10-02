@@ -18,14 +18,14 @@ const Layout = ({ children }) => {
   const role = isTempPrincipalView ? 'principal' : baseRole;
 
   return (
-    <div className={`flex h-screen bg-gray-50 overflow-hidden`}>
+    <div className={`flex h-screen bg-gray-50 dark:bg-[#0b1120] text-gray-800 dark:text-gray-100 overflow-hidden`}>
       {/* Desktop Sidebar */}
       <div className="hidden md:block">
         <Sidebar role={role} />
       </div>
 
       <div className="flex-1 flex flex-col w-full overflow-hidden">
-        <TopNavbar user={currentUser} />
+        <TopNavbar user={currentUser} role={role} />
         
         {isTempPrincipalView && (
           <div className="bg-purple-600 text-white px-3 py-2 text-xs md:text-sm font-semibold flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 shadow-inner z-10 text-center">

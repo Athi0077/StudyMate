@@ -102,23 +102,23 @@ const TeacherDashboard = () => {
       <div className="space-y-6">
         
         {/* Welcome Banner */}
-        <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between shadow-sm border border-red-50/50">
+        <div className="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950/40 dark:to-rose-950/30 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between shadow-sm border border-red-100/50 dark:border-red-900/40">
           <div className="max-w-xl">
-            <h2 className="text-3xl font-extrabold text-gray-900 mb-2">
+            <h2 className="text-3xl font-extrabold text-gray-900 dark:text-red-100 mb-2">
               Good Morning,<br/>
-              <span className="text-primary">{currentUser?.name}! 👋</span>
+              <span className="text-red-600 dark:text-red-400">{currentUser?.name}! 👋</span>
             </h2>
-            <p className="text-gray-700 text-lg">
+            <p className="text-gray-700 dark:text-red-200/80 text-lg">
               A great teacher can inspire hope, ignite imagination, and instill a love for learning.
             </p>
           </div>
           {quote && (
             <div className="mt-6 md:mt-0 w-full md:w-auto">
-              <blockquote className="bg-white/60 p-4 rounded-xl shadow-sm text-gray-800 italic font-medium border-l-4 border-primary text-sm md:max-w-sm">
+              <blockquote className="bg-white/60 dark:bg-slate-900/70 p-4 rounded-xl shadow-sm text-gray-800 dark:text-gray-100 italic font-medium border-l-4 border-red-500 text-sm md:max-w-sm">
                 "{quote.quote}"
               </blockquote>
               {quote.author && (
-                <p className="text-gray-600 text-xs font-semibold mt-2 text-right">— {quote.author}</p>
+                <p className="text-gray-600 dark:text-gray-400 text-xs font-semibold mt-2 text-right">— {quote.author}</p>
               )}
             </div>
           )}

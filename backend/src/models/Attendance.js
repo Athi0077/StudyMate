@@ -29,6 +29,11 @@ const attendanceSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "LeaveRequest",
     },
+    session: {
+      type: String,
+      enum: ["MORNING", "AFTERNOON"],
+      default: "MORNING",
+    },
     markedAt: {
       type: Date,
       default: Date.now,
@@ -39,8 +44,8 @@ const attendanceSchema = new mongoose.Schema(
   }
 );
 
-// One student must have ONLY ONE attendance record per class per date
-attendanceSchema.index({ studentId: 1, classId: 1, date: 1 }, { unique: true });
+// One student must have ONLY ONE attendance record per class per date per session
+attendanceSchema.index({ studentId: 1, classId: 1, date: 1, session: 1 }, { unique: true });
 
 const Attendance = mongoose.model("Attendance", attendanceSchema);
 

@@ -29,8 +29,8 @@ const PrincipalClassAttendance = () => {
           const record = existingRecords.find(r => r.studentId._id === student._id);
           return {
             studentId: student._id,
+            displayStudentId: student.studentId,
             name: student.name,
-            email: student.email,
             status: record ? record.status : 'not_marked'
           };
         });
@@ -136,7 +136,7 @@ const PrincipalClassAttendance = () => {
               <thead>
                 <tr className="bg-white border-b border-gray-100 text-gray-500 text-sm">
                   <th className="p-4 font-semibold uppercase tracking-wider">Student Name</th>
-                  <th className="p-4 font-semibold uppercase tracking-wider">Email</th>
+                  <th className="p-4 font-semibold uppercase tracking-wider">Student ID</th>
                   <th className="p-4 font-semibold uppercase tracking-wider">Status</th>
                 </tr>
               </thead>
@@ -151,7 +151,7 @@ const PrincipalClassAttendance = () => {
                   attendance.map(student => (
                     <tr key={student.studentId} className="hover:bg-gray-50/50 transition">
                       <td className="p-4 font-bold text-gray-800">{student.name}</td>
-                      <td className="p-4 text-gray-500 text-sm">{student.email}</td>
+                      <td className="p-4 text-gray-500 text-sm font-mono">{student.displayStudentId || 'N/A'}</td>
                       <td className="p-4">
                         {student.status === 'present' && <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800 border border-green-200">Present</span>}
                         {student.status === 'absent' && <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800 border border-red-200">Absent</span>}

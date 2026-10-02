@@ -52,7 +52,7 @@ const TeacherJoinRequests = () => {
                 <div className="mb-4 md:mb-0">
                   <div className="font-bold text-lg text-blue-800">{req.classId.className}</div>
                   <div className="text-gray-800 font-medium">{req.studentId.name}</div>
-                  <div className="text-sm text-gray-500">{req.studentId.email}</div>
+                  <div className="text-sm text-gray-500 font-mono">ID: {req.studentId.studentId || 'N/A'}</div>
                 </div>
                 <div className="flex gap-2">
                   <button 

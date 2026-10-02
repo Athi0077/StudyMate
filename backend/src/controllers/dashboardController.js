@@ -17,12 +17,17 @@ const getPrincipalDashboard = async (req, res) => {
     const today = new Date();
     today.setHours(0,0,0,0);
 
-    const attendances = await Attendance.find({ date: today });
+    const targetSession = req.query.session || "MORNING";
+    const AttendanceSession = require("../models/AttendanceSession");
+    const sessionRecords = await AttendanceSession.find({ attendanceDate: today.toISOString().split('T')[0], session: targetSession });
+    
     let present = 0, absent = 0, leave = 0;
-    attendances.forEach(a => {
-      if (a.status === "present") present++;
-      else if (a.status === "absent") absent++;
-      else if (a.status === "leave") leave++;
+    sessionRecords.forEach(record => {
+      record.records.forEach(r => {
+        if (r.status === "present") present++;
+        else if (r.status === "absent") absent++;
+        else if (r.status === "leave") leave++;
+      });
     });
 
     const pendingApprovals = await User.countDocuments({ role: "teacher", status: "pending" });
@@ -32,8 +37,12 @@ const getPrincipalDashboard = async (req, res) => {
     const presentTeachers = teacherAttendances.length;
 
     // Calculate Overall School Attendance Percentage (Students)
-    const totalEligibleStudents = totalStudents || 1; // avoid division by zero
-    const overallStudentAttendancePercentage = Math.round((present / totalEligibleStudents) * 100);
+    const eligibleStudentsForRate = Math.max(0, totalStudents - leave);
+    const overallStudentAttendancePercentage = eligibleStudentsForRate === 0 && present === 0 
+      ? 0 
+      : eligibleStudentsForRate === 0 && present > 0
+      ? 100
+      : Math.round((present / eligibleStudentsForRate) * 100);
 
     // Recent activity could be queried from Notifications if we saved system notifications, or just mock it.
     const recentActivity = [

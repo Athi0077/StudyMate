@@ -13,19 +13,22 @@ const MobileBottomNav = ({ role }) => {
   const visibleItems = allNavItems.slice(0, 4);
   const hiddenItems = allNavItems.slice(4);
 
-  let activeTextClass = 'text-blue-700';
-  let activeBgClass = 'bg-blue-100';
+  let activeTextClass = 'text-blue-700 dark:text-blue-400';
+  let activeBgClass = 'bg-blue-100 dark:bg-blue-950/50';
   
   if (role === 'principal') {
-    activeTextClass = 'text-green-700';
-    activeBgClass = 'bg-green-100';
+    activeTextClass = 'text-emerald-700 dark:text-emerald-400';
+    activeBgClass = 'bg-emerald-100 dark:bg-emerald-950/50';
   } else if (role === 'teacher') {
-    activeTextClass = 'text-red-700';
-    activeBgClass = 'bg-red-100';
+    activeTextClass = 'text-red-700 dark:text-red-400';
+    activeBgClass = 'bg-red-100 dark:bg-red-950/50';
+  } else if (role === 'parent' || role === 'parents') {
+    activeTextClass = 'text-orange-700 dark:text-orange-400';
+    activeBgClass = 'bg-orange-100 dark:bg-orange-950/50';
   }
 
   // Common muted color for inactive state
-  const inactiveClass = 'text-slate-500 hover:text-slate-700 bg-transparent';
+  const inactiveClass = 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 bg-transparent';
 
   return (
     <>
@@ -38,8 +41,8 @@ const MobileBottomNav = ({ role }) => {
       )}
 
       {/* More Menu Sheet */}
-      <div className={`fixed bottom-16 left-0 w-full bg-white rounded-t-3xl shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.15)] z-40 transition-transform duration-300 p-6 ${showMore ? 'translate-y-0' : 'translate-y-[200%]'}`}>
-        <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
+      <div className={`fixed bottom-16 left-0 w-full bg-white dark:bg-[#0b1120] rounded-t-3xl shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.15)] dark:shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.5)] z-40 transition-transform duration-300 p-6 ${showMore ? 'translate-y-0' : 'translate-y-[200%]'}`}>
+        <div className="w-12 h-1.5 bg-gray-200 dark:bg-[#1E293B] rounded-full mx-auto mb-6"></div>
         <div className="grid grid-cols-4 gap-y-6 gap-x-2">
           {hiddenItems.map((item) => {
             const isActive = location.pathname.startsWith(item.path);
@@ -65,7 +68,7 @@ const MobileBottomNav = ({ role }) => {
           
           <button 
             onClick={() => { setShowMore(false); logout(); }}
-            className="flex flex-col items-center justify-center p-2 rounded-2xl transition bg-transparent text-red-500 hover:bg-red-50"
+            className="flex flex-col items-center justify-center p-2 rounded-2xl transition bg-transparent text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50"
           >
             <div className="flex items-center justify-center mb-1">
               <LogOut className="w-6 h-6" />
@@ -76,7 +79,7 @@ const MobileBottomNav = ({ role }) => {
       </div>
 
       {/* Main Bottom Nav */}
-      <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 px-2 py-2 flex justify-around items-center shadow-sm pb-safe z-50">
+      <div className="fixed bottom-0 left-0 w-full bg-white dark:bg-[#0b1120] border-t border-gray-200 dark:border-[#1E293B] px-2 py-2 flex justify-around items-center shadow-sm pb-safe z-50">
         {visibleItems.map((item) => {
           const isActive = location.pathname.startsWith(item.path);
           const IconComp = item.icon;

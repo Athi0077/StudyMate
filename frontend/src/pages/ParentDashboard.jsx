@@ -71,9 +71,9 @@ const ParentDashboard = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        <div className="bg-purple-50 dark:bg-purple-900/20 rounded-2xl p-8">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">Welcome, {currentUser?.name}! 👋</h1>
-          <p className="text-gray-600 dark:text-gray-400">Here is a quick overview of your children's progress.</p>
+        <div className="bg-orange-50 dark:bg-orange-950/40 border border-orange-100 dark:border-orange-900/40 rounded-2xl p-8">
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-orange-100 mb-2">Welcome, {currentUser?.name}! 👋</h1>
+          <p className="text-gray-600 dark:text-orange-200/80">Here is a quick overview of your children's progress.</p>
         </div>
 
         {loading ? (

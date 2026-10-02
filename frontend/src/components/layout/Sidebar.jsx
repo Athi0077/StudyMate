@@ -87,18 +87,66 @@ export const navConfig = {
 const Sidebar = ({ role }) => {
   const { logout, currentUser } = useContext(AuthContext);
   const location = useLocation();
-  const navItems = navConfig[role] || navConfig.student;
-  
+  const normRole = (role || 'student').toLowerCase();
+  const navItems = navConfig[normRole] || navConfig.student;
+
+  // Light mode: role-specific tints. Dark mode: unified navy sidebar with precise colors.
+  const getRoleSidebarTheme = () => {
+    const darkSidebar = 'dark:!bg-[#0B1120] dark:border-r dark:border-[#1E293B]';
+    const darkActive = 'dark:!bg-[#059669] dark:!text-[#FFFFFF] dark:shadow-none [&>svg]:dark:!text-[#FFFFFF]';
+    const darkInactive = 'dark:!text-[#E2E8F0] dark:hover:!bg-[#172235] dark:hover:!text-[#FFFFFF] [&>svg]:dark:!text-[#CBD5E1] hover:[&>svg]:dark:!text-[#34D399]';
+    
+    switch (normRole) {
+      case 'principal':
+        return {
+          aside: `bg-emerald-50/80 border-r border-emerald-200/60 ${darkSidebar}`,
+          logoAccent: 'text-emerald-600 dark:text-[#E2E8F0]',
+          activeItem: `bg-emerald-600 text-white shadow-sm shadow-emerald-600/30 ${darkActive}`,
+          inactiveItem: `text-gray-700 hover:bg-emerald-100/70 hover:text-emerald-700 ${darkInactive}`
+        };
+      case 'teacher':
+        return {
+          aside: `bg-red-50/80 border-r border-red-200/60 ${darkSidebar}`,
+          logoAccent: 'text-red-600 dark:text-[#E2E8F0]',
+          activeItem: `bg-red-600 text-white shadow-sm shadow-red-600/30 ${darkActive}`,
+          inactiveItem: `text-gray-700 hover:bg-red-100/70 hover:text-red-700 ${darkInactive}`
+        };
+      case 'student':
+        return {
+          aside: `bg-blue-50/80 border-r border-blue-200/60 ${darkSidebar}`,
+          logoAccent: 'text-blue-600 dark:text-[#E2E8F0]',
+          activeItem: `bg-blue-600 text-white shadow-sm shadow-blue-600/30 ${darkActive}`,
+          inactiveItem: `text-gray-700 hover:bg-blue-100/70 hover:text-blue-700 ${darkInactive}`
+        };
+      case 'parent':
+      case 'parents':
+        return {
+          aside: `bg-orange-50/80 border-r border-orange-200/60 ${darkSidebar}`,
+          logoAccent: 'text-orange-500 dark:text-[#E2E8F0]',
+          activeItem: `bg-orange-500 text-white shadow-sm shadow-orange-500/30 ${darkActive}`,
+          inactiveItem: `text-gray-700 hover:bg-orange-100/70 hover:text-orange-700 ${darkInactive}`
+        };
+      default:
+        return {
+          aside: `bg-blue-50/80 border-r border-blue-200/60 ${darkSidebar}`,
+          logoAccent: 'text-blue-600 dark:text-[#E2E8F0]',
+          activeItem: `bg-blue-600 text-white shadow-sm shadow-blue-600/30 ${darkActive}`,
+          inactiveItem: `text-gray-700 hover:bg-blue-100/70 hover:text-blue-700 ${darkInactive}`
+        };
+    }
+  };
+
+  const theme = getRoleSidebarTheme();
+
   return (
-    <aside className="w-64 h-screen bg-white/80 backdrop-blur-xl border-r border-gray-200/50 flex flex-col shadow-lg z-20">
+    <aside className={`w-64 h-screen ${theme.aside} backdrop-blur-xl flex flex-col shadow-lg z-20 transition-colors duration-300`}>
       <div className="p-6">
-        <h2 className="text-2xl font-bold text-gray-800">Study<span className="text-primary">Mate</span></h2>
-        <p className="text-xs text-gray-400">School Management</p>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-[#F1F5F9]">Study<span className={theme.logoAccent}>Mate</span></h2>
+        <p className="text-xs text-gray-500 dark:text-slate-500 font-medium">School Management</p>
       </div>
-      <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 px-4 space-y-1 overflow-y-auto [&::-webkit-scrollbar]:w-1.5 dark:[&::-webkit-scrollbar-track]:bg-[#0B1120] dark:[&::-webkit-scrollbar-thumb]:bg-[#475569] dark:[&::-webkit-scrollbar-thumb]:rounded-full dark:[&::-webkit-scrollbar-thumb:hover]:bg-[#64748B]">
         {navItems.filter(item => {
           if (role === 'principal' && currentUser?.tempPrincipalAccess && currentUser?.role === 'teacher') {
-            // Hide sensitive tabs for temporary principals
             const hiddenPaths = ['/principal/teachers', '/principal/temporary-access', '/principal/admissions'];
             if (hiddenPaths.some(hp => item.path.startsWith(hp))) return false;
           }
@@ -110,10 +158,10 @@ const Sidebar = ({ role }) => {
             <Link 
               key={item.path}
               to={item.path} 
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition ${
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200 ${
                 isActive 
-                  ? 'bg-primary text-white shadow-soft' 
-                  : 'text-gray-600 hover:bg-primary-light hover:text-primary'
+                  ? theme.activeItem 
+                  : theme.inactiveItem
               }`}
             >
               <IconComponent className="w-5 h-5" />
@@ -122,8 +170,8 @@ const Sidebar = ({ role }) => {
           );
         })}
       </nav>
-      <div className="p-4 border-t border-gray-50">
-        <button onClick={logout} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gray-50 text-gray-700 font-medium hover:bg-red-50 hover:text-red-600 transition">
+      <div className="p-4 border-t border-gray-200/50 dark:border-[#1E293B]">
+        <button onClick={logout} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-white/60 text-gray-700 hover:bg-red-50 hover:text-red-600 dark:bg-[#0B1120] dark:border dark:border-[#334155] dark:text-[#E2E8F0] dark:hover:bg-[#172235] dark:hover:text-[#E2E8F0] transition shadow-xs">
           <LogOut className="w-5 h-5" /> Logout
         </button>
       </div>
@@ -132,3 +180,4 @@ const Sidebar = ({ role }) => {
 };
 
 export default Sidebar;
+
