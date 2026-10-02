@@ -49,7 +49,7 @@ const PomodoroTimer = () => {
       {/* Floating Button */}
       <button 
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 bg-indigo-600 text-white p-4 rounded-full shadow-xl hover:bg-indigo-700 transition flex items-center justify-center z-40 hover:scale-105"
+        className="fixed bottom-24 right-4 md:bottom-6 md:right-6 bg-indigo-600 text-white p-4 rounded-full shadow-xl hover:bg-indigo-700 transition flex items-center justify-center z-40 hover:scale-105"
         title="Focus Timer"
       >
         <Clock size={24} />
@@ -57,7 +57,7 @@ const PomodoroTimer = () => {
 
       {/* Timer Modal */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-80 bg-white rounded-3xl shadow-2xl border border-gray-100 z-50 overflow-hidden animate-in slide-in-from-bottom-5">
+        <div className="fixed bottom-44 right-4 md:bottom-24 md:right-6 w-80 bg-white rounded-3xl shadow-2xl border border-gray-100 z-50 overflow-hidden animate-in slide-in-from-bottom-5">
           <div className="bg-indigo-600 p-4 text-white flex justify-between items-center">
             <h3 className="font-bold flex items-center gap-2"><Clock size={18}/> Focus Mode</h3>
             <button onClick={() => setIsOpen(false)} className="hover:text-indigo-200 transition"><X size={20}/></button>
