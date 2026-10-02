@@ -98,13 +98,40 @@ import StudentTodos from './pages/StudentTodos';
 
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import SuperAdminCalculator from './pages/SuperAdminCalculator';
+import InstallPrompt from './components/InstallPrompt';
+import ReloadPrompt from './components/ReloadPrompt';
+import { useState, useEffect } from 'react';
+import { WifiOff } from 'lucide-react';
 
 function App() {
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   return (
     <AuthProvider>
       <NotificationProvider>
         <Router>
           <Toaster position="top-right" />
+          {isOffline && (
+            <div className="fixed top-0 left-0 right-0 bg-red-500 text-white px-4 py-2 text-center text-sm font-medium z-[100] flex items-center justify-center gap-2">
+              <WifiOff size={16} />
+              You are currently offline. Some features may be unavailable.
+            </div>
+          )}
+          <InstallPrompt />
+          <ReloadPrompt />
           <Routes>
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
