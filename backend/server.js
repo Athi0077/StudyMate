@@ -59,6 +59,9 @@ app.use("/api/timetable", require("./src/routes/timetableRoutes"));
 app.use("/api/todos", require("./src/routes/todoRoutes"));
 app.use("/api/temporary-principal-access", require("./src/routes/temporaryAccessRoutes"));
 app.use("/api/id-card", require("./src/routes/idCardRoutes"));
+app.use("/api/fee-status", require("./src/routes/feeStatusRoutes"));
+app.use("/api/events", require("./src/routes/eventRoutes"));
+app.use("/api/birthdays", require("./src/routes/birthdayRoutes"));
 app.use("/api/super-admin", require("./src/routes/superAdminRoutes"));
 app.use("/api/principal/ai", require("./src/routes/principalAiRoutes"));
 app.use("/api", dashboardRoutes);
@@ -83,6 +86,10 @@ if (process.env.NODE_ENV !== 'test') {
     const { seedPrincipal, seedSuperAdmin } = require("./src/utils/seed");
     seedPrincipal();
     seedSuperAdmin();
+
+    // Initialize Birthday Scheduler
+    const { initBirthdayScheduler } = require("./src/services/birthdayScheduler");
+    initBirthdayScheduler();
   });
 
   server.listen(PORT, () => {

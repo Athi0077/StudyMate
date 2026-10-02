@@ -11,6 +11,7 @@ const ParentDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [selectedDates, setSelectedDates] = useState({});
   const [activeTab, setActiveTab] = useState(0);
+  const [childFeeStatuses, setChildFeeStatuses] = useState({});
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -33,6 +34,20 @@ const ParentDashboard = () => {
         }));
 
         setChildrenData(childrenWithData);
+
+        // Fetch fee statuses for all children
+        try {
+          const feeRes = await api.get('/fee-status/my-children');
+          if (feeRes.data.success && feeRes.data.data) {
+            const statusMap = {};
+            feeRes.data.data.forEach((item) => {
+              statusMap[item.childId] = item.feeStatus;
+            });
+            setChildFeeStatuses(statusMap);
+          }
+        } catch (feeErr) {
+          console.error('Failed to fetch fee statuses:', feeErr);
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -110,13 +125,58 @@ const ParentDashboard = () => {
 
               return (
               <div key={child._id} className="bg-white dark:bg-slate-800 rounded-2xl shadow-soft p-6">
-                <div className="flex items-center gap-4 mb-6 pb-4 border-b border-gray-100 dark:border-slate-700">
+                <div className="flex items-center gap-4 mb-4 pb-4 border-b border-gray-100 dark:border-slate-700">
                   <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center font-bold text-xl">
                     {child.name.charAt(0)}
                   </div>
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">{child.name}</h2>
                     <p className="text-sm text-gray-500 dark:text-gray-400">Class: {child.className}</p>
+                  </div>
+                  {/* Fee Status Badge */}
+                  <div id={`fee-status-badge-${child._id}`} className="flex-shrink-0">
+                    {(childFeeStatuses[child._id] || 'pending') === 'completed' ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-green-50 text-green-700 border border-green-200 shadow-sm">
+                        <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                        Term Fees Completed
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 shadow-sm">
+                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                        Term Fees Pending
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Fee Status Detail Card */}
+                <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 border ${
+                  (childFeeStatuses[child._id] || 'pending') === 'completed'
+                    ? 'bg-green-50/50 border-green-100 dark:bg-green-900/10 dark:border-green-800/30'
+                    : 'bg-amber-50/50 border-amber-100 dark:bg-amber-900/10 dark:border-amber-800/30'
+                }`}>
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg flex-shrink-0 ${
+                    (childFeeStatuses[child._id] || 'pending') === 'completed'
+                      ? 'bg-green-100 text-green-600'
+                      : 'bg-amber-100 text-amber-600'
+                  }`}>
+                    {(childFeeStatuses[child._id] || 'pending') === 'completed' ? '✅' : '💰'}
+                  </div>
+                  <div>
+                    <p className={`font-bold text-sm ${
+                      (childFeeStatuses[child._id] || 'pending') === 'completed'
+                        ? 'text-green-800 dark:text-green-300'
+                        : 'text-amber-800 dark:text-amber-300'
+                    }`}>
+                      {(childFeeStatuses[child._id] || 'pending') === 'completed'
+                        ? 'Term Fees Completed'
+                        : 'Term Fees Pending'}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      {(childFeeStatuses[child._id] || 'pending') === 'completed'
+                        ? 'Fee payment has been confirmed by the class teacher.'
+                        : 'Please contact the school administration regarding fee payment.'}
+                    </p>
                   </div>
                 </div>
 

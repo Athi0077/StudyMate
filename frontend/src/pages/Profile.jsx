@@ -12,6 +12,8 @@ const Profile = () => {
     email: '',
     phone: '',
     address: '',
+    dateOfBirth: '',
+    bloodGroup: 'Unknown / Not specified',
     password: '',
     confirmPassword: ''
   });
@@ -20,7 +22,19 @@ const Profile = () => {
 
   useEffect(() => {
     if (currentUser) {
-      setFormData(prev => ({ ...prev, name: currentUser.name, email: currentUser.email, phone: currentUser.phone || '', address: currentUser.address || '' }));
+      let dobStr = '';
+      if (currentUser.dateOfBirth) {
+        dobStr = new Date(currentUser.dateOfBirth).toISOString().split('T')[0];
+      }
+      setFormData(prev => ({
+        ...prev,
+        name: currentUser.name || '',
+        email: currentUser.email || '',
+        phone: currentUser.phone || '',
+        address: currentUser.address || '',
+        dateOfBirth: dobStr,
+        bloodGroup: currentUser.bloodGroup || 'Unknown / Not specified'
+      }));
     }
   }, [currentUser]);
 
@@ -34,6 +48,13 @@ const Profile = () => {
       return toast.error("Passwords do not match");
     }
 
+    if (formData.dateOfBirth) {
+      const dobDate = new Date(formData.dateOfBirth);
+      if (dobDate > new Date()) {
+        return toast.error("Date of Birth cannot be in the future");
+      }
+    }
+
     try {
       setSubmitting(true);
       const res = await api.put('/users/profile', {
@@ -41,13 +62,12 @@ const Profile = () => {
         email: formData.email,
         phone: formData.phone,
         address: formData.address,
+        dateOfBirth: formData.dateOfBirth || null,
+        bloodGroup: formData.bloodGroup,
         password: formData.password || undefined
       });
       
       toast.success("Profile updated successfully!");
-      // If we update email/name, we might want to update localstorage/context.
-      // Usually AuthContext fetches /auth/me on mount or when tokens change. 
-      // For now, reloading is easiest if we don't have a direct context updater function.
       setTimeout(() => {
         window.location.reload();
       }, 1000);
@@ -126,28 +146,64 @@ const Profile = () => {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
-              <input 
-                type="text" 
-                name="name"
-                required
-                className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary"
-                value={formData.name}
-                onChange={handleChange}
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
+                <input 
+                  type="text" 
+                  name="name"
+                  required
+                  className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary"
+                  value={formData.name}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+                <input 
+                  type="email" 
+                  name="email"
+                  required
+                  className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary"
+                  value={formData.email}
+                  onChange={handleChange}
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
-              <input 
-                type="email" 
-                name="email"
-                required
-                className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary"
-                value={formData.email}
-                onChange={handleChange}
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Date of Birth</label>
+                <input 
+                  type="date" 
+                  name="dateOfBirth"
+                  max={new Date().toISOString().split('T')[0]}
+                  className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary"
+                  value={formData.dateOfBirth}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Blood Group</label>
+                <select
+                  name="bloodGroup"
+                  className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary bg-white"
+                  value={formData.bloodGroup}
+                  onChange={handleChange}
+                >
+                  <option value="Unknown / Not specified">Unknown / Not specified</option>
+                  <option value="A+">A+</option>
+                  <option value="A-">A-</option>
+                  <option value="B+">B+</option>
+                  <option value="B-">B-</option>
+                  <option value="AB+">AB+</option>
+                  <option value="AB-">AB-</option>
+                  <option value="O+">O+</option>
+                  <option value="O-">O-</option>
+                </select>
+              </div>
             </div>
 
             <div>

@@ -24,6 +24,11 @@ const settingsSchema = new mongoose.Schema(
         min: 0
       }
     },
+    schoolName: {
+      type: String,
+      default: "StudyMate School",
+      trim: true
+    },
     updatedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

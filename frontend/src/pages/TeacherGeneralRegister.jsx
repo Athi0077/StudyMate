@@ -13,7 +13,7 @@ const TeacherGeneralRegister = () => {
   const { currentUser } = useContext(AuthContext);
   const [classes, setClasses] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({ studentId: '', name: '', password: '', gender: 'Male', classId: '' });
+  const [formData, setFormData] = useState({ studentId: '', name: '', password: '', gender: 'Male', classId: '', isClassLeader: false });
   const [editingId, setEditingId] = useState(null);
 
   const currentUserId = currentUser?._id || currentUser?.id;
@@ -40,6 +40,15 @@ const TeacherGeneralRegister = () => {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+
+    if (formData.isClassLeader && formData.classId) {
+      const selectedClass = classes.find(c => c._id === formData.classId);
+      if (selectedClass && selectedClass.classLeader) {
+        const replace = window.confirm(`This class already has a leader (${selectedClass.classLeader.name || 'someone'}). Do you want to replace them with ${formData.name}?`);
+        if (!replace) return;
+      }
+    }
+
     try {
       const res = await registerStudent(formData);
       toast.success(`${res.message}. Temp Password: ${res.data.tempPassword}`, { duration: 5000 });
@@ -52,6 +61,15 @@ const TeacherGeneralRegister = () => {
 
   const handleUpdate = async (e) => {
     e.preventDefault();
+
+    if (formData.isClassLeader && formData.classId) {
+      const selectedClass = classes.find(c => c._id === formData.classId);
+      if (selectedClass && selectedClass.classLeader && selectedClass.classLeader._id !== editingId) {
+        const replace = window.confirm(`This class already has a leader (${selectedClass.classLeader.name || 'someone'}). Do you want to replace them with ${formData.name}?`);
+        if (!replace) return;
+      }
+    }
+
     try {
       const res = await updateStudent(editingId, formData);
       toast.success(res.message || 'Student updated successfully');
@@ -77,13 +95,17 @@ const TeacherGeneralRegister = () => {
   const openAddModal = () => {
     const classTeacherClasses = classes.filter(c => c.teacherId === currentUserId);
     const defaultClassId = classTeacherClasses.length === 1 ? classTeacherClasses[0]._id : '';
-    setFormData({ studentId: '', name: '', password: '', gender: 'Male', classId: defaultClassId });
+    setFormData({ studentId: '', name: '', password: '', gender: 'Male', classId: defaultClassId, isClassLeader: false });
     setEditingId(null);
     setShowModal(true);
   };
 
   const openEditModal = (student) => {
-    setFormData({ studentId: student.studentId || '', name: student.name, password: '', gender: student.gender, classId: student.classId || '' });
+    const studentClass = classes.find(c => c.students && (c.students.includes(student._id) || c.students.some(s => s._id === student._id)));
+    const classId = studentClass ? studentClass._id : '';
+    const isLeader = studentClass && studentClass.classLeader && studentClass.classLeader._id === student._id ? true : false;
+    
+    setFormData({ studentId: student.studentId || '', name: student.name, password: '', gender: student.gender, classId: classId, isClassLeader: isLeader });
     setEditingId(student._id);
     setShowModal(true);
   };
@@ -208,6 +230,19 @@ const TeacherGeneralRegister = () => {
                     <option key={c._id} value={c._id}>{c.className}</option>
                   ))}
                 </select>
+              </div>
+              <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                <input 
+                  type="checkbox" 
+                  id="isClassLeader"
+                  className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                  checked={formData.isClassLeader}
+                  onChange={(e) => setFormData({ ...formData, isClassLeader: e.target.checked })} 
+                />
+                <div>
+                  <label htmlFor="isClassLeader" className="block text-sm font-bold text-gray-700 cursor-pointer">Assign as a Class Leader</label>
+                  <p className="text-xs text-gray-500">Assign this student as the leader of the selected class.</p>
+                </div>
               </div>
               <div className="flex justify-end gap-2 mt-6">
                 <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Cancel</button>

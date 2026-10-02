@@ -25,9 +25,46 @@ const IDCardManagement = () => {
   // Edit Form State
   const [formData, setFormData] = useState({});
 
+  const [schoolNameInput, setSchoolNameInput] = useState('');
+  const [savingSchoolName, setSavingSchoolName] = useState(false);
+
   useEffect(() => {
     fetchUsers();
+    fetchSchoolName();
   }, [roleFilter]);
+
+  const fetchSchoolName = async () => {
+    try {
+      const res = await api.get('/id-card/school-name');
+      if (res.data?.schoolName) {
+        setSchoolNameInput(res.data.schoolName);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleUpdateSchoolName = async (e) => {
+    e.preventDefault();
+    if (!schoolNameInput.trim()) {
+      return toast.error("Please enter a valid school name");
+    }
+    try {
+      setSavingSchoolName(true);
+      const res = await api.put('/id-card/school-name', { schoolName: schoolNameInput.trim() });
+      if (res.data?.success) {
+        toast.success("School Name updated on all ID Cards!");
+        setSchoolNameInput(res.data.schoolName);
+        if (selectedUser) {
+          openCardPreview(selectedUser);
+        }
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update School Name");
+    } finally {
+      setSavingSchoolName(false);
+    }
+  };
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -148,31 +185,51 @@ const IDCardManagement = () => {
               <p className="text-gray-500 text-sm">Manage, update, and print identity cards for all staff and students.</p>
             </div>
             
-            <form onSubmit={handleSearch} className="flex gap-2 w-full md:w-auto">
-              <div className="relative flex-1 md:w-64">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto items-stretch sm:items-center">
+              <form onSubmit={handleUpdateSchoolName} className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 shadow-xs">
+                <span className="text-xs font-bold text-gray-500 whitespace-nowrap">School Name:</span>
                 <input 
                   type="text" 
-                  placeholder="Search by name, ID..." 
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+                  value={schoolNameInput}
+                  onChange={(e) => setSchoolNameInput(e.target.value)}
+                  placeholder="e.g. ABC School"
+                  className="bg-transparent border-0 focus:outline-none text-xs font-bold text-gray-800 w-32 sm:w-40"
                 />
-              </div>
-              <select 
-                value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value)}
-                className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/20"
-              >
-                <option value="all">All Roles</option>
-                <option value="student">Students</option>
-                <option value="teacher">Teachers</option>
-                <option value="principal">Principals</option>
-              </select>
-              <button type="submit" className="bg-primary text-white p-2 rounded-xl hover:bg-primary-dark transition hidden md:block">
-                <Search className="w-5 h-5" />
-              </button>
-            </form>
+                <button 
+                  type="submit" 
+                  disabled={savingSchoolName} 
+                  className="bg-primary text-white text-xs font-extrabold px-3 py-1 rounded-lg hover:bg-primary-dark transition disabled:opacity-50 uppercase tracking-wider"
+                >
+                  {savingSchoolName ? 'Saving...' : 'SET'}
+                </button>
+              </form>
+
+              <form onSubmit={handleSearch} className="flex gap-2">
+                <div className="relative flex-1 md:w-56">
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input 
+                    type="text" 
+                    placeholder="Search by name, ID..." 
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+                  />
+                </div>
+                <select 
+                  value={roleFilter}
+                  onChange={(e) => setRoleFilter(e.target.value)}
+                  className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                >
+                  <option value="all">All Roles</option>
+                  <option value="student">Students</option>
+                  <option value="teacher">Teachers</option>
+                  <option value="principal">Principals</option>
+                </select>
+                <button type="submit" className="bg-primary text-white p-2 rounded-xl hover:bg-primary-dark transition hidden md:block">
+                  <Search className="w-5 h-5" />
+                </button>
+              </form>
+            </div>
           </div>
 
           {loading ? (

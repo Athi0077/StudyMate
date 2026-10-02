@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom';
 import api from '../utils/api';
 import Layout from '../components/layout/Layout';
 import TotalAttendanceReport from '../components/dashboard/TotalAttendanceReport';
-import { AlertCircle, ArrowRight } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { AlertCircle, ArrowRight, Contact } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 // Mock trend data for sparklines
@@ -39,18 +40,22 @@ const PrincipalDashboard = () => {
   const [teacherAssignments, setTeacherAssignments] = useState([]);
   const [pendingReports, setPendingReports] = useState([]);
 
+  const [schoolNameInput, setSchoolNameInput] = useState('');
+  const [savingSchoolName, setSavingSchoolName] = useState(false);
+
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
         const res = await api.get('/dashboard/principal');
         setDashboardData(res.data.data);
         
-        const [stdsRes, asgRes, usersRes, reqRes, reportsRes] = await Promise.all([
+        const [stdsRes, asgRes, usersRes, reqRes, reportsRes, schoolNameRes] = await Promise.all([
           api.get('/standards'),
           api.get('/teacher-assignments'),
           api.get('/users/active-teachers'),
           api.get('/users/pending-teachers'),
-          api.get('/reports')
+          api.get('/reports'),
+          api.get('/id-card/school-name').catch(() => ({ data: { schoolName: 'StudyMate School' } }))
         ]);
         
         let secCount = 0;
@@ -65,10 +70,13 @@ const PrincipalDashboard = () => {
 
         setTeacherAssignments(asgRes.data.data.slice(0, 5));
         setTeacherRequests(reqRes.data.data ? reqRes.data.data.slice(0, 5) : []);
+
+        if (schoolNameRes.data?.schoolName) {
+          setSchoolNameInput(schoolNameRes.data.schoolName);
+        }
         
         if (reportsRes?.data?.data) {
           const unresolved = reportsRes.data.data.filter(r => r.status !== 'CLOSED' && r.status !== 'RESOLVED');
-          // Prioritize Urgent/High if possible
           unresolved.sort((a, b) => {
             const p = { "Urgent": 3, "High": 2, "Normal": 1 };
             return (p[b.priority] || 0) - (p[a.priority] || 0);
@@ -81,6 +89,26 @@ const PrincipalDashboard = () => {
     };
     fetchDashboard();
   }, []);
+
+  const handleSetSchoolName = async (e) => {
+    e.preventDefault();
+    if (!schoolNameInput.trim()) {
+      return toast.error("Please enter a valid school name");
+    }
+
+    try {
+      setSavingSchoolName(true);
+      const res = await api.put('/id-card/school-name', { schoolName: schoolNameInput.trim() });
+      if (res.data?.success) {
+        toast.success("School Name updated on all ID Cards! 🪪");
+        setSchoolNameInput(res.data.schoolName);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update School Name");
+    } finally {
+      setSavingSchoolName(false);
+    }
+  };
 
   return (
     <Layout>
@@ -257,6 +285,33 @@ const PrincipalDashboard = () => {
                     </div>
                   )}
                </div>
+            </div>
+
+            {/* ID Card School Name Setting Widget */}
+            <div className="bg-white/80 backdrop-blur-xl border border-white/40 rounded-2xl shadow-soft p-6">
+              <h2 className="text-lg font-bold text-gray-800 mb-1 flex items-center gap-2">
+                <Contact className="w-5 h-5 text-indigo-600" />
+                ID Card School Name
+              </h2>
+              <p className="text-xs text-gray-500 mb-4">
+                Set the official school name displayed on all digital ID cards.
+              </p>
+              <form onSubmit={handleSetSchoolName} className="flex gap-2">
+                <input 
+                  type="text" 
+                  value={schoolNameInput}
+                  onChange={(e) => setSchoolNameInput(e.target.value)}
+                  placeholder="e.g. ABC School"
+                  className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <button 
+                  type="submit" 
+                  disabled={savingSchoolName}
+                  className="bg-primary text-white font-extrabold px-5 py-2 rounded-xl text-sm hover:bg-primary-dark transition disabled:opacity-50 shadow-soft uppercase tracking-wider"
+                >
+                  {savingSchoolName ? 'Saving...' : 'SET'}
+                </button>
+              </form>
             </div>
           </div>
         </div>

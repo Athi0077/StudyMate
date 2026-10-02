@@ -78,12 +78,45 @@ const updateProfile = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
+    // Protect administrative & identity fields
+    const protectedFields = ["role", "studentId", "grNumber", "status", "schoolId", "idCardStatus"];
+    for (const field of protectedFields) {
+      if (req.body[field] !== undefined && String(req.body[field]) !== String(user[field])) {
+        return res.status(403).json({ success: false, message: `Field '${field}' cannot be modified through profile update.` });
+      }
+    }
+
     if (req.body.name) user.name = req.body.name;
     if (req.body.email) user.email = req.body.email;
     if (req.body.phone !== undefined) user.phone = req.body.phone;
     if (req.body.address !== undefined) user.address = req.body.address;
     
-    // If password needs update
+    // Date of Birth validation & update
+    if (req.body.dateOfBirth !== undefined) {
+      if (req.body.dateOfBirth === "" || req.body.dateOfBirth === null) {
+        user.dateOfBirth = undefined;
+      } else {
+        const dob = new Date(req.body.dateOfBirth);
+        if (isNaN(dob.getTime())) {
+          return res.status(400).json({ success: false, message: "Invalid Date of Birth" });
+        }
+        if (dob > new Date()) {
+          return res.status(400).json({ success: false, message: "Date of Birth cannot be in the future" });
+        }
+        user.dateOfBirth = dob;
+      }
+    }
+
+    // Blood Group validation & update
+    if (req.body.bloodGroup !== undefined) {
+      const allowedBloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Unknown / Not specified"];
+      if (req.body.bloodGroup && !allowedBloodGroups.includes(req.body.bloodGroup)) {
+        return res.status(400).json({ success: false, message: "Invalid Blood Group selection" });
+      }
+      user.bloodGroup = req.body.bloodGroup || "Unknown / Not specified";
+    }
+
+    // Password update
     if (req.body.password) {
       user.password = req.body.password;
     }
@@ -101,7 +134,9 @@ const updateProfile = async (req, res) => {
         address: user.address,
         role: user.role,
         status: user.status,
-        profilePic: user.profilePic
+        profilePic: user.profilePic,
+        dateOfBirth: user.dateOfBirth,
+        bloodGroup: user.bloodGroup
       }
     });
   } catch (error) {

@@ -15,6 +15,11 @@ const TeacherClassDetails = () => {
   const [tempPassword, setTempPassword] = useState('');
   const [isResetting, setIsResetting] = useState(false);
 
+  // Fee Status State
+  const [feeStatuses, setFeeStatuses] = useState({});
+  const [feeLoading, setFeeLoading] = useState({});
+  const [feeToast, setFeeToast] = useState(null);
+
   const handleResetPassword = (student) => {
     setStudentToReset(student);
     setTempPassword('');
@@ -35,6 +40,50 @@ const TeacherClassDetails = () => {
     }
   };
 
+  // Fetch fee statuses for the class
+  const fetchFeeStatuses = async () => {
+    try {
+      const res = await api.get(`/fee-status/class/${classId}`);
+      if (res.data.success) {
+        setFeeStatuses(res.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch fee statuses:', err);
+    }
+  };
+
+  // Update a student's fee status
+  const handleFeeStatusChange = async (studentId, newStatus) => {
+    setFeeLoading((prev) => ({ ...prev, [studentId]: true }));
+    setFeeToast(null);
+    try {
+      const res = await api.put(`/fee-status/student/${studentId}`, { feeStatus: newStatus });
+      if (res.data.success) {
+        setFeeStatuses((prev) => ({
+          ...prev,
+          [studentId]: {
+            ...prev[studentId],
+            feeStatus: newStatus,
+            statusUpdatedAt: new Date().toISOString(),
+          },
+        }));
+        setFeeToast({ type: 'success', message: `Fee status updated to "${newStatus}"` });
+      }
+    } catch (err) {
+      setFeeToast({ type: 'error', message: err.response?.data?.message || 'Failed to update fee status' });
+    } finally {
+      setFeeLoading((prev) => ({ ...prev, [studentId]: false }));
+    }
+  };
+
+  // Auto-dismiss toast
+  useEffect(() => {
+    if (feeToast) {
+      const timer = setTimeout(() => setFeeToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [feeToast]);
+
   useEffect(() => {
     const fetchClass = async () => {
       try {
@@ -45,6 +94,7 @@ const TeacherClassDetails = () => {
       }
     };
     fetchClass();
+    fetchFeeStatuses();
   }, [classId]);
 
   if (error) return <div className="p-6 text-red-600 font-bold">{error}</div>;
@@ -62,27 +112,49 @@ const TeacherClassDetails = () => {
         <div className="text-gray-700">Students: <span className="font-semibold">{classData.students.length}</span></div>
       </div>
 
+      {/* Fee status toast notification */}
+      {feeToast && (
+        <div className={`mb-4 px-4 py-3 rounded-lg text-sm font-semibold flex items-center gap-2 shadow-md animate-fade-in transition-all ${
+          feeToast.type === 'success' 
+            ? 'bg-green-50 text-green-700 border border-green-200' 
+            : 'bg-red-50 text-red-700 border border-red-200'
+        }`}>
+          <span>{feeToast.type === 'success' ? '✅' : '❌'}</span>
+          {feeToast.message}
+          <button onClick={() => setFeeToast(null)} className="ml-auto text-gray-400 hover:text-gray-600">✕</button>
+        </div>
+      )}
+
       <div className="flex flex-col lg:flex-row gap-6 mb-6">
         <div className="lg:w-2/3 bg-white shadow rounded p-6 overflow-x-auto">
           <h3 className="text-xl font-bold mb-4 border-b pb-2">Students</h3>
           {classData.students.length > 0 ? (
             <div className="overflow-x-auto custom-scrollbar">
-              <table className="w-full text-left border-collapse text-sm min-w-[700px]">
+              <table className="w-full text-left border-collapse text-sm min-w-[850px]">
                 <thead className="bg-gray-50 border-b border-gray-100 text-gray-600 font-semibold">
                   <tr>
                     <th className="p-3">#</th>
                     <th className="p-3 whitespace-nowrap">Student Info</th>
                     <th className="p-3 whitespace-nowrap">Parent Info</th>
-                    <th className="p-3 w-1/4 min-w-[200px]">Address</th>
+                    <th className="p-3 w-1/5 min-w-[160px]">Address</th>
+                    <th className="p-3 whitespace-nowrap min-w-[150px]">Fee Status</th>
                     <th className="p-3 whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {classData.students.map((student, index) => (
+                  {classData.students.map((student, index) => {
+                    const status = feeStatuses[student._id]?.feeStatus || 'pending';
+                    const isUpdating = feeLoading[student._id];
+                    return (
                     <tr key={student._id} className="hover:bg-gray-50/50 transition">
                       <td className="p-3 text-gray-500">{index + 1}</td>
                       <td className="p-3 whitespace-nowrap">
-                        <div className="font-bold text-gray-800">{student.name}</div>
+                        <div className="font-bold text-gray-800 flex items-center gap-2">
+                          {student.name}
+                          {classData.classLeader && classData.classLeader._id === student._id && (
+                            <span className="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-0.5 rounded-md border border-yellow-200">👑 Class Leader</span>
+                          )}
+                        </div>
                         <div className="text-gray-500 text-xs mt-0.5 font-mono">ID: {student.studentId || 'N/A'}</div>
                         {student.email && !student.email.endsWith('@studymate.school') && <div className="text-gray-500 text-xs mt-0.5">{student.email}</div>}
                         {student.phone && <div className="text-blue-600 font-medium text-xs mt-1 bg-blue-50 inline-block px-2 py-0.5 rounded-md">📞 {student.phone}</div>}
@@ -95,6 +167,34 @@ const TeacherClassDetails = () => {
                         <p className="line-clamp-2 text-xs" title={student.address}>{student.address || 'N/A'}</p>
                       </td>
                       <td className="p-3">
+                        <div className="relative">
+                          <select
+                            id={`fee-status-${student._id}`}
+                            value={status}
+                            disabled={isUpdating}
+                            onChange={(e) => handleFeeStatusChange(student._id, e.target.value)}
+                            className={`text-xs font-bold px-3 py-2 rounded-lg border cursor-pointer transition-all appearance-none pr-7 w-full
+                              ${status === 'completed'
+                                ? 'bg-green-50 text-green-700 border-green-200 hover:border-green-400'
+                                : 'bg-amber-50 text-amber-700 border-amber-200 hover:border-amber-400'
+                              }
+                              ${isUpdating ? 'opacity-60 cursor-wait' : ''}
+                            `}
+                          >
+                            <option value="pending">⏳ Pending</option>
+                            <option value="completed">✅ Completed</option>
+                          </select>
+                          {isUpdating && (
+                            <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                              <div className="w-3.5 h-3.5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+                            </div>
+                          )}
+                          {!isUpdating && (
+                            <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[10px] text-gray-400">▼</div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-3">
                         <button 
                           onClick={() => handleResetPassword(student)}
                           className="text-xs bg-red-100 text-red-600 hover:bg-red-200 px-3 py-1.5 rounded-md font-semibold transition whitespace-nowrap"
@@ -103,7 +203,8 @@ const TeacherClassDetails = () => {
                         </button>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -156,3 +257,4 @@ const TeacherClassDetails = () => {
 };
 
 export default TeacherClassDetails;
+

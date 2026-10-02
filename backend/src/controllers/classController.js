@@ -66,7 +66,7 @@ const getMyClasses = async (req, res) => {
       };
     }
 
-    let classes = await Class.find(query).populate('students', '_id role');
+    let classes = await Class.find(query).populate('students', '_id role').populate('classLeader', '_id name');
     
     // Filter out invalid/deleted student IDs
     classes = classes.map(c => {
@@ -109,7 +109,8 @@ const getStudentClass = async (req, res) => {
     // For student privacy, don't populate all student details, maybe just count or basic info
     const populatedClass = await Class.findById(studentClass._id)
       .populate("teacherId", "name email")
-      .populate("students", "name");
+      .populate("students", "name")
+      .populate("classLeader", "name _id");
 
     const Standard = require("../models/Standard");
     const Section = require("../models/Section");
@@ -141,7 +142,7 @@ const getStudentClass = async (req, res) => {
 // @access  Private (Principal only)
 const getAllClasses = async (req, res) => {
   try {
-    const classes = await Class.find().populate("teacherId", "name email");
+    const classes = await Class.find().populate("teacherId", "name email").populate("classLeader", "name _id");
     res.json({ success: true, data: classes });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -168,7 +169,8 @@ const getClassById = async (req, res) => {
     const classId = req.params.id;
     const classData = await Class.findById(classId)
       .populate("teacherId", "name email")
-      .populate("students", "name email phone address studentId");
+      .populate("students", "name email phone address studentId")
+      .populate("classLeader", "name _id");
 
     if (!classData) {
       return res.status(404).json({ success: false, message: "Class not found" });

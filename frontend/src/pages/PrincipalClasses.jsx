@@ -70,6 +70,7 @@ const PrincipalClasses = () => {
                   <tr className="border-b border-gray-100 text-gray-500">
                     <th className="p-4 font-medium">Class</th>
                     <th className="p-4 font-medium">Teacher</th>
+                    <th className="p-4 font-medium">Class Leader</th>
                     <th className="p-4 font-medium">Students</th>
                     <th className="p-4 font-medium">Status</th>
                     <th className="p-4 font-medium text-right">Action</th>
@@ -81,6 +82,13 @@ const PrincipalClasses = () => {
                       <tr key={cls._id} className="hover:bg-gray-50 transition">
                         <td className="p-4 font-bold text-gray-800">{cls.className}</td>
                         <td className="p-4 text-gray-600">{cls.teacherId?.name || 'Unknown'}</td>
+                        <td className="p-4 text-gray-600">
+                          {cls.classLeader ? (
+                            <span className="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-0.5 rounded border border-yellow-200">👑 {cls.classLeader.name}</span>
+                          ) : (
+                            <span className="text-gray-400 text-xs italic">Not assigned</span>
+                          )}
+                        </td>
                         <td className="p-4 text-gray-600">{cls.students?.length || 0}</td>
                         <td className="p-4">
                           <span className={`px-3 py-1 text-xs rounded-lg font-semibold ${cls.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>

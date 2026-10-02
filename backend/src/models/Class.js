@@ -25,6 +25,11 @@ const classSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    classLeader: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
     subjects: [
       {
         type: mongoose.Schema.Types.ObjectId,

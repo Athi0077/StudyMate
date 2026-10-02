@@ -275,6 +275,7 @@ const getStudentDashboard = async (req, res) => {
       success: true,
       data: {
         className: studentClass ? studentClass.className : "No Class Assigned",
+        isClassLeader: studentClass && studentClass.classLeader && studentClass.classLeader.toString() === req.user._id.toString() ? true : false,
         todayAttendance: todayAttendanceStatus,
         hwStats,
         attendancePercentage,
@@ -410,82 +411,217 @@ const getStudentAnalytics = async (req, res) => {
   try {
     const TestSubmission = require("../models/TestSubmission");
     const HomeworkSubmission = require("../models/HomeworkSubmission");
+    const ExamMark = require("../models/ExamMark");
     const Subject = require("../models/Subject");
     const Class = require("../models/Class");
     
     const studentClass = await Class.findOne({ students: req.user._id });
-    if (!studentClass) return res.json({ success: true, data: { performanceOverTime: [], subjectAverages: [], skillDistribution: [], overallAverage: 0, bestSubject: 'N/A' } });
+    if (!studentClass) {
+      return res.json({
+        success: true,
+        data: {
+          hasData: false,
+          overallAverage: 0,
+          bestSubject: "N/A",
+          trend: 0,
+          performanceOverTime: [],
+          subjectAverages: [],
+          skillDistribution: [],
+          totalGraded: 0
+        }
+      });
+    }
 
-    const subjects = await Subject.find({ _id: { $in: studentClass.subjects } });
-    
-    // Fetch tests and homeworks to calculate scores
-    const testSubmissions = await TestSubmission.find({ studentId: req.user._id, status: 'graded' }).populate({
-      path: 'testId',
-      populate: { path: 'subjectId', select: 'name' }
-    });
-    
-    const homeworkSubmissions = await HomeworkSubmission.find({ studentId: req.user._id, status: 'approved' }).populate({
-      path: 'homeworkId',
-      populate: { path: 'subjectId', select: 'name' }
+    const studentId = req.user._id;
+
+    // 1. Fetch Exam Marks
+    const examMarks = await ExamMark.find({
+      studentId,
+      marksObtained: { $ne: null }
+    }).populate("subjectId", "name").populate("examId");
+
+    // 2. Fetch Test Submissions
+    const testSubmissions = await TestSubmission.find({
+      studentId,
+      status: "graded",
+      marks: { $ne: null }
+    }).populate({
+      path: "testId",
+      populate: { path: "subjectId", select: "name" }
     });
 
-    // Subject Averages
-    let subjectScores = {};
-    subjects.forEach(sub => {
-      subjectScores[sub.name] = { totalMarks: 0, maxMarks: 0 };
+    // 3. Fetch Homework Submissions
+    const homeworkSubmissions = await HomeworkSubmission.find({
+      studentId,
+      status: "approved",
+      marks: { $ne: null }
+    }).populate({
+      path: "homeworkId",
+      populate: { path: "subjectId", select: "name" }
     });
 
+    // Aggregate all graded items
+    const allGradedItems = [];
+
+    // Process ExamMarks
+    examMarks.forEach(em => {
+      if (!em.subjectId?.name) return;
+      const exam = em.examId;
+      let maxMarks = 100;
+      if (exam && exam.schedule && Array.isArray(exam.schedule)) {
+        const sched = exam.schedule.find(s => s.subjectId?.toString() === em.subjectId._id?.toString());
+        if (sched && sched.maxMarks) maxMarks = sched.maxMarks;
+      }
+      const scorePct = Math.min(100, Math.max(0, (Number(em.marksObtained) / maxMarks) * 100));
+      const date = em.updatedAt || em.createdAt || new Date();
+      allGradedItems.push({
+        subject: em.subjectId.name,
+        obtained: Number(em.marksObtained),
+        max: maxMarks,
+        pct: scorePct,
+        date: new Date(date)
+      });
+    });
+
+    // Process TestSubmissions
     testSubmissions.forEach(ts => {
-      if (ts.testId?.subjectId?.name && ts.marks != null) {
-        if (!subjectScores[ts.testId.subjectId.name]) subjectScores[ts.testId.subjectId.name] = { totalMarks: 0, maxMarks: 0 };
-        subjectScores[ts.testId.subjectId.name].totalMarks += Number(ts.marks);
-        subjectScores[ts.testId.subjectId.name].maxMarks += Number(ts.testId.maxMarks || 100);
+      const subjectName = ts.testId?.subjectId?.name;
+      if (!subjectName) return;
+      const maxMarks = Number(ts.testId?.maxMarks || 100);
+      const scorePct = Math.min(100, Math.max(0, (Number(ts.marks) / maxMarks) * 100));
+      const date = ts.gradedAt || ts.updatedAt || ts.createdAt || new Date();
+      allGradedItems.push({
+        subject: subjectName,
+        obtained: Number(ts.marks),
+        max: maxMarks,
+        pct: scorePct,
+        date: new Date(date)
+      });
+    });
+
+    // Process HomeworkSubmissions
+    homeworkSubmissions.forEach(hs => {
+      const subjectName = hs.homeworkId?.subjectId?.name;
+      if (!subjectName) return;
+      const maxMarks = Number(hs.maxMarks || 10);
+      const scorePct = Math.min(100, Math.max(0, (Number(hs.marks) / maxMarks) * 100));
+      const date = hs.reviewedAt || hs.updatedAt || hs.createdAt || new Date();
+      allGradedItems.push({
+        subject: subjectName,
+        obtained: Number(hs.marks),
+        max: maxMarks,
+        pct: scorePct,
+        date: new Date(date)
+      });
+    });
+
+    if (allGradedItems.length === 0) {
+      return res.json({
+        success: true,
+        data: {
+          hasData: false,
+          overallAverage: 0,
+          bestSubject: "N/A",
+          trend: 0,
+          performanceOverTime: [],
+          subjectAverages: [],
+          skillDistribution: [],
+          totalGraded: 0
+        }
+      });
+    }
+
+    // 4. Subject Averages
+    const subjectMap = {};
+    let totalObtainedSum = 0;
+    let totalMaxSum = 0;
+
+    allGradedItems.forEach(item => {
+      if (!subjectMap[item.subject]) {
+        subjectMap[item.subject] = { sumPct: 0, count: 0, sumObtained: 0, sumMax: 0 };
+      }
+      subjectMap[item.subject].sumPct += item.pct;
+      subjectMap[item.subject].count += 1;
+      subjectMap[item.subject].sumObtained += item.obtained;
+      subjectMap[item.subject].sumMax += item.max;
+
+      totalObtainedSum += item.obtained;
+      totalMaxSum += item.max;
+    });
+
+    const subjectAverages = Object.keys(subjectMap).map(sub => {
+      const avgGrade = Math.round(subjectMap[sub].sumPct / subjectMap[sub].count);
+      return {
+        subject: sub,
+        grade: avgGrade,
+        max: 100
+      };
+    });
+
+    // Overall Average
+    const overallAverage = totalMaxSum > 0 
+      ? Math.round((totalObtainedSum / totalMaxSum) * 100)
+      : Math.round(subjectAverages.reduce((acc, s) => acc + s.grade, 0) / subjectAverages.length);
+
+    // Best Subject
+    let bestSubName = "N/A";
+    let bestSubGrade = -1;
+    subjectAverages.forEach(s => {
+      if (s.grade > bestSubGrade) {
+        bestSubGrade = s.grade;
+        bestSubName = s.subject;
       }
     });
 
-    // Mocking or aggregating over time (using current month for demo)
-    const months = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const performanceOverTime = months.map(m => ({ month: m, score: Math.floor(Math.random() * 20) + 70 }));
+    // 5. Performance Over Time (Grouped by Month)
+    allGradedItems.sort((a, b) => a.date - b.date);
+    const monthMap = {};
+    const monthFormatter = new Intl.DateTimeFormat('en-US', { month: 'short' });
 
-    let subjectAverages = [];
-    let overallPercentage = 0;
-    let totalObtained = 0;
-    let totalMax = 0;
-    let bestSub = { subject: 'N/A', grade: 0 };
-
-    Object.keys(subjectScores).forEach(sub => {
-      const { totalMarks, maxMarks } = subjectScores[sub];
-      let grade = maxMarks > 0 ? Math.round((totalMarks / maxMarks) * 100) : 0;
-      if (grade === 0) grade = Math.floor(Math.random() * 30) + 60; // Fallback for visualization if no data
-      subjectAverages.push({ subject: sub, grade, max: 100 });
-      
-      if (grade > bestSub.grade) bestSub = { subject: sub, grade };
-      totalObtained += totalMarks;
-      totalMax += maxMarks;
+    allGradedItems.forEach(item => {
+      const monthName = monthFormatter.format(item.date);
+      if (!monthMap[monthName]) {
+        monthMap[monthName] = { sumPct: 0, count: 0 };
+      }
+      monthMap[monthName].sumPct += item.pct;
+      monthMap[monthName].count += 1;
     });
 
-    if (totalMax > 0) overallPercentage = Math.round((totalObtained / totalMax) * 100);
-    else overallPercentage = Math.round(subjectAverages.reduce((acc, curr) => acc + curr.grade, 0) / (subjectAverages.length || 1));
+    const performanceOverTime = Object.keys(monthMap).map(month => ({
+      month,
+      score: Math.round(monthMap[month].sumPct / monthMap[month].count)
+    }));
 
-    const skillDistribution = [
-      { subject: 'Analytical', A: Math.floor(Math.random() * 50) + 80, fullMark: 150 },
-      { subject: 'Creative', A: Math.floor(Math.random() * 50) + 80, fullMark: 150 },
-      { subject: 'Memory', A: Math.floor(Math.random() * 50) + 80, fullMark: 150 },
-      { subject: 'Writing', A: Math.floor(Math.random() * 50) + 80, fullMark: 150 },
-      { subject: 'Logic', A: Math.floor(Math.random() * 50) + 80, fullMark: 150 },
-    ];
+    // 6. Trend calculation (Current month vs Previous month)
+    let trend = 0;
+    if (performanceOverTime.length >= 2) {
+      const latest = performanceOverTime[performanceOverTime.length - 1].score;
+      const prev = performanceOverTime[performanceOverTime.length - 2].score;
+      trend = Math.round(latest - prev);
+    }
+
+    // 7. Skill / Subject Distribution for Radar Chart
+    const skillDistribution = subjectAverages.map(s => ({
+      subject: s.subject,
+      A: s.grade,
+      fullMark: 100
+    }));
 
     res.json({
       success: true,
       data: {
+        hasData: true,
+        overallAverage,
+        bestSubject: bestSubName,
+        trend,
         performanceOverTime,
         subjectAverages,
         skillDistribution,
-        overallAverage: overallPercentage,
-        bestSubject: bestSub.subject
+        totalGraded: allGradedItems.length
       }
     });
   } catch (error) {
+    console.error("Error in getStudentAnalytics:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

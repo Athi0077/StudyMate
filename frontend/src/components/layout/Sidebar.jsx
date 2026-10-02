@@ -1,29 +1,33 @@
 import React, { useContext } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
-import { Home, ClipboardList, BookOpen, Calendar, Bell, Users, FileText, CheckSquare, Layers, LogOut, CalendarDays, User, Contact, MessageSquare, Megaphone, Shield, Sparkles } from 'lucide-react';
+import { Home, ClipboardList, BookOpen, Calendar, Bell, Users, FileText, CheckSquare, Layers, LogOut, CalendarDays, User, Contact, MessageSquare, Megaphone, Shield, Sparkles, Cake } from 'lucide-react';
 
 export const navConfig = {
   student: [
     { name: 'Dashboard', path: '/student/dashboard', icon: Home },
+    { name: 'Subjects', path: '/student/class', icon: BookOpen },
     { name: 'Homework', path: '/student/homework', icon: ClipboardList },
     { name: 'Projects', path: '/student/projects', icon: FileText },
     { name: 'Tests', path: '/student/tests', icon: BookOpen },
     { name: 'Exams', path: '/student/exams', icon: BookOpen },
+    { name: 'My Todos', path: '/student/todos', icon: CheckSquare },
     { name: 'Report Card', path: '/student/report-card', icon: FileText },
-    { name: 'Subjects', path: '/student/class', icon: BookOpen },
-    { name: 'Resource Library', path: '/student/resources', icon: Layers },
-    { name: 'Analytics', path: '/student/analytics', icon: Layers },
     { name: 'Attendance', path: '/student/attendance', icon: Calendar },
     { name: 'Timetable', path: '/student/timetable', icon: CalendarDays },
-    { name: 'My Todos', path: '/student/todos', icon: CheckSquare },
-    { name: 'Help Center', path: '/student/reports', icon: MessageSquare },
+    { name: 'Analytics', path: '/student/analytics', icon: Layers },
+    { name: 'Resource Library', path: '/student/resources', icon: Layers },
+    { name: 'Events', path: '/student/events', icon: Sparkles },
     { name: 'Notifications', path: '/notifications', icon: Bell },
+    { name: "Today's Birthdays", path: '/student/birthdays', icon: Cake },
     { name: 'My ID Card', path: '/student/my-id-card', icon: Contact },
+    { name: 'Help Center', path: '/student/reports', icon: MessageSquare },
     { name: 'Profile', path: '/student/profile', icon: User }
   ],
   teacher: [
     { name: 'Dashboard', path: '/teacher/dashboard', icon: Home },
+    { name: "Today's Birthdays", path: '/teacher/birthdays', icon: Cake },
+    { name: 'Events', path: '/teacher/events', icon: Sparkles },
     { name: 'Announcements', path: '/teacher/announcements', icon: Megaphone },
     { name: 'My Classes', path: '/teacher/classes', icon: Layers },
     { name: 'Timetable', path: '/teacher/timetable', icon: CalendarDays },
@@ -43,6 +47,8 @@ export const navConfig = {
   ],
   principal: [
     { name: 'Dashboard', path: '/principal/dashboard', icon: Home },
+    { name: "Today's Birthdays", path: '/principal/birthdays', icon: Cake },
+    { name: 'Events', path: '/principal/events', icon: Sparkles },
     { name: 'Motivational Quotes', path: '/principal/quotes', icon: MessageSquare },
     { name: 'Announcements', path: '/principal/announcements', icon: Megaphone },
     // { name: 'AI Student Insights', path: '/principal/ai-dashboard', icon: Sparkles },

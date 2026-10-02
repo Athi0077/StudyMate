@@ -12,14 +12,16 @@ const StudentDashboard = () => {
   const { currentUser } = useContext(AuthContext);
   const [dashboardData, setDashboardData] = useState(null);
   const [quote, setQuote] = useState(null);
+  const [feeStatus, setFeeStatus] = useState(null);
 
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const [dashRes, syllabusRes, quoteRes] = await Promise.all([
+        const [dashRes, syllabusRes, quoteRes, feeRes] = await Promise.all([
           api.get('/dashboard/student'),
           api.get('/syllabus/student/progress').catch(() => ({ data: { data: null } })),
-          api.get('/quotes/current').catch(() => ({ data: { data: null } }))
+          api.get('/quotes/current').catch(() => ({ data: { data: null } })),
+          api.get('/fee-status/my-status').catch(() => ({ data: { data: null } }))
         ]);
         
         const dashboard = dashRes.data.data;
@@ -29,6 +31,9 @@ const StudentDashboard = () => {
         
         setDashboardData(dashboard);
         setQuote(quoteRes.data.data);
+        if (feeRes.data.data) {
+          setFeeStatus(feeRes.data.data.feeStatus);
+        }
       } catch (err) {
         console.error(err);
       }
@@ -78,11 +83,18 @@ const StudentDashboard = () => {
                 <h2 className="text-4xl lg:text-5xl font-bold text-blue-900">{currentUser?.name}! 👋</h2>
               </div>
             </div>
-            {dashboardData?.className && (
-              <span className="inline-block bg-blue-100 text-blue-800 px-4 py-1.5 rounded-lg font-bold mb-4 shadow-sm border border-blue-200">
-                {dashboardData.className}
-              </span>
-            )}
+            <div className="flex gap-2 mb-4">
+              {dashboardData?.className && (
+                <span className="inline-block bg-blue-100 text-blue-800 px-4 py-1.5 rounded-lg font-bold shadow-sm border border-blue-200">
+                  {dashboardData.className}
+                </span>
+              )}
+              {dashboardData?.isClassLeader && (
+                <span className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-800 px-4 py-1.5 rounded-lg font-bold shadow-sm border border-yellow-300">
+                  <span className="text-yellow-600">👑</span> Class Leader
+                </span>
+              )}
+            </div>
             <div className="flex gap-3 mb-6">
               <div className="bg-white/60 backdrop-blur-sm px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm border border-white/50">
                 <span className="text-xl">🔥</span>
@@ -124,6 +136,24 @@ const StudentDashboard = () => {
             )}
           </div>
         </div>
+
+        {/* Fee Pending Notification */}
+        {feeStatus === 'pending' && (
+          <div id="fee-pending-notification" className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4 md:p-5 shadow-sm flex items-center gap-4 animate-fade-in">
+            <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-2xl flex-shrink-0 shadow-sm">
+              💰
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="font-bold text-amber-800 text-sm md:text-base">Term Fees Pending</h4>
+              <p className="text-xs text-amber-600 mt-0.5">Your term fees have not been marked as completed yet. Please contact the school administration for details.</p>
+            </div>
+            <div className="flex-shrink-0">
+              <span className="inline-block bg-amber-100 text-amber-700 text-[10px] font-bold px-3 py-1.5 rounded-full border border-amber-200 whitespace-nowrap">
+                ⏳ Pending
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Stats Row */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">

@@ -168,7 +168,9 @@ const loginUser = async (req, res) => {
         role: user.role,
         status: user.status,
         profilePic: user.profilePic,
-        mustChangePassword: user.mustChangePassword
+        mustChangePassword: user.mustChangePassword,
+        dateOfBirth: user.dateOfBirth,
+        bloodGroup: user.bloodGroup
       },
     });
   } catch (error) {
@@ -208,6 +210,8 @@ const getUserProfile = async (req, res) => {
           role: user.role,
           status: user.status,
           profilePic: user.profilePic,
+          dateOfBirth: user.dateOfBirth,
+          bloodGroup: user.bloodGroup,
           tempPrincipalAccess: hasTempAccess
         },
       });

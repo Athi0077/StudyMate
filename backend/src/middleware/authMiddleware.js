@@ -18,8 +18,10 @@ const protect = async (req, res, next) => {
         return res.status(401).json({ success: false, message: "Not authorized, user not found" });
       }
 
-      // Check session version
-      if (decoded.sessionVersion !== req.user.sessionVersion) {
+      // Check session version safely
+      const userSessionVersion = req.user.sessionVersion || 1;
+      const tokenSessionVersion = decoded.sessionVersion || 1;
+      if (tokenSessionVersion !== userSessionVersion) {
         return res.status(401).json({ success: false, message: "Session expired or revoked" });
       }
 

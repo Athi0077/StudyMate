@@ -16,7 +16,7 @@ const getNextSequenceValue = async (sequenceName) => {
 
 exports.registerStudent = async (req, res) => {
   try {
-    const { studentId: customStudentId, name, email, password: customPassword, gender, dateOfBirth, contactDetails, classId } = req.body;
+    const { studentId: customStudentId, name, email, password: customPassword, gender, dateOfBirth, contactDetails, classId, isClassLeader } = req.body;
     
     // Authorization check
     if (req.user.role !== 'teacher' && req.user.role !== 'principal') {
@@ -80,8 +80,12 @@ exports.registerStudent = async (req, res) => {
       status: 'active'
     });
 
-    // Add to class
-    await Class.findByIdAndUpdate(classId, { $push: { students: newUser._id } });
+    // Add to class and optionally set as class leader
+    const classUpdate = { $push: { students: newUser._id } };
+    if (isClassLeader) {
+      classUpdate.$set = { classLeader: newUser._id };
+    }
+    await Class.findByIdAndUpdate(classId, classUpdate);
 
     res.status(201).json({
       success: true,
@@ -105,13 +109,18 @@ exports.registerStudent = async (req, res) => {
 exports.getStudents = async (req, res) => {
   try {
     let students = [];
+    let classesList = [];
     if (req.user.role === 'principal') {
-      students = await User.find({ role: 'student', schoolId: req.user.schoolId });
+      students = await User.find({ role: 'student', schoolId: req.user.schoolId }).lean();
+      classesList = await Class.find({ schoolId: req.user.schoolId }).lean();
     } else if (req.user.role === 'teacher') {
-      const classes = await Class.find({ teacherId: req.user._id });
-      const studentIds = classes.flatMap(c => c.students);
-      students = await User.find({ _id: { $in: studentIds }, role: 'student', schoolId: req.user.schoolId });
+      classesList = await Class.find({ teacherId: req.user._id }).lean();
+      const studentIds = classesList.flatMap(c => c.students);
+      students = await User.find({ _id: { $in: studentIds }, role: 'student', schoolId: req.user.schoolId }).lean();
     }
+
+    // Embed classLeader info into student objects to help frontend identify them easily if needed
+    // But since the frontend uses classes API to check, we don't strictly need it here, but it's safe.
     res.status(200).json({ success: true, data: students });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -121,7 +130,7 @@ exports.getStudents = async (req, res) => {
 exports.updateStudent = async (req, res) => {
   try {
     const { id } = req.params;
-    const { studentId, name, email, password, gender, classId } = req.body;
+    const { studentId, name, email, password, gender, classId, isClassLeader } = req.body;
     
     // Find student
     const student = await User.findOne({ _id: id, role: 'student', schoolId: req.user.schoolId });
@@ -157,11 +166,28 @@ exports.updateStudent = async (req, res) => {
       if (activeYear) {
         const enrollment = await Enrollment.findOne({ studentId: id, academicYearId: activeYear._id });
         if (enrollment && enrollment.classId.toString() !== classId) {
-          await Class.findByIdAndUpdate(enrollment.classId, { $pull: { students: id } });
+          const updateOldClass = { $pull: { students: id } };
+          const oldClassDoc = await Class.findById(enrollment.classId);
+          if (oldClassDoc && oldClassDoc.classLeader && oldClassDoc.classLeader.toString() === id.toString()) {
+            updateOldClass.$unset = { classLeader: 1 };
+          }
+          await Class.findByIdAndUpdate(enrollment.classId, updateOldClass);
+          
           enrollment.classId = classId;
           await enrollment.save();
           await Class.findByIdAndUpdate(classId, { $addToSet: { students: id } });
         }
+      }
+    }
+
+    // Handle class leader updates
+    const currentClassId = classId || (await Class.findOne({ students: id }))?._id;
+    if (currentClassId && isClassLeader !== undefined) {
+      const clsDoc = await Class.findById(currentClassId);
+      if (isClassLeader === true) {
+        await Class.findByIdAndUpdate(currentClassId, { $set: { classLeader: id } });
+      } else if (isClassLeader === false && clsDoc && clsDoc.classLeader && clsDoc.classLeader.toString() === id.toString()) {
+        await Class.findByIdAndUpdate(currentClassId, { $unset: { classLeader: 1 } });
       }
     }
     res.status(200).json({ success: true, message: 'Student updated successfully', data: student });
@@ -187,6 +213,12 @@ exports.deleteStudent = async (req, res) => {
       if (!cls || !cls.teacherId || cls.teacherId.toString() !== req.user._id.toString()) {
         return res.status(403).json({ success: false, message: 'Only the designated Class Teacher can delete students.' });
       }
+    }
+
+    // If the student was a class leader, remove them
+    const cls = await Class.findOne({ students: id });
+    if (cls && cls.classLeader && cls.classLeader.toString() === id.toString()) {
+      await Class.findByIdAndUpdate(cls._id, { $unset: { classLeader: 1 } });
     }
 
     // Fully delete for this demo

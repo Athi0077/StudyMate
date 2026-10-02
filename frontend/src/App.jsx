@@ -102,6 +102,10 @@ import InstallPrompt from './components/InstallPrompt';
 import ReloadPrompt from './components/ReloadPrompt';
 import { useState, useEffect } from 'react';
 import { WifiOff } from 'lucide-react';
+import PrincipalEvents from './pages/PrincipalEvents';
+import TeacherEvents from './pages/TeacherEvents';
+import StudentEvents from './pages/StudentEvents';
+import BirthdayCelebration from './pages/BirthdayCelebration';
 
 function App() {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
@@ -141,6 +145,7 @@ function App() {
 
             {/* Global Protected Routes */}
             <Route path="/notifications" element={<ProtectedRoute allowedRoles={['principal', 'teacher', 'student', 'parent']}><NotificationsPage /></ProtectedRoute>} />
+            <Route path="/birthdays" element={<ProtectedRoute allowedRoles={['principal', 'teacher', 'student', 'parent']}><BirthdayCelebration /></ProtectedRoute>} />
 
             {/* Super Admin Routes */}
             <Route path="/super-admin/dashboard" element={<ProtectedRoute allowedRoles={['superadmin']}><SuperAdminDashboard /></ProtectedRoute>} />
@@ -148,6 +153,8 @@ function App() {
 
             {/* Principal Routes */}
             <Route path="/principal/dashboard" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalDashboard /></ProtectedRoute>} />
+            <Route path="/principal/birthdays" element={<ProtectedRoute allowedRoles={['principal']}><BirthdayCelebration /></ProtectedRoute>} />
+            <Route path="/principal/events" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalEvents /></ProtectedRoute>} />
             <Route path="/principal/quotes" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalQuotes /></ProtectedRoute>} />
             <Route path="/principal/announcements" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalAnnouncements /></ProtectedRoute>} />
             <Route path="/principal/classes" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalClasses /></ProtectedRoute>} />
@@ -182,6 +189,8 @@ function App() {
 
             {/* Teacher Routes */}
             <Route path="/teacher/dashboard" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherDashboard /></ProtectedRoute>} />
+            <Route path="/teacher/birthdays" element={<ProtectedRoute allowedRoles={['teacher']}><BirthdayCelebration /></ProtectedRoute>} />
+            <Route path="/teacher/events" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherEvents /></ProtectedRoute>} />
             <Route path="/teacher/announcements" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherAnnouncements /></ProtectedRoute>} />
             <Route path="/teacher/classes" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherClasses /></ProtectedRoute>} />
             <Route path="/teacher/classes/:classId" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherClassDetails /></ProtectedRoute>} />
@@ -216,6 +225,8 @@ function App() {
 
             {/* Student Routes */}
             <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={['student']}><StudentDashboard /></ProtectedRoute>} />
+            <Route path="/student/birthdays" element={<ProtectedRoute allowedRoles={['student']}><BirthdayCelebration /></ProtectedRoute>} />
+            <Route path="/student/events" element={<ProtectedRoute allowedRoles={['student']}><StudentEvents /></ProtectedRoute>} />
             <Route path="/student/class" element={<ProtectedRoute allowedRoles={['student']}><StudentClass /></ProtectedRoute>} />
             <Route path="/student/join-class" element={<ProtectedRoute allowedRoles={['student']}><StudentJoinClass /></ProtectedRoute>} />
             <Route path="/student/homework" element={<ProtectedRoute allowedRoles={['student']}><StudentHomeworkList /></ProtectedRoute>} />

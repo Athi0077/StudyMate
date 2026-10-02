@@ -4,6 +4,8 @@ const AcademicYear = require("../models/AcademicYear");
 const TeacherAssignment = require("../models/TeacherAssignment");
 const crypto = require("crypto");
 
+const Settings = require("../models/Settings");
+
 const generateVerificationId = () => crypto.randomBytes(8).toString('hex');
 
 const getIDCardData = async (user) => {
@@ -12,12 +14,15 @@ const getIDCardData = async (user) => {
     await user.save();
   }
 
+  const settings = await Settings.findOne();
+  const schoolName = settings?.schoolName || "StudyMate School";
+
   const baseData = {
     _id: user._id,
     name: user.name,
     role: user.role,
     profilePic: user.profilePic,
-    schoolName: "StudyMate School",
+    schoolName: schoolName,
     idCardStatus: user.idCardStatus || "active",
     verificationId: user.verificationId,
   };
@@ -66,6 +71,50 @@ const getIDCardData = async (user) => {
   }
 
   return baseData;
+};
+
+// @desc    Get ID Card School Name
+// @route   GET /api/id-card/school-name
+// @access  Public
+const getSchoolName = async (req, res) => {
+  try {
+    const settings = await Settings.findOne();
+    res.json({
+      success: true,
+      schoolName: settings?.schoolName || "StudyMate School"
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Update ID Card School Name
+// @route   PUT /api/id-card/school-name
+// @access  Private (Principal)
+const updateSchoolName = async (req, res) => {
+  try {
+    const { schoolName } = req.body;
+    if (!schoolName || typeof schoolName !== "string" || !schoolName.trim()) {
+      return res.status(400).json({ success: false, message: "School name cannot be empty." });
+    }
+
+    let settings = await Settings.findOne();
+    if (!settings) {
+      settings = new Settings();
+    }
+
+    settings.schoolName = schoolName.trim();
+    settings.updatedBy = req.user._id;
+    await settings.save();
+
+    res.json({
+      success: true,
+      message: "ID Card School Name updated successfully",
+      schoolName: settings.schoolName
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 };
 
 // @desc    Get my ID card
@@ -148,11 +197,14 @@ const verifyIDCard = async (req, res) => {
       return res.status(403).json({ success: false, message: "ID Card has been revoked" });
     }
 
+    const settings = await Settings.findOne();
+    const schoolName = settings?.schoolName || "StudyMate School";
+
     // Only expose limited public data
     const publicData = {
       name: user.name,
       role: user.role,
-      schoolName: "StudyMate School",
+      schoolName: schoolName,
       profilePic: user.profilePic,
       status: user.idCardStatus,
       verificationId: user.verificationId,
@@ -207,4 +259,6 @@ module.exports = {
   updateIDCard,
   verifyIDCard,
   getAllUsersForIDCard,
+  getSchoolName,
+  updateSchoolName,
 };

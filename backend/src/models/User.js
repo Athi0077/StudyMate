@@ -67,6 +67,11 @@ const userSchema = new mongoose.Schema(
     dateOfBirth: {
       type: Date,
     },
+    bloodGroup: {
+      type: String,
+      enum: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Unknown / Not specified"],
+      default: "Unknown / Not specified",
+    },
     phone: {
       type: String,
     },

@@ -19,8 +19,12 @@ export const AuthProvider = ({ children }) => {
           setIsAuthenticated(true);
           initSocket(token);
         } catch (error) {
-          console.error("Auth check failed", error);
-          logout();
+          // Stale or expired token, clear storage cleanly
+          localStorage.removeItem('token');
+          setToken(null);
+          setCurrentUser(null);
+          setIsAuthenticated(false);
+          disconnectSocket();
         }
       }
       setLoading(false);
