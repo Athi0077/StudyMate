@@ -88,14 +88,14 @@ const StudentDashboard = () => {
                 <span className="text-xl">🔥</span>
                 <div>
                   <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Current Streak</p>
-                  <p className="font-black text-orange-600 leading-tight">5 Days</p>
+                  <p className="font-black text-orange-600 leading-tight">{dashboardData?.streak || 0} Days</p>
                 </div>
               </div>
               <div className="bg-white/60 backdrop-blur-sm px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm border border-white/50">
                 <span className="text-xl">🏆</span>
                 <div>
                   <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Rank</p>
-                  <p className="font-black text-yellow-600 leading-tight">Top 10%</p>
+                  <p className="font-black text-yellow-600 leading-tight">{dashboardData?.rank || 'N/A'}</p>
                 </div>
               </div>
             </div>

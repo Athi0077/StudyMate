@@ -158,6 +158,8 @@ const getStudentDashboard = async (req, res) => {
       revisionRequired: 0,
     };
     let attendancePercentage = 0;
+    let streak = 0;
+    let rank = "N/A";
 
     let todaysHomework = [];
     let upcomingDeadlines = [];
@@ -223,14 +225,29 @@ const getStudentDashboard = async (req, res) => {
       upcomingDeadlines.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
       upcomingDeadlines = upcomingDeadlines.slice(0, 5); // Take top 5
 
-      const allAtt = await Attendance.find({ studentId: req.user._id, classId: studentClass._id });
+      const allAtt = await Attendance.find({ studentId: req.user._id, classId: studentClass._id }).sort({ date: -1 });
       let p = 0, a = 0;
+      streak = 0;
+      let streakBroken = false;
+      
       allAtt.forEach(record => {
-        if (record.status === "present") p++;
-        if (record.status === "absent") a++;
+        if (record.status === "present") {
+          p++;
+          if (!streakBroken) streak++;
+        }
+        if (record.status === "absent") {
+          a++;
+          streakBroken = true;
+        }
       });
       const calcTotal = p + a;
       attendancePercentage = calcTotal > 0 ? Math.round((p / calcTotal) * 100) : 0;
+
+      // Compute rank based on attendance percentage as a proxy for now
+      rank = "Top 50%";
+      if (attendancePercentage >= 95) rank = "Top 5%";
+      else if (attendancePercentage >= 90) rank = "Top 10%";
+      else if (attendancePercentage >= 80) rank = "Top 25%";
       
       // Recent Submissions
       recentSubmissions = submissions.map(sub => ({
@@ -261,6 +278,8 @@ const getStudentDashboard = async (req, res) => {
         todayAttendance: todayAttendanceStatus,
         hwStats,
         attendancePercentage,
+        streak,
+        rank,
         todaysHomework,
         upcomingDeadlines,
         recentSubmissions,

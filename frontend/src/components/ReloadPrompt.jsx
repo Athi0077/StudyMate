@@ -22,7 +22,7 @@ const ReloadPrompt = () => {
   if (!needRefresh) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-50 max-w-sm flex items-start gap-4 animate-in slide-in-from-bottom-5">
+    <div className="fixed bottom-24 left-4 right-4 md:bottom-4 md:left-auto md:right-4 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-50 md:max-w-sm flex items-start gap-4 animate-in slide-in-from-bottom-5">
       <div className="flex-1">
         <h3 className="font-semibold text-gray-900">Update Available</h3>
         <p className="text-sm text-gray-600 mt-1">A new version of Homework is available. Reload to update.</p>
