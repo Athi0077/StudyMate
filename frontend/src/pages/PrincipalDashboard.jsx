@@ -150,19 +150,16 @@ const PrincipalDashboard = () => {
 
         {/* Daily Attendance Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          <StatCard icon="🎓" bgIconClass="bg-blue-100 text-blue-600" borderClass="border-blue-500" value={dashboardData?.totalStudents || 0} label="Total Students" />
-          <StatCard icon="✅" bgIconClass="bg-green-100 text-green-600" borderClass="border-green-500" value={dashboardData?.todayAttendance?.present || 0} label={`${selectedSession === 'MORNING' ? 'Morning' : 'Afternoon'} Present`} />
-          <StatCard icon="❌" bgIconClass="bg-red-100 text-red-600" borderClass="border-red-500" value={dashboardData?.todayAttendance?.absent || 0} label={`${selectedSession === 'MORNING' ? 'Morning' : 'Afternoon'} Absent`} />
-          <StatCard icon="🛌" bgIconClass="bg-amber-100 text-amber-600" borderClass="border-amber-500" value={dashboardData?.todayAttendance?.leave || 0} label="On Leave" />
-          <StatCard icon="📊" bgIconClass="bg-indigo-100 text-indigo-600" borderClass="border-indigo-500" value={`${dashboardData?.overallStudentAttendancePercentage || 0}%`} label="Attendance Rate" />
+          <StatCard icon="🎓" bgIconClass="bg-blue-100 text-blue-600" borderClass="border-blue-500" trendData={stableTrend} strokeColor="#3b82f6" value={dashboardData?.totalStudents || 0} label="Total Students" />
+          <StatCard icon="✅" bgIconClass="bg-green-100 text-green-600" borderClass="border-green-500" trendData={upTrend} strokeColor="#22c55e" value={dashboardData?.todayAttendance?.present || 0} label={`${selectedSession === 'MORNING' ? 'Morning' : 'Afternoon'} Present`} />
+          <StatCard icon="❌" bgIconClass="bg-red-100 text-red-600" borderClass="border-red-500" trendData={volatileTrend} strokeColor="#ef4444" value={dashboardData?.todayAttendance?.absent || 0} label={`${selectedSession === 'MORNING' ? 'Morning' : 'Afternoon'} Absent`} />
+          <StatCard icon="🛌" bgIconClass="bg-amber-100 text-amber-600" borderClass="border-amber-500" trendData={stableTrend} strokeColor="#f59e0b" value={dashboardData?.todayAttendance?.leave || 0} label="On Leave" />
+          <StatCard icon="📊" bgIconClass="bg-indigo-100 text-indigo-600" borderClass="border-indigo-500" trendData={upTrend} strokeColor="#6366f1" value={`${dashboardData?.overallStudentAttendancePercentage || 0}%`} label="Attendance Rate" />
+        <StatCard icon="👨‍🏫" bgIconClass="bg-purple-100 text-purple-600" borderClass="border-purple-500" trendData={stableTrend} strokeColor="#a855f7" value={stats.teachers || dashboardData?.totalTeachers || 0} label="Total Teachers" />
+        <StatCard icon="✔️" bgIconClass="bg-emerald-100 text-emerald-600" borderClass="border-emerald-500" trendData={volatileTrend} strokeColor="#10b981" value={dashboardData?.presentTeachers || 0} label="Teachers Present" />
+        <StatCard icon="🏫" bgIconClass="bg-pink-100 text-pink-600" borderClass="border-pink-500" trendData={stableTrend} strokeColor="#ec4899" value={dashboardData?.totalClasses || 0} label="Active Classes" />
         </div>
 
-        {/* School Overview Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <StatCard icon="👨‍🏫" bgIconClass="bg-purple-100 text-purple-600" borderClass="border-purple-500" trendData={stableTrend} strokeColor="#a855f7" value={stats.teachers || dashboardData?.totalTeachers || 0} label="Total Teachers" />
-          <StatCard icon="✔️" bgIconClass="bg-emerald-100 text-emerald-600" borderClass="border-emerald-500" trendData={volatileTrend} strokeColor="#10b981" value={dashboardData?.presentTeachers || 0} label="Teachers Present" />
-          <StatCard icon="🏫" bgIconClass="bg-pink-100 text-pink-600" borderClass="border-pink-500" trendData={stableTrend} strokeColor="#ec4899" value={dashboardData?.totalClasses || 0} label="Active Classes" />
-        </div>
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

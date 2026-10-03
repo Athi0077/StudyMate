@@ -47,6 +47,9 @@ const classSchema = new mongoose.Schema(
   }
 );
 
+classSchema.index({ students: 1 });
+classSchema.index({ teacherId: 1 });
+
 const Class = mongoose.model("Class", classSchema);
 
 module.exports = Class;

@@ -16,10 +16,14 @@ const getPrincipalDashboard = async (req, res) => {
 
     const today = new Date();
     today.setHours(0,0,0,0);
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const todayStr = `${yyyy}-${mm}-${dd}`;
 
     const targetSession = req.query.session || "MORNING";
     const AttendanceSession = require("../models/AttendanceSession");
-    const sessionRecords = await AttendanceSession.find({ attendanceDate: today.toISOString().split('T')[0], session: targetSession });
+    const sessionRecords = await AttendanceSession.find({ attendanceDate: todayStr, session: targetSession });
     
     let present = 0, absent = 0, leave = 0;
     sessionRecords.forEach(record => {
@@ -94,12 +98,16 @@ const getTeacherDashboard = async (req, res) => {
     const today = new Date();
     today.setHours(0,0,0,0);
 
-    const attendances = await Attendance.find({ classId: { $in: classIds }, date: today });
+    const attStats = await Attendance.aggregate([
+      { $match: { classId: { $in: classIds }, date: today } },
+      { $group: { _id: "$status", count: { $sum: 1 } } }
+    ]);
+    
     let present = 0, absent = 0, leave = 0;
-    attendances.forEach(a => {
-      if (a.status === "present") present++;
-      else if (a.status === "absent") absent++;
-      else if (a.status === "leave") leave++;
+    attStats.forEach(stat => {
+      if (stat._id === "present") present = stat.count;
+      else if (stat._id === "absent") absent = stat.count;
+      else if (stat._id === "leave") leave = stat.count;
     });
 
     const pendingJoinRequests = await ClassJoinRequest.countDocuments({ classId: { $in: classIds }, status: "pending" });
@@ -234,23 +242,41 @@ const getStudentDashboard = async (req, res) => {
       upcomingDeadlines.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
       upcomingDeadlines = upcomingDeadlines.slice(0, 5); // Take top 5
 
-      const allAtt = await Attendance.find({ studentId: req.user._id, classId: studentClass._id }).sort({ date: -1 });
+      // Optimize: Aggregation for total present and absent
+      const attStats = await Attendance.aggregate([
+        { $match: { studentId: req.user._id, classId: studentClass._id } },
+        {
+          $group: {
+            _id: "$status",
+            count: { $sum: 1 }
+          }
+        }
+      ]);
+
       let p = 0, a = 0;
-      streak = 0;
-      let streakBroken = false;
-      
-      allAtt.forEach(record => {
-        if (record.status === "present") {
-          p++;
-          if (!streakBroken) streak++;
-        }
-        if (record.status === "absent") {
-          a++;
-          streakBroken = true;
-        }
+      attStats.forEach(stat => {
+        if (stat._id === "present") p = stat.count;
+        if (stat._id === "absent") a = stat.count;
       });
       const calcTotal = p + a;
       attendancePercentage = calcTotal > 0 ? Math.round((p / calcTotal) * 100) : 0;
+
+      // Optimize: Calculate streak without fetching all history
+      const lastAbsent = await Attendance.findOne({ 
+        studentId: req.user._id, 
+        classId: studentClass._id, 
+        status: "absent" 
+      }).sort({ date: -1 }).select("date");
+
+      const streakQuery = { 
+        studentId: req.user._id, 
+        classId: studentClass._id, 
+        status: "present" 
+      };
+      if (lastAbsent) {
+        streakQuery.date = { $gt: lastAbsent.date };
+      }
+      streak = await Attendance.countDocuments(streakQuery);
 
       // Compute rank based on attendance percentage as a proxy for now
       rank = "Top 50%";

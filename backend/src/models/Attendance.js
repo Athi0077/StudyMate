@@ -46,6 +46,8 @@ const attendanceSchema = new mongoose.Schema(
 
 // One student must have ONLY ONE attendance record per class per date per session
 attendanceSchema.index({ studentId: 1, classId: 1, date: 1, session: 1 }, { unique: true });
+// Support teacher dashboard query by classId and date
+attendanceSchema.index({ classId: 1, date: 1 });
 
 const Attendance = mongoose.model("Attendance", attendanceSchema);
 

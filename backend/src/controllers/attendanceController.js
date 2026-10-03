@@ -325,8 +325,14 @@ const updateAttendance = async (req, res) => {
 // @access  Private (Principal only)
 const getOverview = async (req, res) => {
   try {
-    const dateStr = req.query.date || new Date().toISOString();
-    const searchDate = new Date(dateStr).toISOString().split('T')[0];
+    let searchDate = req.query.date;
+    if (!searchDate) {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      searchDate = `${yyyy}-${mm}-${dd}`;
+    }
 
     const sessionRecords = await AttendanceSession.find({ attendanceDate: searchDate })
       .populate("classId")

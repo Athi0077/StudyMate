@@ -58,6 +58,9 @@ const homeworkSubmissionSchema = new mongoose.Schema(
   }
 );
 
+homeworkSubmissionSchema.index({ studentId: 1, homeworkId: 1 });
+homeworkSubmissionSchema.index({ homeworkId: 1, status: 1 });
+
 const HomeworkSubmission = mongoose.model("HomeworkSubmission", homeworkSubmissionSchema);
 
 module.exports = HomeworkSubmission;

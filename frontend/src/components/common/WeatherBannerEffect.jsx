@@ -4,6 +4,7 @@ import { getWeatherVisualState } from '../../utils/weatherUtils';
 
 const WeatherBannerEffect = () => {
   const [effectType, setEffectType] = useState(null);
+  const [weatherIcon, setWeatherIcon] = useState(null);
 
   useEffect(() => {
     const fetchWeather = async () => {
@@ -12,6 +13,7 @@ const WeatherBannerEffect = () => {
         if (res.data.success && res.data.data) {
           const visualState = getWeatherVisualState(res.data.data.current);
           setEffectType(visualState.effectType);
+          setWeatherIcon(visualState.icon);
         }
       } catch (err) {
         // Silently fail for banner effect
@@ -27,6 +29,13 @@ const WeatherBannerEffect = () => {
       
       {/* Background Atmosphere Layer */}
       <div className="absolute inset-0 bg-white/5 dark:bg-black/5" />
+
+      {/* Floating Weather Icon */}
+      {weatherIcon && (
+        <div className="animate-float-icon drop-shadow-md">
+          {weatherIcon}
+        </div>
+      )}
 
       {/* Sun Glow */}
       {effectType === 'sunny' && (

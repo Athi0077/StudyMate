@@ -47,6 +47,8 @@ const attendanceSessionSchema = new mongoose.Schema(
 
 // Enforce unique record per class per date per session
 attendanceSessionSchema.index({ classId: 1, attendanceDate: 1, session: 1 }, { unique: true });
+// Support principal dashboard query by date and session without classId
+attendanceSessionSchema.index({ attendanceDate: 1, session: 1 });
 
 const AttendanceSession = mongoose.model("AttendanceSession", attendanceSessionSchema);
 

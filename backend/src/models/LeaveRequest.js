@@ -40,6 +40,7 @@ const leaveRequestSchema = new mongoose.Schema(
 
 // Prevent duplicate pending request for same student/date
 leaveRequestSchema.index({ studentId: 1, date: 1 }, { unique: true });
+leaveRequestSchema.index({ classId: 1, status: 1 });
 
 const LeaveRequest = mongoose.model("LeaveRequest", leaveRequestSchema);
 

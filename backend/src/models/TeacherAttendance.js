@@ -23,6 +23,7 @@ const teacherAttendanceSchema = new mongoose.Schema(
 );
 
 teacherAttendanceSchema.index({ teacherId: 1, date: 1 }, { unique: true });
+teacherAttendanceSchema.index({ date: 1, status: 1 });
 
 const TeacherAttendance = mongoose.model("TeacherAttendance", teacherAttendanceSchema);
 

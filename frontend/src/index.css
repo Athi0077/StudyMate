@@ -583,6 +583,20 @@ body.dark {
   95%, 98% { opacity: 0.3; }
 }
 
+@keyframes float-icon-horizontal {
+  0% { left: 5%; transform: scale(1) rotate(0deg); }
+  50% { left: 90%; transform: scale(1.1) rotate(10deg); }
+  100% { left: 5%; transform: scale(1) rotate(0deg); }
+}
+.animate-float-icon {
+  position: absolute;
+  top: 15%;
+  font-size: 3rem;
+  opacity: 0.8;
+  animation: float-icon-horizontal 25s ease-in-out infinite;
+  z-index: 1000;
+}
+
 /* Fog / Mist Layer */
 .weather-fog-layer {
   position: absolute;

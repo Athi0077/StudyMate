@@ -34,6 +34,8 @@ const classJoinRequestSchema = new mongoose.Schema(
   }
 );
 
+classJoinRequestSchema.index({ classId: 1, status: 1 });
+
 const ClassJoinRequest = mongoose.model("ClassJoinRequest", classJoinRequestSchema);
 
 module.exports = ClassJoinRequest;
