@@ -101,7 +101,7 @@ import SuperAdminCalculator from './pages/SuperAdminCalculator';
 import SuperAdminPrincipals from './pages/SuperAdminPrincipals';
 import InstallPrompt from './components/InstallPrompt';
 import ReloadPrompt from './components/ReloadPrompt';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { WifiOff } from 'lucide-react';
 import PrincipalEvents from './pages/PrincipalEvents';
 import TeacherEvents from './pages/TeacherEvents';
@@ -128,8 +128,35 @@ function App() {
     };
   }, []);
 
+  const ThemeUpdater = () => {
+    const { currentUser } = useContext(AuthContext);
+    
+    useEffect(() => {
+      let color = '#ffffff'; // default
+      if (currentUser) {
+        if (currentUser.role === 'principal' || currentUser.role === 'main_principal') color = '#10b981'; // green
+        else if (currentUser.role === 'teacher') color = '#ef4444'; // red
+        else if (currentUser.role === 'student') color = '#3b82f6'; // blue
+        else if (currentUser.role === 'parent' || currentUser.role === 'parents') color = '#f97316'; // orange
+      }
+      
+      let metaThemeColor = document.querySelector("meta[name='theme-color']");
+      if (metaThemeColor) {
+        metaThemeColor.setAttribute("content", color);
+      } else {
+        metaThemeColor = document.createElement('meta');
+        metaThemeColor.name = "theme-color";
+        metaThemeColor.content = color;
+        document.head.appendChild(metaThemeColor);
+      }
+    }, [currentUser]);
+
+    return null;
+  };
+
   return (
     <AuthProvider>
+      <ThemeUpdater />
       <NotificationProvider>
         <Router>
           <Toaster position="top-right" />
