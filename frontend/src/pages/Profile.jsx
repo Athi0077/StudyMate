@@ -83,6 +83,10 @@ const Profile = () => {
     const file = e.target.files[0];
     if (!file) return;
 
+    if (file.size > 1 * 1024 * 1024) {
+      return toast.error("Profile picture must be 1 MB or less.");
+    }
+
     const picData = new FormData();
     picData.append('profilePic', file);
 
@@ -94,7 +98,7 @@ const Profile = () => {
       toast.success('Profile picture updated!');
       setTimeout(() => window.location.reload(), 1000);
     } catch (err) {
-      toast.error('Failed to upload picture');
+      toast.error(err.response?.data?.message || 'Failed to upload picture');
     } finally {
       setUploadingPic(false);
     }
@@ -122,7 +126,7 @@ const Profile = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             
             <div className="flex items-center gap-6 mb-8">
-              <div className="relative group">
+              <div className="relative group mb-6">
                 {currentUser?.profilePic ? (
                   <img src={currentUser.profilePic} alt="Profile" className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md" />
                 ) : (
@@ -134,6 +138,7 @@ const Profile = () => {
                   <input type="file" accept="image/*" className="hidden" onChange={handlePicUpload} disabled={uploadingPic} />
                   📷
                 </label>
+                <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-max text-xs text-gray-500 font-medium">Max 1 MB</div>
               </div>
               <div>
                 <h3 className="text-xl font-bold text-gray-800">{currentUser?.name}</h3>

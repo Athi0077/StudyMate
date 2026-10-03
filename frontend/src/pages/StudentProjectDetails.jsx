@@ -47,6 +47,12 @@ const StudentProjectDetails = () => {
     setError('');
     setSuccess('');
     
+    if (file && file.size > 3 * 1024 * 1024) {
+      setError("Homework file must be 3 MB or less.");
+      setSubmitting(false);
+      return;
+    }
+    
     try {
       const formData = new FormData();
       if (answerText) formData.append('answerText', answerText);
@@ -163,7 +169,9 @@ const StudentProjectDetails = () => {
                     </div>
                     
                     <div className="mb-6">
-                      <label className="block text-sm font-bold text-gray-700 mb-2">Upload Photo / Document</label>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">
+                        Upload Photo / Document <span className="text-gray-500 font-normal ml-2">(Max 3 MB)</span>
+                      </label>
                       <input 
                         type="file" 
                         accept="image/*,application/pdf,.doc,.docx"

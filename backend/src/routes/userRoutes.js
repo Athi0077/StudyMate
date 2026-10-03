@@ -9,7 +9,7 @@ const {
   getStudents
 } = require("../controllers/userController");
 const { protect, requireRole } = require("../middleware/authMiddleware");
-const { upload } = require("../middleware/uploadMiddleware");
+const { uploadProfilePic } = require("../middleware/uploadMiddleware");
 
 router.get("/pending-teachers", protect, requireRole("principal"), getPendingTeachers);
 router.get("/active-teachers", protect, requireRole("principal"), getActiveTeachers);
@@ -21,8 +21,8 @@ router.patch("/:id/reject", protect, requireRole("principal"), rejectTeacher);
 
 router.put("/profile", protect, updateProfile);
 
-const { uploadProfilePic, deleteProfilePic } = require("../controllers/userController");
-router.post("/profile/upload", protect, upload.single("profilePic"), uploadProfilePic);
+const { uploadProfilePic: uploadProfilePicController, deleteProfilePic } = require("../controllers/userController");
+router.post("/profile/upload", protect, uploadProfilePic, uploadProfilePicController);
 router.delete("/profile/upload", protect, deleteProfilePic);
 
 module.exports = router;
