@@ -7,6 +7,8 @@ import { getSocket } from '../services/socket';
 import AnnouncementPopup from '../components/common/AnnouncementPopup';
 import { Sparkles } from 'lucide-react';
 import { initSocket } from '../services/socket';
+import WeatherWidget from '../components/common/WeatherWidget';
+import WeatherBannerEffect from '../components/common/WeatherBannerEffect';
 
 const StudentDashboard = () => {
   const { currentUser } = useContext(AuthContext);
@@ -69,7 +71,8 @@ const StudentDashboard = () => {
       <div className="space-y-6">
         {/* Banner Section */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-100 dark:from-blue-950/40 dark:to-indigo-950/30 rounded-3xl p-8 relative overflow-hidden flex flex-col md:flex-row items-center justify-between shadow-sm border border-blue-100/50 dark:border-blue-900/40">
-          <div className="z-10 w-full md:w-1/2">
+          <WeatherBannerEffect />
+          <div className="z-10 w-full md:w-1/2 relative">
             <div className="flex items-center gap-6 mb-4">
               {currentUser?.profilePic ? (
                 <img src={currentUser.profilePic} alt="Profile" className="w-20 h-20 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-md" />
@@ -378,6 +381,7 @@ const StudentDashboard = () => {
 
           {/* Column 3 */}
           <div className="space-y-6">
+            <WeatherWidget />
             {/* Your Progress */}
             <div className="bg-white p-6 rounded-3xl shadow-soft">
               <div className="flex justify-between items-center mb-6">

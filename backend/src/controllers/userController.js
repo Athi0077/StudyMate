@@ -79,7 +79,7 @@ const updateProfile = async (req, res) => {
     }
 
     // Protect administrative & identity fields
-    const protectedFields = ["role", "studentId", "grNumber", "status", "schoolId", "idCardStatus"];
+    const protectedFields = ["role", "studentId", "grNumber", "status", "schoolId", "idCardStatus", "createdBy", "createdByRole"];
     for (const field of protectedFields) {
       if (req.body[field] !== undefined && String(req.body[field]) !== String(user[field])) {
         return res.status(403).json({ success: false, message: `Field '${field}' cannot be modified through profile update.` });

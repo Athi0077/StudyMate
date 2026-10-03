@@ -195,9 +195,157 @@ const updateCalculatorAmounts = async (req, res) => {
   }
 };
 
+// @desc    Create a new Principal
+// @route   POST /api/super-admin/principals
+// @access  Private/SuperAdmin
+const createPrincipal = async (req, res) => {
+  try {
+    const { name, email, password, phone } = req.body;
+
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ success: false, message: "User already exists with this email" });
+    }
+
+    const principal = await User.create({
+      name,
+      email,
+      password,
+      phone,
+      role: "principal",
+      status: "active",
+      createdBy: req.user._id,
+      createdByRole: "superadmin"
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Principal account created successfully",
+      data: {
+        id: principal._id,
+        name: principal.name,
+        email: principal.email,
+        status: principal.status
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Get all Principals
+// @route   GET /api/super-admin/principals
+// @access  Private/SuperAdmin
+const getPrincipals = async (req, res) => {
+  try {
+    const principals = await User.find({ role: "principal" })
+      .select("-password")
+      .populate("createdBy", "name email");
+
+    res.json({
+      success: true,
+      data: principals
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Activate Principal
+// @route   PUT /api/super-admin/principals/:id/activate
+// @access  Private/SuperAdmin
+const activatePrincipal = async (req, res) => {
+  try {
+    const principal = await User.findOne({ _id: req.params.id, role: "principal" });
+    if (!principal) {
+      return res.status(404).json({ success: false, message: "Principal not found" });
+    }
+
+    principal.status = "active";
+    principal.sessionVersion = (principal.sessionVersion || 1) + 1; // invalidate old sessions just in case
+    await principal.save();
+
+    res.json({
+      success: true,
+      message: "Principal account activated successfully",
+      data: principal
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Deactivate Principal
+// @route   PUT /api/super-admin/principals/:id/deactivate
+// @access  Private/SuperAdmin
+const deactivatePrincipal = async (req, res) => {
+  try {
+    const principal = await User.findOne({ _id: req.params.id, role: "principal" });
+    if (!principal) {
+      return res.status(404).json({ success: false, message: "Principal not found" });
+    }
+
+    principal.status = "inactive";
+    principal.sessionVersion = (principal.sessionVersion || 1) + 1; // invalidate active sessions
+    await principal.save();
+
+    res.json({
+      success: true,
+      message: "Principal account deactivated successfully",
+      data: principal
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Reset Principal Password
+// @route   PUT /api/super-admin/principals/:id/reset-password
+// @access  Private/SuperAdmin
+const resetPrincipalPassword = async (req, res) => {
+  try {
+    const { newPassword } = req.body;
+    
+    if (!newPassword || newPassword.length < 8) {
+      return res.status(400).json({ success: false, message: "Password must be at least 8 characters long." });
+    }
+
+    const principal = await User.findOne({ _id: req.params.id, role: "principal" });
+    if (!principal) {
+      return res.status(404).json({ success: false, message: "Principal not found" });
+    }
+
+    principal.password = newPassword;
+    principal.mustChangePassword = true;
+    principal.sessionVersion = (principal.sessionVersion || 1) + 1; // force logout
+    await principal.save();
+
+    const SecurityEvent = require("../models/SecurityEvent");
+    await SecurityEvent.create({
+      actorId: req.user._id,
+      targetId: principal._id,
+      eventType: "password_reset",
+      ipAddress: req.ip,
+      userAgent: req.headers["user-agent"]
+    });
+
+    res.json({
+      success: true,
+      message: "Principal password reset successfully"
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   getDashboardStats,
   getAccountCounts,
   getCalculatorAmounts,
-  updateCalculatorAmounts
+  updateCalculatorAmounts,
+  createPrincipal,
+  getPrincipals,
+  activatePrincipal,
+  deactivatePrincipal,
+  resetPrincipalPassword
 };

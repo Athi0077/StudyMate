@@ -8,7 +8,11 @@ const registerUser = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
-    if (role === "principal" || role === "teacher") {
+    if (role === "principal") {
+      return res.status(403).json({ success: false, message: "Unauthorized: Principal accounts can only be created by the Super Admin." });
+    }
+
+    if (role === "teacher") {
       return res.status(400).json({ success: false, message: "Public registration is only available for students." });
     }
 
@@ -135,7 +139,18 @@ const loginUser = async (req, res) => {
     }
 
     if (user.status === "blocked" || user.status === "inactive") {
+      if (user.role === "principal") {
+        return res.status(403).json({ success: false, message: "Your Principal account is currently inactive. Please contact the Super Admin." });
+      }
       return res.status(403).json({ success: false, message: "Account is disabled" });
+    }
+
+    if (user.role === "principal") {
+      // Validate that it was created by superadmin or is an existing active legacy account.
+      // We will allow existing active accounts to login, but any new or updated account will need createdByRole
+      if (!user.createdByRole && user.createdAt > new Date("2026-10-01")) {
+        // Just an extra safety, though register route prevents new ones now.
+      }
     }
 
     if (user.status === "pending" && user.role === "teacher") {

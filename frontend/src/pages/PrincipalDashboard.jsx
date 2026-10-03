@@ -7,6 +7,8 @@ import TotalAttendanceReport from '../components/dashboard/TotalAttendanceReport
 import toast from 'react-hot-toast';
 import { AlertCircle, ArrowRight, Contact } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import WeatherWidget from '../components/common/WeatherWidget';
+import WeatherBannerEffect from '../components/common/WeatherBannerEffect';
 
 // Mock trend data for sparklines
 const upTrend = [{ value: 10 }, { value: 25 }, { value: 45 }, { value: 30 }, { value: 60 }, { value: 75 }, { value: 95 }];
@@ -116,6 +118,7 @@ const PrincipalDashboard = () => {
       <div className="space-y-6">
         {/* Welcome Banner */}
         <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/50 rounded-2xl p-8 flex justify-between items-center relative overflow-hidden">
+          <WeatherBannerEffect />
           <div className="z-10 relative">
             <h1 className="text-3xl font-bold text-gray-800 dark:text-emerald-100 mb-2">Good Morning, {currentUser?.name}! 👋</h1>
             <p className="text-gray-600 dark:text-emerald-200/80 max-w-md">Manage your school efficiently and build a brighter future for every student.</p>
@@ -244,6 +247,8 @@ const PrincipalDashboard = () => {
           </div>
 
           <div className="space-y-6">
+            <WeatherWidget />
+
             {/* Action Center */}
             <div className="bg-white/80 backdrop-blur-xl border border-white/40 rounded-2xl shadow-soft p-6">
                <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">

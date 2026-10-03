@@ -4,6 +4,8 @@ import api from '../utils/api';
 import Layout from '../components/layout/Layout';
 import { getSocket } from '../services/socket';
 import { Link } from 'react-router-dom';
+import WeatherWidget from '../components/common/WeatherWidget';
+import WeatherBannerEffect from '../components/common/WeatherBannerEffect';
 
 const ParentDashboard = () => {
   const { currentUser } = useContext(AuthContext);
@@ -71,9 +73,15 @@ const ParentDashboard = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        <div className="bg-orange-50 dark:bg-orange-950/40 border border-orange-100 dark:border-orange-900/40 rounded-2xl p-8">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-orange-100 mb-2">Welcome, {currentUser?.name}! 👋</h1>
-          <p className="text-gray-600 dark:text-orange-200/80">Here is a quick overview of your children's progress.</p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 bg-orange-50 dark:bg-orange-950/40 border border-orange-100 dark:border-orange-900/40 rounded-2xl p-8 flex flex-col justify-center relative overflow-hidden">
+            <WeatherBannerEffect />
+            <div className="relative z-10">
+              <h1 className="text-3xl font-bold text-gray-800 dark:text-orange-100 mb-2">Welcome, {currentUser?.name}! 👋</h1>
+              <p className="text-gray-600 dark:text-orange-200/80">Here is a quick overview of your children's progress.</p>
+            </div>
+          </div>
+          <WeatherWidget />
         </div>
 
         {loading ? (

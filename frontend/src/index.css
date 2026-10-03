@@ -483,3 +483,123 @@ body.dark {
 .dark main .to-orange-50 {
   --tw-gradient-to: rgba(249, 115, 22, 0.08) !important;
 }
+
+/* =============================================
+   WEATHER ANIMATIONS
+   ============================================= */
+.weather-effect-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.weather-sunny-glow {
+  position: absolute;
+  top: -30px;
+  right: 40px;
+  width: 100px;
+  height: 100px;
+  background: #fde047;
+  border-radius: 50%;
+  box-shadow: 0 0 40px 20px rgba(253, 224, 71, 0.4);
+  animation: pulse-sun 6s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+@keyframes pulse-sun {
+  0% { transform: scale(1); box-shadow: 0 0 30px 15px rgba(253, 224, 71, 0.3); }
+  100% { transform: scale(1.1); box-shadow: 0 0 50px 25px rgba(253, 224, 71, 0.6); }
+}
+
+.weather-cloud {
+  position: absolute;
+  background: white;
+  border-radius: 100px;
+  filter: blur(24px);
+  animation: move-cloud linear infinite;
+  pointer-events: none;
+}
+@keyframes move-cloud {
+  0% { transform: translateX(-400px); }
+  100% { transform: translateX(2000px); }
+}
+
+/* Lightweight Rain using CSS linear-gradient */
+.weather-rain-layer {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(170deg, rgba(255, 255, 255, 0) 70%, rgba(255, 255, 255, 0.5) 100%);
+  background-size: 50px 180px;
+  animation: rain-fall 0.7s linear infinite;
+  pointer-events: none;
+}
+.weather-rain-layer-2 {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(170deg, rgba(255, 255, 255, 0) 70%, rgba(255, 255, 255, 0.3) 100%);
+  background-size: 35px 120px;
+  animation: rain-fall 0.9s linear infinite;
+  pointer-events: none;
+}
+@keyframes rain-fall {
+  0% { background-position: 0px 0px; }
+  100% { background-position: 30px 180px; }
+}
+
+/* Lightweight Snow using CSS radial-gradient */
+.weather-snow-layer {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(4px 4px at 20px 30px, rgba(255,255,255,0.7) 50%, rgba(255,255,255,0) 100%),
+    radial-gradient(3px 3px at 60px 80px, rgba(255,255,255,0.7) 50%, rgba(255,255,255,0) 100%),
+    radial-gradient(5px 5px at 120px 40px, rgba(255,255,255,0.7) 50%, rgba(255,255,255,0) 100%);
+  background-size: 150px 150px;
+  animation: snow-fall 3s linear infinite;
+  pointer-events: none;
+}
+@keyframes snow-fall {
+  0% { background-position: 0px 0px; }
+  100% { background-position: 30px 150px; }
+}
+
+.weather-lightning {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.6);
+  opacity: 0;
+  animation: flash-lightning 8s infinite;
+  pointer-events: none;
+}
+@keyframes flash-lightning {
+  0%, 94%, 97%, 100% { opacity: 0; }
+  95%, 98% { opacity: 0.3; }
+}
+
+/* Fog / Mist Layer */
+.weather-fog-layer {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.3) 80%);
+  animation: move-fog 12s ease-in-out infinite alternate;
+  pointer-events: none;
+  filter: blur(10px);
+}
+@keyframes move-fog {
+  0% { transform: scale(1.1) translateX(-2%); }
+  100% { transform: scale(1.1) translateX(2%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .weather-sunny-glow, .weather-cloud, .weather-rain-layer, .weather-rain-layer-2, .weather-lightning, .weather-snow-layer, .weather-fog-layer {
+    animation: none !important;
+  }
+}
+

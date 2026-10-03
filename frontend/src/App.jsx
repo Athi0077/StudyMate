@@ -98,6 +98,7 @@ import StudentTodos from './pages/StudentTodos';
 
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import SuperAdminCalculator from './pages/SuperAdminCalculator';
+import SuperAdminPrincipals from './pages/SuperAdminPrincipals';
 import InstallPrompt from './components/InstallPrompt';
 import ReloadPrompt from './components/ReloadPrompt';
 import { useState, useEffect } from 'react';
@@ -106,6 +107,10 @@ import PrincipalEvents from './pages/PrincipalEvents';
 import TeacherEvents from './pages/TeacherEvents';
 import StudentEvents from './pages/StudentEvents';
 import BirthdayCelebration from './pages/BirthdayCelebration';
+import PrincipalSpecialClasses from './pages/PrincipalSpecialClasses';
+import TeacherSpecialClasses from './pages/TeacherSpecialClasses';
+import StudentSpecialClasses from './pages/StudentSpecialClasses';
+import WeatherPage from './pages/WeatherPage';
 
 function App() {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
@@ -146,15 +151,18 @@ function App() {
             {/* Global Protected Routes */}
             <Route path="/notifications" element={<ProtectedRoute allowedRoles={['principal', 'teacher', 'student', 'parent']}><NotificationsPage /></ProtectedRoute>} />
             <Route path="/birthdays" element={<ProtectedRoute allowedRoles={['principal', 'teacher', 'student', 'parent']}><BirthdayCelebration /></ProtectedRoute>} />
+            <Route path="/weather" element={<ProtectedRoute allowedRoles={['principal', 'teacher', 'student', 'parent']}><WeatherPage /></ProtectedRoute>} />
 
             {/* Super Admin Routes */}
             <Route path="/super-admin/dashboard" element={<ProtectedRoute allowedRoles={['superadmin']}><SuperAdminDashboard /></ProtectedRoute>} />
             <Route path="/super-admin/calculator" element={<ProtectedRoute allowedRoles={['superadmin']}><SuperAdminCalculator /></ProtectedRoute>} />
+            <Route path="/super-admin/principals" element={<ProtectedRoute allowedRoles={['superadmin']}><SuperAdminPrincipals /></ProtectedRoute>} />
 
             {/* Principal Routes */}
             <Route path="/principal/dashboard" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalDashboard /></ProtectedRoute>} />
             <Route path="/principal/birthdays" element={<ProtectedRoute allowedRoles={['principal']}><BirthdayCelebration /></ProtectedRoute>} />
             <Route path="/principal/events" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalEvents /></ProtectedRoute>} />
+            <Route path="/principal/special-classes" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalSpecialClasses /></ProtectedRoute>} />
             <Route path="/principal/quotes" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalQuotes /></ProtectedRoute>} />
             <Route path="/principal/announcements" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalAnnouncements /></ProtectedRoute>} />
             <Route path="/principal/classes" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalClasses /></ProtectedRoute>} />
@@ -191,6 +199,7 @@ function App() {
             <Route path="/teacher/dashboard" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherDashboard /></ProtectedRoute>} />
             <Route path="/teacher/birthdays" element={<ProtectedRoute allowedRoles={['teacher']}><BirthdayCelebration /></ProtectedRoute>} />
             <Route path="/teacher/events" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherEvents /></ProtectedRoute>} />
+            <Route path="/teacher/special-classes" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherSpecialClasses /></ProtectedRoute>} />
             <Route path="/teacher/announcements" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherAnnouncements /></ProtectedRoute>} />
             <Route path="/teacher/classes" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherClasses /></ProtectedRoute>} />
             <Route path="/teacher/classes/:classId" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherClassDetails /></ProtectedRoute>} />
@@ -227,6 +236,7 @@ function App() {
             <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={['student']}><StudentDashboard /></ProtectedRoute>} />
             <Route path="/student/birthdays" element={<ProtectedRoute allowedRoles={['student']}><BirthdayCelebration /></ProtectedRoute>} />
             <Route path="/student/events" element={<ProtectedRoute allowedRoles={['student']}><StudentEvents /></ProtectedRoute>} />
+            <Route path="/student/special-classes" element={<ProtectedRoute allowedRoles={['student', 'parent']}><StudentSpecialClasses /></ProtectedRoute>} />
             <Route path="/student/class" element={<ProtectedRoute allowedRoles={['student']}><StudentClass /></ProtectedRoute>} />
             <Route path="/student/join-class" element={<ProtectedRoute allowedRoles={['student']}><StudentJoinClass /></ProtectedRoute>} />
             <Route path="/student/homework" element={<ProtectedRoute allowedRoles={['student']}><StudentHomeworkList /></ProtectedRoute>} />
@@ -255,6 +265,7 @@ function App() {
             {/* Parent Routes */}
             <Route path="/parent/dashboard" element={<ProtectedRoute allowedRoles={['parent']}><ParentDashboard /></ProtectedRoute>} />
             <Route path="/parent/activities" element={<ProtectedRoute allowedRoles={['parent']}><ParentActivities /></ProtectedRoute>} />
+            <Route path="/parent/special-classes" element={<ProtectedRoute allowedRoles={['parent']}><StudentSpecialClasses /></ProtectedRoute>} />
             <Route path="/parent/reports" element={<ProtectedRoute allowedRoles={['parent']}><ParentReports /></ProtectedRoute>} />
             <Route path="/parent/profile" element={<ProtectedRoute allowedRoles={['parent']}><Profile /></ProtectedRoute>} />
 

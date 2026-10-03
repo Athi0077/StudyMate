@@ -86,7 +86,13 @@ const SuperAdminDashboard = () => {
               <ShieldCheck className="w-8 h-8 text-blue-400" />
               Developer Dashboard
             </h1>
-            <p className="text-gray-300 max-w-md">Welcome back, {currentUser?.name}. Manage your overall system statistics here.</p>
+            <p className="text-gray-300 max-w-md mb-4">Welcome back, {currentUser?.name}. Manage your overall system statistics here.</p>
+            <button 
+              onClick={() => window.location.href='/super-admin/principals'}
+              className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg font-medium transition backdrop-blur-sm border border-white/10"
+            >
+              Manage Principals
+            </button>
           </div>
           <div className="absolute right-0 bottom-0 top-0 opacity-20 w-1/3 bg-gradient-to-l from-blue-500 to-transparent"></div>
         </div>

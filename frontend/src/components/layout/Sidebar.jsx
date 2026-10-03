@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
-import { Home, ClipboardList, BookOpen, Calendar, Bell, Users, FileText, CheckSquare, Layers, LogOut, CalendarDays, User, Contact, MessageSquare, Megaphone, Shield, Sparkles, Cake } from 'lucide-react';
+import { Home, ClipboardList, BookOpen, Calendar, Bell, Users, FileText, CheckSquare, Layers, LogOut, CalendarDays, User, Contact, MessageSquare, Megaphone, Shield, Sparkles, Cake, CloudSun } from 'lucide-react';
 
 export const navConfig = {
   student: [
@@ -18,6 +18,8 @@ export const navConfig = {
     { name: 'Analytics', path: '/student/analytics', icon: Layers },
     { name: 'Resource Library', path: '/student/resources', icon: Layers },
     { name: 'Events', path: '/student/events', icon: Sparkles },
+    { name: 'Special Classes', path: '/student/special-classes', icon: Sparkles },
+    { name: 'Weather', path: '/weather', icon: CloudSun },
     { name: 'Notifications', path: '/notifications', icon: Bell },
     { name: "Today's Birthdays", path: '/student/birthdays', icon: Cake },
     { name: 'My ID Card', path: '/student/my-id-card', icon: Contact },
@@ -28,6 +30,8 @@ export const navConfig = {
     { name: 'Dashboard', path: '/teacher/dashboard', icon: Home },
     { name: "Today's Birthdays", path: '/teacher/birthdays', icon: Cake },
     { name: 'Events', path: '/teacher/events', icon: Sparkles },
+    { name: 'Special Classes', path: '/teacher/special-classes', icon: Sparkles },
+    { name: 'Weather', path: '/weather', icon: CloudSun },
     { name: 'Announcements', path: '/teacher/announcements', icon: Megaphone },
     { name: 'My Classes', path: '/teacher/classes', icon: Layers },
     { name: 'Timetable', path: '/teacher/timetable', icon: CalendarDays },
@@ -49,6 +53,8 @@ export const navConfig = {
     { name: 'Dashboard', path: '/principal/dashboard', icon: Home },
     { name: "Today's Birthdays", path: '/principal/birthdays', icon: Cake },
     { name: 'Events', path: '/principal/events', icon: Sparkles },
+    { name: 'Special Classes', path: '/principal/special-classes', icon: Sparkles },
+    { name: 'Weather', path: '/weather', icon: CloudSun },
     { name: 'Motivational Quotes', path: '/principal/quotes', icon: MessageSquare },
     { name: 'Announcements', path: '/principal/announcements', icon: Megaphone },
     // { name: 'AI Student Insights', path: '/principal/ai-dashboard', icon: Sparkles },
@@ -73,6 +79,8 @@ export const navConfig = {
   parent: [
     { name: 'Dashboard', path: '/parent/dashboard', icon: Home },
     { name: 'Activities', path: '/parent/activities', icon: ClipboardList },
+    { name: 'Special Classes', path: '/parent/special-classes', icon: Sparkles },
+    { name: 'Weather', path: '/weather', icon: CloudSun },
     { name: 'Timetable', path: '/student/timetable', icon: CalendarDays },
     { name: 'Help Center', path: '/parent/reports', icon: MessageSquare },
     { name: 'Notifications', path: '/notifications', icon: Bell },
@@ -80,6 +88,7 @@ export const navConfig = {
   ],
   superadmin: [
     { name: 'Dashboard', path: '/super-admin/dashboard', icon: Home },
+    { name: 'Principals', path: '/super-admin/principals', icon: Users },
     { name: 'Amount Calculator', path: '/super-admin/calculator', icon: FileText }
   ]
 };

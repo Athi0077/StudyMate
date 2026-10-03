@@ -8,6 +8,8 @@ import { GraduationCap, Users, FileText, Inbox, Calendar, CheckCircle, Edit3, Bo
 import AnnouncementPopup from '../components/common/AnnouncementPopup';
 import { initSocket, disconnectSocket, getSocket } from '../services/socket';
 import { Sparkles } from 'lucide-react';
+import WeatherWidget from '../components/common/WeatherWidget';
+import WeatherBannerEffect from '../components/common/WeatherBannerEffect';
 
 const TeacherDashboard = () => {
   const { currentUser } = useContext(AuthContext);
@@ -102,8 +104,9 @@ const TeacherDashboard = () => {
       <div className="space-y-6">
         
         {/* Welcome Banner */}
-        <div className="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950/40 dark:to-rose-950/30 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between shadow-sm border border-red-100/50 dark:border-red-900/40">
-          <div className="max-w-xl">
+        <div className="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950/40 dark:to-rose-950/30 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between shadow-sm border border-red-100/50 dark:border-red-900/40 relative overflow-hidden">
+          <WeatherBannerEffect />
+          <div className="max-w-xl relative z-10">
             <h2 className="text-3xl font-extrabold text-gray-900 dark:text-red-100 mb-2">
               Good Morning,<br/>
               <span className="text-red-600 dark:text-red-400">{currentUser?.name}! 👋</span>
@@ -414,6 +417,7 @@ const TeacherDashboard = () => {
 
           {/* Right Column (1/3 width on lg) */}
           <div className="space-y-6">
+            <WeatherWidget />
             
             
             {/* Pending Requests */}
