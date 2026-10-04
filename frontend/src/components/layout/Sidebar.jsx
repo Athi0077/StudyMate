@@ -89,7 +89,8 @@ export const navConfig = {
   superadmin: [
     { name: 'Dashboard', path: '/super-admin/dashboard', icon: Home },
     { name: 'Principals', path: '/super-admin/principals', icon: Users },
-    { name: 'Amount Calculator', path: '/super-admin/calculator', icon: FileText }
+    { name: 'Amount Calculator', path: '/super-admin/calculator', icon: FileText },
+    { name: 'Profile', path: '/super-admin/profile', icon: User }
   ]
 };
 
@@ -106,6 +107,13 @@ const Sidebar = ({ role }) => {
     const darkInactive = 'dark:!text-[#E2E8F0] dark:hover:!bg-[#172235] dark:hover:!text-[#FFFFFF] [&>svg]:dark:!text-[#CBD5E1] hover:[&>svg]:dark:!text-[#34D399]';
     
     switch (normRole) {
+      case 'superadmin':
+        return {
+          aside: `bg-indigo-50/80 border-r border-indigo-200/60 ${darkSidebar}`,
+          logoAccent: 'text-indigo-600 dark:text-[#E2E8F0]',
+          activeItem: `bg-indigo-600 text-white shadow-sm shadow-indigo-600/30 ${darkActive}`,
+          inactiveItem: `text-gray-700 hover:bg-indigo-100/70 hover:text-indigo-700 ${darkInactive}`
+        };
       case 'principal':
         return {
           aside: `bg-emerald-50/80 border-r border-emerald-200/60 ${darkSidebar}`,

@@ -81,10 +81,16 @@ export const AuthProvider = ({ children }) => {
     disconnectSocket();
   };
 
+  const updateUser = (updatedUser) => {
+    setCurrentUser((prev) => ({ ...prev, ...updatedUser }));
+  };
+
   return (
     <AuthContext.Provider
       value={{
         currentUser,
+        setCurrentUser,
+        updateUser,
         token,
         loading,
         isAuthenticated,

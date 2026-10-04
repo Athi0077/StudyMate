@@ -31,10 +31,23 @@ const TopNavbar = ({ user, role: propRole }) => {
     }
   };
 
+  const getProfilePath = () => {
+    switch (role) {
+      case 'superadmin': return '/super-admin/profile';
+      case 'principal': return '/principal/profile';
+      case 'teacher': return '/teacher/profile';
+      case 'parent':
+      case 'parents': return '/parent/profile';
+      default: return '/student/profile';
+    }
+  };
+
   // Role-based navbar background styles (unified in dark mode)
   const getRoleHeaderStyle = () => {
     const darkNav = 'dark:bg-[#0b1120] dark:bg-none dark:border-b dark:border-[#1E293B]';
     switch (role) {
+      case 'superadmin':
+        return `bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-b border-indigo-900/50 text-white shadow-md ${darkNav}`;
       case 'principal':
         return `bg-gradient-to-r from-emerald-600 to-green-600 border-b border-emerald-700 text-white shadow-md ${darkNav}`;
       case 'teacher':
@@ -92,11 +105,15 @@ const TopNavbar = ({ user, role: propRole }) => {
         </Link>
         
         <Link 
-          to={role === 'student' ? '/student/profile' : '#'} 
+          to={getProfilePath()} 
           className="flex items-center gap-2 hover:bg-white/15 p-1 pr-3 rounded-full transition border border-transparent hover:border-white/20"
         >
           <div className="w-9 h-9 bg-white/20 text-white rounded-full flex items-center justify-center text-sm font-bold border border-white/30 shadow-sm overflow-hidden shrink-0">
-            {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+            {user?.profilePic ? (
+              <img src={user.profilePic} alt={user.name} className="w-full h-full object-cover" />
+            ) : (
+              user?.name ? user.name.charAt(0).toUpperCase() : 'U'
+            )}
           </div>
           <div className="flex flex-col items-start leading-tight hidden xs:flex sm:flex md:flex">
             <span className="text-sm font-bold tracking-wide text-white">{user?.name || 'User'}</span>

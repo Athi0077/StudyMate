@@ -16,7 +16,10 @@ const MobileBottomNav = ({ role }) => {
   let activeTextClass = 'text-blue-700 dark:text-blue-400';
   let activeBgClass = 'bg-blue-100 dark:bg-blue-950/50';
   
-  if (role === 'principal') {
+  if (role === 'superadmin') {
+    activeTextClass = 'text-indigo-600 dark:text-indigo-400';
+    activeBgClass = 'bg-indigo-100 dark:bg-indigo-950/50';
+  } else if (role === 'principal') {
     activeTextClass = 'text-emerald-700 dark:text-emerald-400';
     activeBgClass = 'bg-emerald-100 dark:bg-emerald-950/50';
   } else if (role === 'teacher') {
@@ -102,8 +105,8 @@ const MobileBottomNav = ({ role }) => {
           );
         })}
         
-        {/* Only show "More" button if there are hidden items */}
-        {hiddenItems.length > 0 && (
+        {/* Show "More" button if there are hidden items, or Logout button directly if hiddenItems is empty */}
+        {hiddenItems.length > 0 ? (
           <button 
             onClick={() => setShowMore(!showMore)}
             className={`flex flex-col items-center justify-center py-2 px-3 rounded-2xl transition flex-1 max-w-[80px] ${
@@ -114,6 +117,16 @@ const MobileBottomNav = ({ role }) => {
               {showMore ? <X className="w-6 h-6 stroke-[2px]" /> : <Menu className="w-6 h-6 stroke-[2px]" />}
             </div>
             <span className="text-[11px] font-semibold tracking-wide">More</span>
+          </button>
+        ) : (
+          <button 
+            onClick={logout}
+            className="flex flex-col items-center justify-center py-2 px-3 rounded-2xl transition flex-1 max-w-[80px] text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50"
+          >
+            <div className="flex items-center justify-center mb-1">
+              <LogOut className="w-6 h-6 stroke-[2px]" />
+            </div>
+            <span className="text-[11px] font-semibold tracking-wide">Logout</span>
           </button>
         )}
       </div>

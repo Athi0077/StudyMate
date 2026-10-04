@@ -87,7 +87,13 @@ const updateProfile = async (req, res) => {
     }
 
     if (req.body.name) user.name = req.body.name;
-    if (req.body.email) user.email = req.body.email;
+    if (req.body.email && req.body.email !== user.email) {
+      const existingUser = await User.findOne({ email: req.body.email, _id: { $ne: user._id } });
+      if (existingUser) {
+        return res.status(400).json({ success: false, message: "Email is already in use by another account." });
+      }
+      user.email = req.body.email;
+    }
     if (req.body.phone !== undefined) user.phone = req.body.phone;
     if (req.body.address !== undefined) user.address = req.body.address;
     

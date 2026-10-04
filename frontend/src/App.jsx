@@ -99,6 +99,7 @@ import StudentTodos from './pages/StudentTodos';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import SuperAdminCalculator from './pages/SuperAdminCalculator';
 import SuperAdminPrincipals from './pages/SuperAdminPrincipals';
+import SuperAdminProfile from './pages/SuperAdminProfile';
 import InstallPrompt from './components/InstallPrompt';
 import ReloadPrompt from './components/ReloadPrompt';
 import { useState, useEffect, useContext } from 'react';
@@ -196,6 +197,7 @@ function App() {
             <Route path="/super-admin/dashboard" element={<ProtectedRoute allowedRoles={['superadmin']}><SuperAdminDashboard /></ProtectedRoute>} />
             <Route path="/super-admin/calculator" element={<ProtectedRoute allowedRoles={['superadmin']}><SuperAdminCalculator /></ProtectedRoute>} />
             <Route path="/super-admin/principals" element={<ProtectedRoute allowedRoles={['superadmin']}><SuperAdminPrincipals /></ProtectedRoute>} />
+            <Route path="/super-admin/profile" element={<ProtectedRoute allowedRoles={['superadmin']}><SuperAdminProfile /></ProtectedRoute>} />
 
             {/* Principal Routes */}
             <Route path="/principal/dashboard" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalDashboard /></ProtectedRoute>} />
