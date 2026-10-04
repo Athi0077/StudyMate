@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { ShieldCheck, XCircle, AlertTriangle, Loader } from 'lucide-react';
+import StudyMateLoader from '../components/common/StudyMateLoader';
 
 const VerifyID = () => {
   const { verificationId } = useParams();
@@ -34,8 +35,7 @@ const VerifyID = () => {
         <div className="p-8">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-10 text-gray-500">
-              <Loader className="w-12 h-12 animate-spin mb-4 text-blue-600" />
-              <p>Verifying Identity...</p>
+              <StudyMateLoader size="lg" text="Verifying Identity..." />
             </div>
           ) : error ? (
             <div className="flex flex-col items-center text-center">

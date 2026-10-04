@@ -8,6 +8,7 @@ import { jsPDF } from 'jspdf';
 import { Search, Filter, Edit, Printer, Loader, RefreshCw, Download, View } from 'lucide-react';
 import Lanyard from '../components/common/Lanyard/Lanyard';
 import { Suspense } from 'react';
+import StudyMateLoader from '../components/common/StudyMateLoader';
 
 const IDCardManagement = () => {
   const [users, setUsers] = useState([]);
@@ -233,7 +234,7 @@ const IDCardManagement = () => {
           </div>
 
           {loading ? (
-            <div className="flex justify-center py-20"><Loader className="w-8 h-8 animate-spin text-primary" /></div>
+            <div className="flex justify-center py-20"><StudyMateLoader size="lg" text="Loading users..." /></div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
@@ -277,7 +278,7 @@ const IDCardManagement = () => {
                     <p>Select a user to preview and manage their ID card.</p>
                   </div>
                 ) : loadingCard ? (
-                  <div className="flex-1 flex justify-center items-center"><Loader className="w-8 h-8 animate-spin text-primary" /></div>
+                  <div className="flex-1 flex justify-center items-center"><StudyMateLoader size="md" /></div>
                 ) : cardData ? (
                   <div className="flex-1 flex flex-col">
                     <div className="flex justify-between items-center mb-6">
@@ -320,7 +321,7 @@ const IDCardManagement = () => {
                     <div className="flex-1 flex items-center justify-center overflow-hidden relative">
                        {show3D && cardImage ? (
                          <div className="w-full h-full absolute inset-0 cursor-grab active:cursor-grabbing">
-                           <Suspense fallback={<div className="flex w-full h-full items-center justify-center"><Loader className="w-8 h-8 animate-spin text-indigo-600" /></div>}>
+                           <Suspense fallback={<div className="flex w-full h-full items-center justify-center"><StudyMateLoader size="sm" /></div>}>
                              <Lanyard frontImage={cardImage} backImage={cardImage} />
                            </Suspense>
                          </div>

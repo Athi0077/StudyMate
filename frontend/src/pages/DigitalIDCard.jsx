@@ -9,6 +9,7 @@ import { jsPDF } from 'jspdf';
 import { Download, Printer, Loader, View } from 'lucide-react';
 import Lanyard from '../components/common/Lanyard/Lanyard';
 import { Suspense } from 'react';
+import StudyMateLoader from '../components/common/StudyMateLoader';
 
 const DigitalIDCard = () => {
   const { currentUser } = useContext(AuthContext);
@@ -131,8 +132,8 @@ const DigitalIDCard = () => {
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <Loader className="w-10 h-10 text-primary animate-spin mb-4" />
-            <p className="text-gray-500 font-medium">Generating ID Card...</p>
+            <StudyMateLoader size="md" />
+            <p className="text-gray-500 font-medium mt-4">Generating ID Card...</p>
           </div>
         ) : !cardData ? (
           <div className="bg-red-50 text-red-600 p-6 rounded-2xl text-center border border-red-100">
@@ -147,7 +148,7 @@ const DigitalIDCard = () => {
             
             {show3D && cardImage ? (
               <div className="w-full h-[600px] absolute inset-0 cursor-grab active:cursor-grabbing">
-                <Suspense fallback={<div className="flex w-full h-full items-center justify-center"><Loader className="w-8 h-8 animate-spin text-primary" /></div>}>
+                <Suspense fallback={<div className="flex w-full h-full items-center justify-center"><StudyMateLoader size="sm" /></div>}>
                   <Lanyard frontImage={cardImage} backImage={cardImage} />
                 </Suspense>
                 <div className="absolute bottom-4 left-0 w-full text-center text-sm font-semibold text-gray-400 pointer-events-none uppercase tracking-widest">
