@@ -3,6 +3,7 @@ import api from '../utils/api';
 import toast from 'react-hot-toast';
 import { Plus, Edit, Users, Eye, Check, X, Clock, Settings, Target } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import Layout from '../components/layout/Layout';
 
 const PrincipalSpecialClasses = () => {
   const [classes, setClasses] = useState([]);
@@ -119,6 +120,7 @@ const PrincipalSpecialClasses = () => {
   };
 
   return (
+    <Layout>
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -334,6 +336,7 @@ const PrincipalSpecialClasses = () => {
       )}
 
     </div>
+    </Layout>
   );
 };
 

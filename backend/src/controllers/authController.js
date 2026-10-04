@@ -63,10 +63,21 @@ const registerUser = async (req, res) => {
         }
       }
 
+      const sessionVersion = user.sessionVersion || 1;
+      const accessToken = generateToken.generateAccessToken(user._id, user.role, sessionVersion);
+      const refreshToken = generateToken.generateRefreshToken(user._id, sessionVersion);
+
+      res.cookie("jwt_refresh", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      });
+
       res.status(201).json({
         success: true,
         message: "User registered successfully",
-        token: generateToken(user._id, user.role),
+        token: accessToken,
         user: {
           id: user._id,
           name: user.name,
@@ -170,10 +181,20 @@ const loginUser = async (req, res) => {
       userAgent: req.headers["user-agent"]
     });
 
-    // We pass sessionVersion to generateToken so it gets embedded in JWT
+    const sessionVersion = user.sessionVersion || 1;
+    const accessToken = generateToken.generateAccessToken(user._id, user.role, sessionVersion);
+    const refreshToken = generateToken.generateRefreshToken(user._id, sessionVersion);
+
+    res.cookie("jwt_refresh", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
     res.json({
       success: true,
-      token: generateToken(user._id, user.role, user.sessionVersion || 1),
+      token: accessToken,
       user: {
         id: user._id,
         name: user.name,
@@ -242,6 +263,10 @@ const getUserProfile = async (req, res) => {
 // @route   POST /api/auth/logout
 // @access  Public
 const logoutUser = async (req, res) => {
+  res.cookie("jwt_refresh", "", {
+    httpOnly: true,
+    expires: new Date(0),
+  });
   res.json({ success: true, message: "Logged out successfully" });
 };
 
@@ -284,10 +309,20 @@ const changePassword = async (req, res) => {
       userAgent: req.headers["user-agent"]
     });
 
+    const accessToken = generateToken.generateAccessToken(user._id, user.role, user.sessionVersion);
+    const refreshToken = generateToken.generateRefreshToken(user._id, user.sessionVersion);
+
+    res.cookie("jwt_refresh", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
     res.json({
       success: true,
       message: "Password changed successfully",
-      token: generateToken(user._id, user.role, user.sessionVersion),
+      token: accessToken,
       user: {
         id: user._id,
         name: user.name,
@@ -301,10 +336,73 @@ const changePassword = async (req, res) => {
   }
 };
 
+// @desc    Refresh access token
+// @route   POST /api/auth/refresh
+// @access  Public
+const refreshToken = async (req, res) => {
+  try {
+    const token = req.cookies?.jwt_refresh;
+    if (!token) {
+      return res.status(401).json({ success: false, message: "No refresh token provided" });
+    }
+
+    const jwt = require("jsonwebtoken");
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.userId);
+
+    if (!user) {
+      return res.status(401).json({ success: false, message: "User not found" });
+    }
+
+    if (user.status === "blocked" || user.status === "inactive") {
+      return res.status(403).json({ success: false, message: "Account is disabled" });
+    }
+
+    const userSessionVersion = user.sessionVersion || 1;
+    const tokenSessionVersion = decoded.sessionVersion || 1;
+    if (tokenSessionVersion !== userSessionVersion) {
+      return res.status(401).json({ success: false, message: "Session expired or revoked" });
+    }
+
+    const newAccessToken = generateToken.generateAccessToken(user._id, user.role, userSessionVersion);
+    const newRefreshToken = generateToken.generateRefreshToken(user._id, userSessionVersion);
+
+    res.cookie("jwt_refresh", newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
+    res.json({
+      success: true,
+      token: newAccessToken,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        address: user.address,
+        role: user.role,
+        status: user.status,
+        profilePic: user.profilePic,
+        mustChangePassword: user.mustChangePassword,
+      }
+    });
+  } catch (error) {
+    res.cookie("jwt_refresh", "", {
+      httpOnly: true,
+      expires: new Date(0),
+    });
+    return res.status(401).json({ success: false, message: "Invalid or expired refresh token" });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   getUserProfile,
   logoutUser,
   changePassword,
+  refreshToken,
 };

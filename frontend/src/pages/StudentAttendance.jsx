@@ -36,7 +36,7 @@ const StudentAttendance = () => {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-white p-6 shadow rounded text-center border-b-4 border-blue-500">
           <p className="text-sm text-gray-500 uppercase font-semibold">Attendance Rate</p>
           <p className="text-4xl font-bold text-blue-600 mt-2">{stats.percentage}%</p>

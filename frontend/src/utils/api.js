@@ -2,7 +2,22 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'https://studymate-wbb6.onrender.com/api',
+  withCredentials: true,
 });
+
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
 
 // Add a request interceptor
 api.interceptors.request.use(
@@ -19,14 +34,54 @@ api.interceptors.request.use(
 // Add a response interceptor to handle expired sessions and temp access
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      localStorage.removeItem('token');
-      const currentPath = window.location.pathname;
-      if (currentPath !== '/login' && currentPath !== '/register' && currentPath !== '/') {
-        window.location.href = '/login';
+  async (error) => {
+    const originalRequest = error.config;
+    
+    if (error.response && error.response.status === 401 && !originalRequest._retry && !originalRequest.url.includes('/auth/login') && !originalRequest.url.includes('/auth/refresh') && !originalRequest.url.includes('/auth/logout')) {
+      if (isRefreshing) {
+        return new Promise(function(resolve, reject) {
+          failedQueue.push({ resolve, reject });
+        }).then(token => {
+          originalRequest.headers['Authorization'] = 'Bearer ' + token;
+          return api(originalRequest);
+        }).catch(err => {
+          return Promise.reject(err);
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const { data } = await axios.post(
+          (import.meta.env.VITE_API_URL || 'https://studymate-wbb6.onrender.com/api') + '/auth/refresh',
+          {},
+          { withCredentials: true }
+        );
+        const newToken = data.token;
+        localStorage.setItem('token', newToken);
+        processQueue(null, newToken);
+        originalRequest.headers['Authorization'] = 'Bearer ' + newToken;
+        return api(originalRequest);
+      } catch (err) {
+        processQueue(err, null);
+        localStorage.removeItem('token');
+        const currentPath = window.location.pathname;
+        if (currentPath !== '/login' && currentPath !== '/register' && currentPath !== '/') {
+          window.location.href = '/login';
+        }
+        return Promise.reject(err);
+      } finally {
+        isRefreshing = false;
       }
     }
+    
+    // For refresh endpoint failures, clear token but rely on React to redirect or explicitly redirect
+    if (error.response && error.response.status === 401 && originalRequest.url.includes('/auth/refresh')) {
+      localStorage.removeItem('token');
+      // Do not force window.location.href redirect here, allow AuthContext to handle failure gracefully
+    }
+
     if (error.response && error.response.status === 403 && error.response.data?.message === "Access denied") {
       const isPrincipalRoute = window.location.pathname.startsWith('/principal');
       if (isPrincipalRoute) {

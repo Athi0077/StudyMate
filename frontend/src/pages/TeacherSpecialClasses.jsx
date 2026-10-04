@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import { Users, Calendar, CheckSquare, Target, X, Save, Clock, ChevronRight } from 'lucide-react';
+import Layout from '../components/layout/Layout';
 
 const TeacherSpecialClasses = () => {
   const [classes, setClasses] = useState([]);
@@ -118,6 +119,7 @@ const TeacherSpecialClasses = () => {
   if (loading) return <div className="p-10 text-center">Loading...</div>;
 
   return (
+    <Layout>
     <div className="p-6 max-w-7xl mx-auto">
       {activeView === 'list' && (
         <>
@@ -314,6 +316,7 @@ const TeacherSpecialClasses = () => {
         </div>
       )}
     </div>
+    </Layout>
   );
 };
 

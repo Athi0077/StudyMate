@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
+const cookieParser = require("cookie-parser");
 const connectDB = require("./src/config/db");
 const dns = require("node:dns")
 dns.setServers(['8.8.8.8', '8.8.4.4'])
@@ -22,7 +23,13 @@ if (process.env.NODE_ENV !== 'test') {
 
 // Middleware
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? [process.env.FRONTEND_URL || 'https://study-mate-jet.vercel.app'] 
+    : ['http://localhost:5173', 'http://127.0.0.1:5173'],
+  credentials: true
+}));
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -83,7 +90,18 @@ const PORT = process.env.PORT || 5000;
 
 if (process.env.NODE_ENV !== 'test') {
   // Connect to MongoDB
-  connectDB().then(() => {
+  connectDB().then(async () => {
+    // Sync indexes to drop old conflicting indexes (like attendance without session)
+    try {
+      const Attendance = require("./src/models/Attendance");
+      const AttendanceSession = require("./src/models/AttendanceSession");
+      await Attendance.syncIndexes();
+      await AttendanceSession.syncIndexes();
+      console.log("Indexes synced for Attendance and AttendanceSession");
+    } catch (err) {
+      console.error("Index sync error:", err);
+    }
+
     // Seed principal after DB connection
     const { seedPrincipal, seedSuperAdmin } = require("./src/utils/seed");
     seedPrincipal();

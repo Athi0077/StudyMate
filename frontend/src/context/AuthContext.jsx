@@ -12,25 +12,28 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      if (token) {
-        try {
-          const res = await api.get('/auth/me');
+      try {
+        // Always attempt to restore the session using the HttpOnly refresh token cookie on mount
+        const res = await api.post('/auth/refresh');
+        if (res.data.success) {
+          localStorage.setItem('token', res.data.token);
+          setToken(res.data.token);
           setCurrentUser(res.data.user);
           setIsAuthenticated(true);
-          initSocket(token);
-        } catch (error) {
-          // Stale or expired token, clear storage cleanly
-          localStorage.removeItem('token');
-          setToken(null);
-          setCurrentUser(null);
-          setIsAuthenticated(false);
-          disconnectSocket();
+          initSocket(res.data.token);
         }
+      } catch (error) {
+        // If refresh fails, clear everything cleanly
+        localStorage.removeItem('token');
+        setToken(null);
+        setCurrentUser(null);
+        setIsAuthenticated(false);
+        disconnectSocket();
       }
       setLoading(false);
     };
     checkAuth();
-  }, [token]);
+  }, []);
 
   const login = async (email, password) => {
     const res = await api.post('/auth/login', { email, password });
@@ -56,7 +59,12 @@ export const AuthProvider = ({ children }) => {
     return res.data;
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
     localStorage.removeItem('token');
     setToken(null);
     setCurrentUser(null);
