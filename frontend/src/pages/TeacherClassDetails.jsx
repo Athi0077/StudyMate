@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/layout/Layout';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import ChatRoom from '../components/common/ChatRoom';
+import { Search, Sparkles, User, Key, CheckCircle, Clock } from 'lucide-react';
 
 const TeacherClassDetails = () => {
   const { classId } = useParams();
+  const navigate = useNavigate();
   const [classData, setClassData] = useState(null);
   const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   
   // Password Reset State
   const [resetModalOpen, setResetModalOpen] = useState(false);
@@ -100,21 +103,41 @@ const TeacherClassDetails = () => {
   if (error) return <div className="p-6 text-red-600 font-bold">{error}</div>;
   if (!classData) return <div className="p-6">Loading...</div>;
 
+  const filteredStudents = (classData.students || []).filter((student) => {
+    const q = searchTerm.toLowerCase().trim();
+    if (!q) return true;
+    return (
+      student.name?.toLowerCase().includes(q) ||
+      student.studentId?.toLowerCase().includes(q) ||
+      student.grNumber?.toLowerCase().includes(q)
+    );
+  });
+
   return (
     <Layout>
-      <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-4">
-        <Link to="/teacher/classes" className="text-blue-600 hover:underline">&larr; Back to My Classes</Link>
+      <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <div>
+        <Link to="/teacher/classes" className="text-red-600 font-bold hover:underline flex items-center gap-1 text-xs mb-2">
+          &larr; Back to My Classes
+        </Link>
       </div>
-      <div className="bg-white shadow rounded p-6 mb-6 border-t-4 border-blue-600">
-        <h2 className="text-3xl font-bold mb-2">{classData.className}</h2>
-        <div className="text-gray-700 mb-1">Teacher: <span className="font-semibold">{classData.teacherId.name}</span></div>
-        <div className="text-gray-700">Students: <span className="font-semibold">{classData.students.length}</span></div>
+      
+      <div className="bg-gradient-to-r from-red-900 via-rose-900 to-slate-900 text-white rounded-3xl p-6 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-extrabold">{classData.className}</h2>
+          <p className="text-xs text-slate-300 mt-1">
+            Teacher: <span className="font-bold text-red-200">{classData.teacherId?.name}</span> • Enrolled: <span className="font-bold text-red-200">{classData.students.length} Students</span>
+          </p>
+        </div>
+        <div className="bg-white/10 px-4 py-2 rounded-2xl text-center border border-white/10 shrink-0">
+          <p className="text-[10px] uppercase font-bold text-red-200">Enrolled Students</p>
+          <p className="text-2xl font-black text-white">{classData.students.length}</p>
+        </div>
       </div>
 
       {/* Fee status toast notification */}
       {feeToast && (
-        <div className={`mb-4 px-4 py-3 rounded-lg text-sm font-semibold flex items-center gap-2 shadow-md animate-fade-in transition-all ${
+        <div className={`px-4 py-3 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-md ${
           feeToast.type === 'success' 
             ? 'bg-green-50 text-green-700 border border-green-200' 
             : 'bg-red-50 text-red-700 border border-red-200'
@@ -125,45 +148,77 @@ const TeacherClassDetails = () => {
         </div>
       )}
 
-      <div className="flex flex-col lg:flex-row gap-6 mb-6">
-        <div className="lg:w-2/3 bg-white shadow rounded p-6 overflow-x-auto">
-          <h3 className="text-xl font-bold mb-4 border-b pb-2">Students</h3>
-          {classData.students.length > 0 ? (
+      <div className="flex flex-col lg:flex-row gap-6">
+        <div className="lg:w-2/3 bg-white dark:bg-[#0b1120] shadow-sm rounded-3xl p-6 border border-gray-100 dark:border-[#1E293B] space-y-4">
+          
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-gray-100 dark:border-[#1E293B] pb-3">
+            <div>
+              <h3 className="text-lg font-extrabold text-gray-900 dark:text-slate-100 flex items-center gap-2">
+                <User className="w-5 h-5 text-red-600" /> Student List ({filteredStudents.length})
+              </h3>
+              <p className="text-xs text-gray-400">Click any student to view their complete academic and performance intelligence.</p>
+            </div>
+
+            {/* Search Input */}
+            <div className="relative w-full sm:w-64">
+              <Search className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search students..."
+                className="w-full pl-9 pr-3 py-1.5 bg-gray-50 dark:bg-[#172235] border border-gray-200 dark:border-[#334155] rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
+          </div>
+
+          {filteredStudents.length > 0 ? (
             <div className="overflow-x-auto custom-scrollbar">
-              <table className="w-full text-left border-collapse text-sm min-w-[850px]">
-                <thead className="bg-gray-50 border-b border-gray-100 text-gray-600 font-semibold">
+              <table className="w-full text-left border-collapse text-xs min-w-[850px]">
+                <thead className="bg-gray-50 dark:bg-[#172235] text-gray-600 dark:text-slate-300 font-bold uppercase">
                   <tr>
                     <th className="p-3">#</th>
                     <th className="p-3 whitespace-nowrap">Student Info</th>
-                    <th className="p-3 whitespace-nowrap">Parent Info</th>
-                    <th className="p-3 w-1/5 min-w-[160px]">Address</th>
-                    <th className="p-3 whitespace-nowrap min-w-[150px]">Fee Status</th>
-                    <th className="p-3 whitespace-nowrap">Actions</th>
+                    <th className="p-3 whitespace-nowrap">Parent Details</th>
+                    <th className="p-3 w-1/5 min-w-[150px]">Address</th>
+                    <th className="p-3 whitespace-nowrap min-w-[130px]">Fee Status</th>
+                    <th className="p-3 whitespace-nowrap text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {classData.students.map((student, index) => {
+                <tbody className="divide-y divide-gray-100 dark:divide-[#1E293B]">
+                  {filteredStudents.map((student, index) => {
                     const status = feeStatuses[student._id]?.feeStatus || 'pending';
                     const isUpdating = feeLoading[student._id];
                     return (
-                    <tr key={student._id} className="hover:bg-gray-50/50 transition">
-                      <td className="p-3 text-gray-500">{index + 1}</td>
+                    <tr key={student._id} className="hover:bg-red-50/30 dark:hover:bg-slate-800/50 transition">
+                      <td className="p-3 text-gray-500 font-medium">{index + 1}</td>
                       <td className="p-3 whitespace-nowrap">
-                        <div className="font-bold text-gray-800 flex items-center gap-2">
-                          {student.name}
-                          {classData.classLeader && classData.classLeader._id === student._id && (
-                            <span className="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-0.5 rounded-md border border-yellow-200">👑 Class Leader</span>
-                          )}
-                        </div>
-                        <div className="text-gray-500 text-xs mt-0.5 font-mono">ID: {student.studentId || 'N/A'}</div>
-                        {student.phone && <div className="text-blue-600 font-medium text-xs mt-1 bg-blue-50 inline-block px-2 py-0.5 rounded-md">📞 {student.phone}</div>}
+                        <Link 
+                          to={`/teacher/students/details/${student._id}`}
+                          className="font-bold text-gray-900 dark:text-slate-100 hover:text-red-600 dark:hover:text-red-400 flex items-center gap-2 transition"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-red-100 text-red-700 font-extrabold flex items-center justify-center text-xs overflow-hidden shrink-0">
+                            {student.profilePic ? (
+                              <img src={student.profilePic} alt={student.name} className="w-full h-full object-cover" />
+                            ) : (
+                              student.name.charAt(0)
+                            )}
+                          </div>
+                          <div>
+                            <div>{student.name}</div>
+                            {classData.classLeader && classData.classLeader._id === student._id && (
+                              <span className="bg-yellow-100 text-yellow-800 text-[9px] px-1.5 py-0.5 rounded border border-yellow-200 inline-block mt-0.5">👑 Class Leader</span>
+                            )}
+                          </div>
+                        </Link>
+                        <div className="text-gray-400 text-[10px] mt-0.5 font-mono">ID: {student.studentId || 'N/A'}</div>
                       </td>
                       <td className="p-3 whitespace-nowrap">
-                        <div className="text-gray-800 font-medium">{student.parentName || 'Not Linked'}</div>
-                        {student.parentPhone && <div className="text-purple-600 font-medium text-xs mt-1 bg-purple-50 inline-block px-2 py-0.5 rounded-md">📞 {student.parentPhone}</div>}
+                        <div className="text-gray-800 dark:text-slate-200 font-medium">{student.parentName || 'Not Linked'}</div>
+                        {student.parentPhone && <div className="text-purple-600 font-medium text-[10px] mt-0.5 bg-purple-50 dark:bg-purple-950/40 inline-block px-1.5 py-0.5 rounded">📞 {student.parentPhone}</div>}
                       </td>
-                      <td className="p-3 text-gray-600">
-                        <p className="line-clamp-2 text-xs" title={student.address}>{student.address || 'N/A'}</p>
+                      <td className="p-3 text-gray-600 dark:text-slate-400">
+                        <p className="line-clamp-2 text-[11px]" title={student.address}>{student.address || 'N/A'}</p>
                       </td>
                       <td className="p-3">
                         <div className="relative">
@@ -172,7 +227,7 @@ const TeacherClassDetails = () => {
                             value={status}
                             disabled={isUpdating}
                             onChange={(e) => handleFeeStatusChange(student._id, e.target.value)}
-                            className={`text-xs font-bold px-3 py-2 rounded-lg border cursor-pointer transition-all appearance-none pr-7 w-full
+                            className={`text-[11px] font-bold px-2.5 py-1.5 rounded-lg border cursor-pointer transition-all appearance-none pr-6 w-full
                               ${status === 'completed'
                                 ? 'bg-green-50 text-green-700 border-green-200 hover:border-green-400'
                                 : 'bg-amber-50 text-amber-700 border-amber-200 hover:border-amber-400'
@@ -183,23 +238,24 @@ const TeacherClassDetails = () => {
                             <option value="pending">⏳ Pending</option>
                             <option value="completed">✅ Completed</option>
                           </select>
-                          {isUpdating && (
-                            <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                              <div className="w-3.5 h-3.5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
-                            </div>
-                          )}
-                          {!isUpdating && (
-                            <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[10px] text-gray-400">▼</div>
-                          )}
                         </div>
                       </td>
-                      <td className="p-3">
-                        <button 
-                          onClick={() => handleResetPassword(student)}
-                          className="text-xs bg-red-100 text-red-600 hover:bg-red-200 px-3 py-1.5 rounded-md font-semibold transition whitespace-nowrap"
-                        >
-                          Reset Password
-                        </button>
+                      <td className="p-3 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Link
+                            to={`/teacher/students/details/${student._id}`}
+                            className="text-[11px] bg-red-600 hover:bg-red-700 text-white px-2.5 py-1.5 rounded-lg font-bold transition inline-flex items-center gap-1 shadow-xs"
+                          >
+                            <Sparkles className="w-3 h-3" /> View Details
+                          </Link>
+
+                          <button 
+                            onClick={() => handleResetPassword(student)}
+                            className="text-[11px] bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 px-2.5 py-1.5 rounded-lg font-bold transition whitespace-nowrap"
+                          >
+                            Reset Pwd
+                          </button>
+                        </div>
                       </td>
                     </tr>
                     );
@@ -208,7 +264,7 @@ const TeacherClassDetails = () => {
               </table>
             </div>
           ) : (
-            <p className="text-gray-500">No students joined yet.</p>
+            <p className="text-gray-500 text-xs py-6 text-center">No students found.</p>
           )}
         </div>
         
@@ -219,30 +275,30 @@ const TeacherClassDetails = () => {
 
       {resetModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
-            <h3 className="text-lg font-bold mb-4">Reset Student Password</h3>
+          <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 max-w-md w-full shadow-xl border border-gray-100 dark:border-[#1E293B]">
+            <h3 className="text-lg font-extrabold mb-4 text-gray-900 dark:text-slate-100">Reset Student Password</h3>
             {!tempPassword ? (
               <>
-                <p className="mb-4 text-gray-700">Are you sure you want to reset the password for <span className="font-bold">{studentToReset?.name}</span>? This will log them out of all active devices immediately.</p>
+                <p className="mb-4 text-xs text-gray-600 dark:text-slate-400">Are you sure you want to reset the password for <span className="font-bold text-gray-900 dark:text-slate-100">{studentToReset?.name}</span>? This will log them out of all active devices immediately.</p>
                 <div className="flex justify-end gap-3">
-                  <button onClick={() => setResetModalOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Cancel</button>
-                  <button onClick={confirmReset} disabled={isResetting} className="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded disabled:opacity-50">
+                  <button onClick={() => setResetModalOpen(false)} className="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl">Cancel</button>
+                  <button onClick={confirmReset} disabled={isResetting} className="px-4 py-2 bg-red-600 text-white hover:bg-red-700 text-xs font-bold rounded-xl disabled:opacity-50">
                     {isResetting ? 'Resetting...' : 'Yes, Reset Password'}
                   </button>
                 </div>
               </>
             ) : (
               <>
-                <div className="bg-green-50 text-green-800 p-4 rounded-md mb-4 border border-green-200">
-                  <p className="font-bold mb-2">Password Reset Successful!</p>
-                  <p className="text-sm mb-4">Please securely share this temporary password with the student. They will be required to change it on their next login.</p>
+                <div className="bg-green-50 dark:bg-green-950/40 text-green-800 dark:text-green-300 p-4 rounded-2xl mb-4 border border-green-200 dark:border-green-900/50">
+                  <p className="font-bold text-xs mb-1">Password Reset Successful!</p>
+                  <p className="text-[11px] mb-3">Please share this temporary password with the student:</p>
                   <div className="flex items-center gap-2">
-                    <code className="bg-white px-3 py-2 rounded border border-green-200 font-mono text-lg flex-1 text-center">{tempPassword}</code>
-                    <button onClick={() => navigator.clipboard.writeText(tempPassword)} className="bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700">Copy</button>
+                    <code className="bg-white dark:bg-[#0b1120] px-3 py-2 rounded-xl border font-mono text-base flex-1 text-center font-bold text-emerald-600">{tempPassword}</code>
+                    <button onClick={() => navigator.clipboard.writeText(tempPassword)} className="bg-green-600 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-green-700">Copy</button>
                   </div>
                 </div>
                 <div className="flex justify-end">
-                  <button onClick={() => setResetModalOpen(false)} className="px-4 py-2 bg-gray-800 text-white hover:bg-gray-900 rounded">Done</button>
+                  <button onClick={() => setResetModalOpen(false)} className="px-4 py-2 bg-gray-800 text-white font-bold text-xs hover:bg-gray-900 rounded-xl">Done</button>
                 </div>
               </>
             )}
@@ -256,4 +312,3 @@ const TeacherClassDetails = () => {
 };
 
 export default TeacherClassDetails;
-

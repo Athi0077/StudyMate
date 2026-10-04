@@ -44,6 +44,7 @@ import PrincipalAIProgress from './pages/PrincipalAIProgress';
 import TeacherDashboard from './pages/TeacherDashboard';
 import TeacherClasses from './pages/TeacherClasses';
 import TeacherClassDetails from './pages/TeacherClassDetails';
+import TeacherStudentDetails from './pages/TeacherStudentDetails';
 import TeacherJoinRequests from './pages/TeacherJoinRequests';
 import TeacherHomeworkList from './pages/TeacherHomeworkList';
 import TeacherHomeworkApprovals from './pages/TeacherHomeworkApprovals';
@@ -251,6 +252,8 @@ function App() {
             <Route path="/teacher/special-classes" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherSpecialClasses /></ProtectedRoute>} />
             <Route path="/teacher/announcements" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherAnnouncements /></ProtectedRoute>} />
             <Route path="/teacher/classes" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherClasses /></ProtectedRoute>} />
+            <Route path="/teacher/students/details/:studentId" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherStudentDetails /></ProtectedRoute>} />
+            <Route path="/teacher/student-details/:studentId" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherStudentDetails /></ProtectedRoute>} />
             <Route path="/teacher/classes/:classId" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherClassDetails /></ProtectedRoute>} />
             <Route path="/teacher/class-requests" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherJoinRequests /></ProtectedRoute>} />
             <Route path="/teacher/homework" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherHomeworkList /></ProtectedRoute>} />
