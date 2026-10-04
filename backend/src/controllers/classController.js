@@ -169,7 +169,7 @@ const getClassById = async (req, res) => {
     const classId = req.params.id;
     const classData = await Class.findById(classId)
       .populate("teacherId", "name email")
-      .populate("students", "name email phone address studentId")
+      .populate("students", "name email phone address studentId grNumber profilePic gender dateOfBirth contactDetails")
       .populate("classLeader", "name _id");
 
     if (!classData) {
@@ -185,7 +185,6 @@ const getClassById = async (req, res) => {
       } else {
         // Check if they are assigned as a subject teacher
         const TeacherAssignment = require("../models/TeacherAssignment");
-        // We only need standard and section populated to compare names
         const assignments = await TeacherAssignment.find({ teacherId: req.user._id })
           .populate("standardId", "name")
           .populate("sectionId", "name");
@@ -205,14 +204,50 @@ const getClassById = async (req, res) => {
       return res.status(403).json({ success: false, message: "Access denied" });
     }
 
-    // Add parent info to students
+    const Attendance = require("../models/Attendance");
+    const ExamMark = require("../models/ExamMark");
+    const HomeworkSubmission = require("../models/HomeworkSubmission");
+
+    // Add parent info & summary scores to students
     const studentsWithParents = await Promise.all(classData.students.map(async (student) => {
       const parent = await User.findOne({ role: 'parent', children: student._id });
+
+      // Compute quick attendance %
+      const attRecords = await Attendance.find({ studentId: student._id });
+      const totalAtt = attRecords.length;
+      const presentAtt = attRecords.filter(a => a.status === 'present').length;
+      const attendancePercentage = totalAtt > 0 ? Math.round((presentAtt / totalAtt) * 100) : 100;
+
+      // Compute quick academic % (Avg of exam marks & homework submissions)
+      const examMarks = await ExamMark.find({ studentId: student._id });
+      const hwSubs = await HomeworkSubmission.find({ studentId: student._id, marks: { $ne: null } });
+
+      let totalPctSum = 0;
+      let count = 0;
+
+      examMarks.forEach(em => {
+        if (!em.isAbsent && em.marksObtained !== undefined) {
+          totalPctSum += em.marksObtained; // assuming 100 max
+          count++;
+        }
+      });
+
+      hwSubs.forEach(hw => {
+        if (hw.marks !== undefined && hw.maxMarks > 0) {
+          totalPctSum += Math.round((hw.marks / hw.maxMarks) * 100);
+          count++;
+        }
+      });
+
+      const academicScore = count > 0 ? Math.round(totalPctSum / count) : 100;
+
       return {
         ...student.toObject(),
-        parentName: parent ? parent.name : null,
-        parentPhone: parent ? parent.phone : null,
-        address: student.address || (parent ? parent.address : null)
+        parentName: parent ? parent.name : (student.contactDetails?.parentName || null),
+        parentPhone: parent ? parent.phone : (student.contactDetails?.parentPhone || null),
+        address: student.address || (parent ? parent.address : null),
+        attendancePercentage,
+        academicScore,
       };
     }));
     

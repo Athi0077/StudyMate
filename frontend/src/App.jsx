@@ -27,6 +27,7 @@ import PrincipalPromotionPreview from './pages/PrincipalPromotionPreview';
 import PrincipalAdmissions from './pages/PrincipalAdmissions';
 import PrincipalStudents from './pages/PrincipalStudents';
 import PrincipalClassStudents from './pages/PrincipalClassStudents';
+import PrincipalStudentDetails from './pages/PrincipalStudentDetails';
 import PrincipalParents from './pages/PrincipalParents';
 import PrincipalExams from './pages/PrincipalExams';
 import PrincipalCreateExam from './pages/PrincipalCreateExam';
@@ -225,6 +226,8 @@ function App() {
             <Route path="/principal/academic-years/:id/promotion/preview" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalPromotionPreview /></ProtectedRoute>} />
             <Route path="/principal/academic-years/:id/admissions" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalAdmissions /></ProtectedRoute>} />
             <Route path="/principal/students" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalStudents /></ProtectedRoute>} />
+            <Route path="/principal/students/details/:studentId" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalStudentDetails /></ProtectedRoute>} />
+            <Route path="/principal/student-details/:studentId" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalStudentDetails /></ProtectedRoute>} />
             <Route path="/principal/students/:classId" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalClassStudents /></ProtectedRoute>} />
             <Route path="/principal/parents" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalParents /></ProtectedRoute>} />
             <Route path="/principal/exams" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalExams /></ProtectedRoute>} />

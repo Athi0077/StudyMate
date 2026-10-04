@@ -50,6 +50,7 @@ app.use("/api/users", require("./src/routes/userRoutes"));
 app.use("/api/standards", require("./src/routes/standardRoutes"));
 app.use("/api/teacher-assignments", require("./src/routes/teacherAssignmentRoutes"));
 app.use("/api/principal/teachers", require("./src/routes/principalTeacherRoutes"));
+app.use("/api/principal/students", require("./src/routes/principalStudentRoutes"));
 app.use("/api/projects", require("./src/routes/projectRoutes"));
 app.use("/api/tests", require("./src/routes/testRoutes"));
 app.use("/api/academic-years", require("./src/routes/academicYearRoutes"));
