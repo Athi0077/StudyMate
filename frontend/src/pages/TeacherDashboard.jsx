@@ -72,20 +72,20 @@ const TeacherDashboard = () => {
   if (loading) {
     return (
       <Layout>
-        <div className="space-y-6 animate-pulse">
-          <div className="bg-gray-200 h-40 rounded-3xl w-full"></div>
+        <div className="space-y-6">
+          <div className="premium-skeleton border border-gray-100 dark:border-slate-700/50 h-40 rounded-3xl w-full"></div>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {[1, 2, 3, 4, 5].map(i => <div key={i} className="bg-gray-200 h-24 rounded-2xl"></div>)}
+            {[1, 2, 3, 4, 5].map(i => <div key={i} className="premium-skeleton border border-gray-100 dark:border-slate-700/50 h-24 rounded-2xl"></div>)}
           </div>
-          <div className="bg-gray-200 h-24 rounded-3xl w-full"></div>
+          <div className="premium-skeleton border border-gray-100 dark:border-slate-700/50 h-24 rounded-3xl w-full"></div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
-              <div className="bg-gray-200 h-64 rounded-3xl w-full"></div>
-              <div className="bg-gray-200 h-64 rounded-3xl w-full"></div>
+              <div className="premium-skeleton border border-gray-100 dark:border-slate-700/50 h-64 rounded-3xl w-full"></div>
+              <div className="premium-skeleton border border-gray-100 dark:border-slate-700/50 h-64 rounded-3xl w-full"></div>
             </div>
             <div className="space-y-6">
-              <div className="bg-gray-200 h-40 rounded-3xl w-full"></div>
-              <div className="bg-gray-200 h-64 rounded-3xl w-full"></div>
+              <div className="premium-skeleton border border-gray-100 dark:border-slate-700/50 h-40 rounded-3xl w-full"></div>
+              <div className="premium-skeleton border border-gray-100 dark:border-slate-700/50 h-64 rounded-3xl w-full"></div>
             </div>
           </div>
         </div>
@@ -129,7 +129,7 @@ const TeacherDashboard = () => {
 
         {/* Stats Row */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <div className="bg-white rounded-2xl p-5 shadow-soft border border-gray-50 flex flex-col justify-between hover:-translate-y-1 transition duration-300">
+          <div className="glass-card premium-card rounded-2xl p-5 border border-gray-50 flex flex-col justify-between">
             <div className="flex justify-between items-start mb-2">
               <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-primary">
                 <GraduationCap className="w-5 h-5" />
@@ -142,7 +142,7 @@ const TeacherDashboard = () => {
             </div>
           </div>
           
-          <div className="bg-white rounded-2xl p-5 shadow-soft border border-gray-50 flex flex-col justify-between hover:-translate-y-1 transition duration-300">
+          <div className="glass-card premium-card rounded-2xl p-5 border border-gray-50 flex flex-col justify-between">
             <div className="flex justify-between items-start mb-2">
               <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
                 <Users className="w-5 h-5" />
@@ -155,7 +155,7 @@ const TeacherDashboard = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 shadow-soft border border-gray-50 flex flex-col justify-between hover:-translate-y-1 transition duration-300">
+          <div className="glass-card premium-card rounded-2xl p-5 border border-gray-50 flex flex-col justify-between">
             <div className="flex justify-between items-start mb-2">
               <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
                 <FileText className="w-5 h-5" />
@@ -168,7 +168,7 @@ const TeacherDashboard = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 shadow-soft border border-gray-50 flex flex-col justify-between hover:-translate-y-1 transition duration-300">
+          <div className="glass-card premium-card rounded-2xl p-5 border border-gray-50 flex flex-col justify-between">
             <div className="flex justify-between items-start mb-2">
               <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
                 <Inbox className="w-5 h-5" />
@@ -181,7 +181,7 @@ const TeacherDashboard = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 shadow-soft border border-gray-50 flex flex-col justify-between hover:-translate-y-1 transition duration-300">
+          <div className="glass-card premium-card rounded-2xl p-5 border border-gray-50 flex flex-col justify-between">
             <div className="flex justify-between items-start mb-2">
               <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
                 <Calendar className="w-5 h-5" />
@@ -196,7 +196,7 @@ const TeacherDashboard = () => {
         </div>
 
         {/* Teacher Self Attendance Card */}
-        <div className="bg-white p-6 rounded-3xl shadow-soft flex items-center justify-between border-l-4 border-green-500">
+        <div className="glass-card premium-card p-6 rounded-3xl flex items-center justify-between border-l-4 border-green-500">
           <div>
             <h3 className="text-lg font-bold text-gray-900 mb-1">My Attendance</h3>
             <p className="text-sm text-gray-500">Mark yourself present for today ({new Date().toLocaleDateString()})</p>
@@ -236,7 +236,7 @@ const TeacherDashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
               {/* My Classes Grid */}
-              <div className="bg-white p-6 rounded-3xl shadow-soft">
+              <div className="glass-card premium-card p-6 rounded-3xl">
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-lg font-bold text-gray-900">My Classes</h3>
                   <Link to="/teacher/classes" className="text-primary text-sm font-semibold hover:underline">View All →</Link>
@@ -271,18 +271,25 @@ const TeacherDashboard = () => {
                       </div>
                     );
                   }) : (
-                    <div className="text-center text-gray-500 py-4 text-sm font-medium border border-dashed rounded-xl">No classes assigned yet.</div>
+                    <div className="flex flex-col items-center justify-center p-8 text-center bg-gray-50/50 dark:bg-slate-800/50 rounded-2xl border border-dashed border-gray-200 dark:border-slate-700">
+                      <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 text-blue-500 rounded-full flex items-center justify-center mb-4">
+                        <GraduationCap className="w-8 h-8" />
+                      </div>
+                      <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100">No Classes Assigned</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">You haven't been assigned to any classes yet.</p>
+                      <button className="btn-primary px-4 py-2 rounded-xl text-sm font-semibold">Contact Admin</button>
+                    </div>
                   )}
                 </div>
                 <div className="mt-4">
-                  <Link to="/teacher/homework/create" className="block w-full bg-primary text-white text-center font-semibold py-3 rounded-xl hover:bg-primary-dark transition shadow-sm">
+                  <Link to="/teacher/homework/create" className="btn-primary block w-full text-center font-semibold py-3 rounded-xl">
                     + Add Homework
                   </Link>
                 </div>
               </div>
 
               {/* Today's Attendance Chart Mock */}
-              <div className="bg-white p-6 rounded-3xl shadow-soft flex flex-col">
+              <div className="glass-card premium-card p-6 rounded-3xl flex flex-col">
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-lg font-bold text-gray-900">Today's Attendance</h3>
                   <span className="text-gray-500 text-sm font-medium">📅 Today</span>
@@ -405,7 +412,16 @@ const TeacherDashboard = () => {
                       );
                     }) : (
                       <tr>
-                        <td colSpan="5" className="py-8 text-center text-gray-500 text-sm">No recent homework found.</td>
+                        <td colSpan="5" className="py-12">
+                          <div className="flex flex-col items-center justify-center text-center">
+                            <div className="w-16 h-16 bg-orange-50 dark:bg-orange-900/30 text-orange-500 rounded-full flex items-center justify-center mb-4">
+                              <FileText className="w-8 h-8" />
+                            </div>
+                            <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100">No Recent Homework</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 max-w-sm">There is no homework recently assigned. Create a new assignment to keep your students engaged.</p>
+                            <Link to="/teacher/homework/create" className="btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold inline-block">Create Homework</Link>
+                          </div>
+                        </td>
                       </tr>
                     )}
                   </tbody>

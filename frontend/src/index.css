@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
 @theme {
   --color-primary: var(--primary);
@@ -9,7 +10,8 @@
 
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900 font-sans antialiased;
+    @apply bg-gray-50 text-gray-900 antialiased;
+    font-family: 'Outfit', sans-serif;
     background-image: radial-gradient(circle at 80% 20%, rgba(var(--primary-rgb, 37, 99, 235), 0.08) 0%, transparent 50%),
                       radial-gradient(circle at 20% 80%, rgba(var(--primary-rgb, 37, 99, 235), 0.05) 0%, transparent 50%);
     background-attachment: fixed;
@@ -41,6 +43,39 @@
     --primary-light: rgba(16, 185, 129, 0.12);
     --primary-dark: #34D399;
   }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-md border border-white/20;
+  }
+  .dark .glass-card {
+    @apply bg-slate-900/60 backdrop-blur-md border-slate-700/50;
+  }
+  .premium-card {
+    @apply transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl hover:shadow-primary/20;
+  }
+  .btn-primary {
+    @apply relative overflow-hidden transition-all duration-300 active:scale-95 hover:shadow-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-blue-500/30 border-0;
+  }
+  .dark .btn-primary {
+    @apply from-emerald-500 to-teal-600 shadow-emerald-500/30;
+  }
+  
+  .premium-skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+  .dark .premium-skeleton {
+    background: linear-gradient(90deg, #1E293B 25%, #334155 50%, #1E293B 75%);
+    background-size: 200% 100%;
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 /* =============================================
@@ -309,31 +344,60 @@ body.dark {
 }
 
 /* =============================================
-   DARK MODE — RECHARTS / CHART LIBRARY
+   RECHARTS / CHART LIBRARY - GLOBAL & DARK MODE
    ============================================= */
 
-.dark .recharts-cartesian-grid line {
-  stroke: var(--dark-border-light) !important;
+/* Glassmorphism Tooltip */
+.recharts-tooltip-wrapper .recharts-default-tooltip {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
 }
-.dark .recharts-text {
-  fill: var(--dark-text-muted) !important;
-}
-.dark .recharts-legend-item-text {
-  color: var(--dark-text-secondary) !important;
-}
+
 .dark .recharts-tooltip-wrapper .recharts-default-tooltip {
-  background-color: var(--dark-bg-elevated) !important;
-  border: 1px solid var(--dark-border) !important;
-  border-radius: 8px !important;
+  background-color: rgba(15, 23, 42, 0.7) !important;
+  border-color: rgba(51, 65, 85, 0.5) !important;
 }
+
 .dark .recharts-default-tooltip .recharts-tooltip-label {
   color: var(--dark-text-primary) !important;
 }
 .dark .recharts-default-tooltip .recharts-tooltip-item {
   color: var(--dark-text-secondary) !important;
 }
+
+/* Cartesian Grid */
+.recharts-cartesian-grid line {
+  stroke: rgba(226, 232, 240, 0.5) !important;
+  stroke-dasharray: 4 4 !important;
+}
+
+.dark .recharts-cartesian-grid line {
+  stroke: rgba(51, 65, 85, 0.5) !important;
+}
+
+.dark .recharts-text {
+  fill: var(--dark-text-muted) !important;
+}
+.dark .recharts-legend-item-text {
+  color: var(--dark-text-secondary) !important;
+}
 .dark .recharts-cursor {
   fill: rgba(51, 65, 85, 0.3) !important;
+}
+
+/* Entry Animation for Charts */
+.recharts-wrapper {
+  animation: chart-fade-up 0.8s ease-out forwards;
+  opacity: 0;
+  transform: translateY(20px) scale(0.98);
+}
+
+@keyframes chart-fade-up {
+  0% { opacity: 0; transform: translateY(20px) scale(0.98); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 /* =============================================
