@@ -112,6 +112,9 @@ import PrincipalSpecialClasses from './pages/PrincipalSpecialClasses';
 import TeacherSpecialClasses from './pages/TeacherSpecialClasses';
 import StudentSpecialClasses from './pages/StudentSpecialClasses';
 import WeatherPage from './pages/WeatherPage';
+import TeacherFunActivities from './pages/TeacherFunActivities';
+import StudentFunActivities from './pages/StudentFunActivities';
+import PrincipalFunActivities from './pages/PrincipalFunActivities';
 
 const RootRoute = () => {
   const { isAuthenticated, loading, currentUser } = useContext(AuthContext);
@@ -201,6 +204,7 @@ function App() {
 
             {/* Principal Routes */}
             <Route path="/principal/dashboard" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalDashboard /></ProtectedRoute>} />
+            <Route path="/principal/fun-activities" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalFunActivities /></ProtectedRoute>} />
             <Route path="/principal/birthdays" element={<ProtectedRoute allowedRoles={['principal']}><BirthdayCelebration /></ProtectedRoute>} />
             <Route path="/principal/events" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalEvents /></ProtectedRoute>} />
             <Route path="/principal/special-classes" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalSpecialClasses /></ProtectedRoute>} />
@@ -238,6 +242,7 @@ function App() {
 
             {/* Teacher Routes */}
             <Route path="/teacher/dashboard" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherDashboard /></ProtectedRoute>} />
+            <Route path="/teacher/fun-activities" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherFunActivities /></ProtectedRoute>} />
             <Route path="/teacher/birthdays" element={<ProtectedRoute allowedRoles={['teacher']}><BirthdayCelebration /></ProtectedRoute>} />
             <Route path="/teacher/events" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherEvents /></ProtectedRoute>} />
             <Route path="/teacher/special-classes" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherSpecialClasses /></ProtectedRoute>} />
@@ -275,6 +280,7 @@ function App() {
 
             {/* Student Routes */}
             <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={['student']}><StudentDashboard /></ProtectedRoute>} />
+            <Route path="/student/fun-activities" element={<ProtectedRoute allowedRoles={['student', 'parent']}><StudentFunActivities /></ProtectedRoute>} />
             <Route path="/student/birthdays" element={<ProtectedRoute allowedRoles={['student']}><BirthdayCelebration /></ProtectedRoute>} />
             <Route path="/student/events" element={<ProtectedRoute allowedRoles={['student']}><StudentEvents /></ProtectedRoute>} />
             <Route path="/student/special-classes" element={<ProtectedRoute allowedRoles={['student', 'parent']}><StudentSpecialClasses /></ProtectedRoute>} />

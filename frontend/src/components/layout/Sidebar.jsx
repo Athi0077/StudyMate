@@ -7,6 +7,7 @@ export const navConfig = {
   student: [
     { name: 'Dashboard', path: '/student/dashboard', icon: Home },
     { name: 'Subjects', path: '/student/class', icon: BookOpen },
+    { name: 'Fun Activities', path: '/student/fun-activities', icon: Sparkles },
     { name: 'Homework', path: '/student/homework', icon: ClipboardList },
     { name: 'Projects', path: '/student/projects', icon: FileText },
     { name: 'Tests', path: '/student/tests', icon: BookOpen },
@@ -29,6 +30,7 @@ export const navConfig = {
   teacher: [
     { name: 'Dashboard', path: '/teacher/dashboard', icon: Home },
     { name: 'My Classes', path: '/teacher/classes', icon: Layers },
+    { name: 'Fun Activities', path: '/teacher/fun-activities', icon: Sparkles },
     { name: 'Add Students', path: '/teacher/general-register', icon: Contact },
     { name: 'Attendance', path: '/teacher/attendance', icon: Calendar },
     { name: 'Timetable', path: '/teacher/timetable', icon: CalendarDays },
@@ -53,6 +55,7 @@ export const navConfig = {
     { name: 'Dashboard', path: '/principal/dashboard', icon: Home },
     { name: 'Attendance', path: '/principal/attendance', icon: Calendar },
     { name: 'Teachers', path: '/principal/teachers', icon: Users },
+    { name: 'Fun Activities', path: '/principal/fun-activities', icon: Sparkles },
     { name: 'Standards & Sections', path: '/principal/standards', icon: BookOpen },
     { name: 'Teacher Assignments', path: '/principal/assignments', icon: Users },
     { name: 'Students', path: '/principal/students', icon: Users },

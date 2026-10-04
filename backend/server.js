@@ -71,6 +71,7 @@ app.use("/api/events", require("./src/routes/eventRoutes"));
 app.use("/api/weather", require("./src/routes/weatherRoutes"));
 app.use("/api/special-classes", require("./src/routes/specialClassRoutes"));
 app.use("/api/birthdays", require("./src/routes/birthdayRoutes"));
+app.use("/api/fun-activities", require("./src/routes/quizRoutes"));
 app.use("/api/super-admin", require("./src/routes/superAdminRoutes"));
 app.use("/api/principal/ai", require("./src/routes/principalAiRoutes"));
 app.use("/api", dashboardRoutes);
