@@ -56,18 +56,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (name, email, password, role, classId) => {
-    const res = await api.post('/auth/register', { name, email, password, role, classId });
-    if (res.data.success && res.data.token) {
-      localStorage.setItem('token', res.data.token);
-      setToken(res.data.token);
-      setCurrentUser(res.data.user);
-      setIsAuthenticated(true);
-      initSocket(res.data.token);
-    }
-    return res.data;
-  };
-
   const logout = async () => {
     try {
       await api.post('/auth/logout');
@@ -95,7 +83,6 @@ export const AuthProvider = ({ children }) => {
         loading,
         isAuthenticated,
         login,
-        register,
         logout,
       }}
     >

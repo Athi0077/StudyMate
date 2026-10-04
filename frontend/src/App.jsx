@@ -6,7 +6,6 @@ import ProtectedRoute from './routes/ProtectedRoute';
 import { Toaster } from 'react-hot-toast';
 
 import Login from './pages/Login';
-import Register from './pages/Register';
 import ChangePassword from './pages/ChangePassword';
 import NotificationsPage from './pages/NotificationsPage';
 import VerifyID from './pages/VerifyID';
@@ -189,7 +188,7 @@ function App() {
           <Routes>
             <Route path="/" element={<RootRoute />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/register" element={<Navigate to="/login" replace />} />
             <Route path="/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
             <Route path="/verify-id/:verificationId" element={<VerifyID />} />
 

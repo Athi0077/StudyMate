@@ -18,7 +18,6 @@ const loginLimiter = rateLimit({
   message: { success: false, message: "Too many login attempts from this IP, please try again after 15 minutes" },
 });
 
-router.post("/register", registerUser);
 router.post("/login", loginLimiter, loginUser);
 router.post("/logout", logoutUser);
 router.post("/refresh", refreshToken);
