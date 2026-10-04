@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://studymate-wbb6.onrender.com/api',
+  baseURL: import.meta.env.PROD ? '/api' : (import.meta.env.VITE_API_URL || 'https://studymate-wbb6.onrender.com/api'),
   withCredentials: true,
 });
 
@@ -54,7 +54,7 @@ api.interceptors.response.use(
 
       try {
         const { data } = await axios.post(
-          (import.meta.env.VITE_API_URL || 'https://studymate-wbb6.onrender.com/api') + '/auth/refresh',
+          (import.meta.env.PROD ? '/api' : (import.meta.env.VITE_API_URL || 'https://studymate-wbb6.onrender.com/api')) + '/auth/refresh',
           {},
           { withCredentials: true }
         );
