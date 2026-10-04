@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Attendance = require("../models/Attendance");
 const AttendanceSession = require("../models/AttendanceSession");
 const Class = require("../models/Class");
@@ -436,7 +437,6 @@ const getTotalAttendanceReport = async (req, res) => {
       matchFilter.classId = new mongoose.Types.ObjectId(classId);
     }
 
-    const mongoose = require("mongoose");
     const records = await Attendance.aggregate([
       { $match: matchFilter },
       { 

@@ -113,8 +113,18 @@ const getStudentHomework = async (req, res) => {
       .populate("subjectId", "name")
       .populate("teacherId", "name")
       .sort({ dueDate: 1 });
+    const HomeworkSubmission = require("../models/HomeworkSubmission");
+    const submissions = await HomeworkSubmission.find({ studentId: req.user._id });
+
+    const formattedHomework = homework.map(hw => {
+      const sub = submissions.find(s => s.homeworkId.toString() === hw._id.toString());
+      return {
+        ...hw.toObject(),
+        submissionStatus: sub ? sub.status : null
+      };
+    });
       
-    res.json({ success: true, data: homework });
+    res.json({ success: true, data: formattedHomework });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

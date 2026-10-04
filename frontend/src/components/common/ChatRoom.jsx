@@ -117,21 +117,21 @@ const ChatRoom = ({ entityType, entityId }) => {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-3 border-t bg-white rounded-b-2xl">
-        <form onSubmit={handleSendMessage} className="flex gap-2">
+      <div className="p-3 border-t bg-white rounded-b-2xl overflow-hidden">
+        <form onSubmit={handleSendMessage} className="flex gap-2 items-center">
           <input
             type="text"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type your message here..."
-            className="flex-1 p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow text-sm"
+            className="flex-1 min-w-0 p-2 sm:p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow text-sm"
           />
           <button
             type="submit"
             disabled={!newMessage.trim()}
-            className="px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm flex items-center gap-2"
+            className="flex-shrink-0 whitespace-nowrap px-4 py-2 sm:px-5 sm:py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm flex items-center gap-1 sm:gap-2"
           >
-            Send <span>🚀</span>
+            <span className="hidden sm:inline">Send</span> <span className="text-lg sm:text-base">🚀</span>
           </button>
         </form>
       </div>

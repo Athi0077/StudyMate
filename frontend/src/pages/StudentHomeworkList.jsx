@@ -28,7 +28,7 @@ const StudentHomeworkList = () => {
     const isOverdue = new Date() > new Date(hw.dueDate);
     const isDueToday = new Date().toDateString() === new Date(hw.dueDate).toDateString();
     // Assuming status might be attached from submission, or just using basic dates if not
-    const isCompleted = hw.submissionStatus === 'submitted' || hw.submissionStatus === 'graded' || hw.submissionStatus === 'approved';
+    const isCompleted = ['pending_approval', 'approved', 'submitted', 'graded'].includes(hw.submissionStatus);
 
     if (filter === 'Due Today') return isDueToday && !isCompleted;
     if (filter === 'Overdue') return isOverdue && !isCompleted;
