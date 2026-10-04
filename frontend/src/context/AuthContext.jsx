@@ -13,16 +13,38 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       console.log('[AUTH INIT] starting session restoration');
+      const savedToken = localStorage.getItem('token');
+
+      // Step 1: If we have a stored token, try restoring session via /api/auth/me
+      if (savedToken) {
+        try {
+          console.log('[AUTH INIT] verifying stored token with /api/auth/me');
+          const res = await api.get('/auth/me');
+          if (res.data.success && res.data.user) {
+            setToken(savedToken);
+            setCurrentUser(res.data.user);
+            setIsAuthenticated(true);
+            initSocket(savedToken);
+            setLoading(false);
+            console.log('[AUTH INIT] session restored successfully from token');
+            return;
+          }
+        } catch (meError) {
+          console.log('[AUTH INIT] /api/auth/me failed, attempting token refresh...');
+        }
+      }
+
+      // Step 2: If no stored token or /api/auth/me failed, fallback to /api/auth/refresh (cookie)
       try {
         console.log('[AUTH INIT] calling /api/auth/refresh');
         const res = await api.post('/auth/refresh');
-        console.log(`[AUTH REFRESH] status: ${res.status}`);
-        if (res.data.success) {
+        if (res.data.success && res.data.token) {
           localStorage.setItem('token', res.data.token);
           setToken(res.data.token);
           setCurrentUser(res.data.user);
           setIsAuthenticated(true);
           initSocket(res.data.token);
+          console.log('[AUTH INIT] session restored from refresh cookie');
         }
       } catch (error) {
         if (error.response) {
@@ -30,16 +52,14 @@ export const AuthProvider = ({ children }) => {
         } else {
           console.log('[AUTH REFRESH] network error');
         }
-        // If refresh fails with 401, clear everything cleanly
-        if (error.response && error.response.status === 401) {
-          localStorage.removeItem('token');
-          setToken(null);
-          setCurrentUser(null);
-          setIsAuthenticated(false);
-          disconnectSocket();
-        }
+        localStorage.removeItem('token');
+        setToken(null);
+        setCurrentUser(null);
+        setIsAuthenticated(false);
+        disconnectSocket();
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     checkAuth();
   }, []);

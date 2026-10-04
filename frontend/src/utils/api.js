@@ -76,10 +76,9 @@ api.interceptors.response.use(
       }
     }
     
-    // For refresh endpoint failures, clear token but rely on React to redirect or explicitly redirect
+    // For refresh endpoint failures, allow AuthContext to handle failure gracefully without wiping token prematurely
     if (error.response && error.response.status === 401 && originalRequest.url.includes('/auth/refresh')) {
-      localStorage.removeItem('token');
-      // Do not force window.location.href redirect here, allow AuthContext to handle failure gracefully
+      // Handled by AuthContext session restoration flow
     }
 
     if (error.response && error.response.status === 403 && error.response.data?.message === "Access denied") {
