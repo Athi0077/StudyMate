@@ -13,7 +13,7 @@ const TeacherGeneralRegister = () => {
   const { currentUser } = useContext(AuthContext);
   const [classes, setClasses] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({ studentId: '', name: '', password: '', gender: 'Male', classId: '', isClassLeader: false });
+  const [formData, setFormData] = useState({ studentId: '', grNumber: '', name: '', password: '', gender: 'Male', classId: '', isClassLeader: false });
   const [editingId, setEditingId] = useState(null);
 
   const currentUserId = currentUser?._id || currentUser?.id;
@@ -41,6 +41,19 @@ const TeacherGeneralRegister = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
 
+    if (!formData.studentId.trim()) {
+      toast.error('Student ID is required');
+      return;
+    }
+    if (!formData.grNumber.trim()) {
+      toast.error('GR Number is required');
+      return;
+    }
+    if (!formData.password.trim()) {
+      toast.error('Password is required');
+      return;
+    }
+
     if (formData.isClassLeader && formData.classId) {
       const selectedClass = classes.find(c => c._id === formData.classId);
       if (selectedClass && selectedClass.classLeader) {
@@ -51,7 +64,7 @@ const TeacherGeneralRegister = () => {
 
     try {
       const res = await registerStudent(formData);
-      toast.success(`${res.message}. Temp Password: ${res.data.tempPassword}`, { duration: 5000 });
+      toast.success(`${res.message}. Student ID: ${res.data.studentId}`, { duration: 5000 });
       setShowModal(false);
       fetchData();
     } catch (error) {
@@ -95,7 +108,7 @@ const TeacherGeneralRegister = () => {
   const openAddModal = () => {
     const classTeacherClasses = classes.filter(c => c.teacherId === currentUserId);
     const defaultClassId = classTeacherClasses.length === 1 ? classTeacherClasses[0]._id : '';
-    setFormData({ studentId: '', name: '', password: '', gender: 'Male', classId: defaultClassId, isClassLeader: false });
+    setFormData({ studentId: '', grNumber: '', name: '', password: '', gender: 'Male', classId: defaultClassId, isClassLeader: false });
     setEditingId(null);
     setShowModal(true);
   };
@@ -105,7 +118,15 @@ const TeacherGeneralRegister = () => {
     const classId = studentClass ? studentClass._id : '';
     const isLeader = studentClass && studentClass.classLeader && studentClass.classLeader._id === student._id ? true : false;
     
-    setFormData({ studentId: student.studentId || '', name: student.name, password: '', gender: student.gender, classId: classId, isClassLeader: isLeader });
+    setFormData({ 
+      studentId: student.studentId || '', 
+      grNumber: student.grNumber || '',
+      name: student.name, 
+      password: '', 
+      gender: student.gender, 
+      classId: classId, 
+      isClassLeader: isLeader 
+    });
     setEditingId(student._id);
     setShowModal(true);
   };
@@ -130,10 +151,11 @@ const TeacherGeneralRegister = () => {
           <div className="text-center p-8 text-gray-500">Loading...</div>
         ) : (
           <div className="bg-white rounded-xl shadow-soft border border-gray-100 overflow-x-auto custom-scrollbar">
-            <table className="w-full text-left border-collapse text-sm min-w-[600px]">
+            <table className="w-full text-left border-collapse text-sm min-w-[700px]">
               <thead className="bg-gray-50 border-b border-gray-100">
                   <tr>
                     <th className="p-4 font-semibold text-gray-600">Student ID</th>
+                    <th className="p-4 font-semibold text-gray-600">GR Number</th>
                     <th className="p-4 font-semibold text-gray-600">Name</th>
                     <th className="p-4 font-semibold text-gray-600">Class</th>
                     <th className="p-4 font-semibold text-gray-600">Gender</th>
@@ -151,7 +173,8 @@ const TeacherGeneralRegister = () => {
                       transition={{ duration: 0.2, delay: index * 0.05 }}
                       className="hover:bg-gray-50"
                     >
-                      <td className="p-4">{student.studentId}</td>
+                      <td className="p-4 font-mono font-bold text-blue-700">{student.studentId}</td>
+                      <td className="p-4 font-mono text-purple-700 font-semibold">{student.grNumber || 'N/A'}</td>
                       <td className="p-4 font-bold">{student.name}</td>
                       <td className="p-4">
                         {classes.find(c => c.students && (c.students.includes(student._id) || c.students.some(s => s._id === student._id)))?.className || 'Unassigned'}
@@ -174,7 +197,7 @@ const TeacherGeneralRegister = () => {
                   </AnimatePresence>
                   {students.length === 0 && (
                     <tr>
-                      <td colSpan="5" className="p-8 text-center text-gray-500">No students found.</td>
+                      <td colSpan="6" className="p-8 text-center text-gray-500">No students found.</td>
                     </tr>
                   )}
                 </tbody>
@@ -203,34 +226,95 @@ const TeacherGeneralRegister = () => {
             </div>
             <form onSubmit={editingId ? handleUpdate : handleRegister} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Student ID {!editingId && <span className="text-gray-400 text-xs">(Leave blank to auto-generate)</span>}</label>
-                <input type="text" className={`w-full border rounded p-2 ${editingId ? 'bg-gray-50' : ''}`} value={formData.studentId} onChange={(e) => setFormData({ ...formData, studentId: e.target.value })} />
+                <label className="block text-sm font-medium mb-1">
+                  Student ID <span className="text-red-500">*</span>
+                </label>
+                <input 
+                  required 
+                  type="text" 
+                  className={`w-full border rounded p-2 ${editingId ? 'bg-gray-50' : ''}`} 
+                  value={formData.studentId} 
+                  onChange={(e) => setFormData({ ...formData, studentId: e.target.value })} 
+                  placeholder="Enter Student ID"
+                />
               </div>
+
               <div>
-                <label className="block text-sm font-medium mb-1">Name</label>
-                <input required type="text" className="w-full border rounded p-2" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+                <label className="block text-sm font-medium mb-1">
+                  GR Number (General Register No) <span className="text-red-500">*</span>
+                </label>
+                <input 
+                  required 
+                  type="text" 
+                  className="w-full border rounded p-2" 
+                  value={formData.grNumber} 
+                  onChange={(e) => setFormData({ ...formData, grNumber: e.target.value })} 
+                  placeholder="Enter GR Number"
+                />
               </div>
+
               <div>
-                <label className="block text-sm font-medium mb-1">Password {editingId && <span className="text-gray-400 text-xs">(Leave blank to keep unchanged)</span>} {!editingId && <span className="text-gray-400 text-xs">(Leave blank to auto-generate)</span>}</label>
-                <input type="text" className="w-full border rounded p-2" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} placeholder={editingId ? "New Password" : "Leave blank to auto-generate"} />
+                <label className="block text-sm font-medium mb-1">
+                  Name <span className="text-red-500">*</span>
+                </label>
+                <input 
+                  required 
+                  type="text" 
+                  className="w-full border rounded p-2" 
+                  value={formData.name} 
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
+                  placeholder="Enter Student Full Name"
+                />
               </div>
+
               <div>
-                <label className="block text-sm font-medium mb-1">Gender</label>
-                <select className="w-full border rounded p-2" value={formData.gender} onChange={(e) => setFormData({ ...formData, gender: e.target.value })}>
+                <label className="block text-sm font-medium mb-1">
+                  Password {!editingId && <span className="text-red-500">*</span>} {editingId && <span className="text-gray-400 text-xs">(Leave blank to keep unchanged)</span>}
+                </label>
+                <input 
+                  required={!editingId} 
+                  type="text" 
+                  className="w-full border rounded p-2" 
+                  value={formData.password} 
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })} 
+                  placeholder={editingId ? "New Password" : "Enter Password"} 
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Gender <span className="text-red-500">*</span>
+                </label>
+                <select 
+                  required
+                  className="w-full border rounded p-2" 
+                  value={formData.gender} 
+                  onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                >
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                   <option value="Other">Other</option>
                 </select>
               </div>
+
               <div>
-                <label className="block text-sm font-medium mb-1">Class</label>
-                <select required className="w-full border rounded p-2" value={formData.classId} onChange={(e) => setFormData({ ...formData, classId: e.target.value })} disabled={classes.filter(c => c.teacherId === currentUserId).length === 1}>
+                <label className="block text-sm font-medium mb-1">
+                  Class <span className="text-red-500">*</span>
+                </label>
+                <select 
+                  required 
+                  className="w-full border rounded p-2" 
+                  value={formData.classId} 
+                  onChange={(e) => setFormData({ ...formData, classId: e.target.value })} 
+                  disabled={classes.filter(c => c.teacherId === currentUserId).length === 1}
+                >
                   <option value="">Select Class</option>
                   {classes.filter(c => c.teacherId === currentUserId).map(c => (
                     <option key={c._id} value={c._id}>{c.className}</option>
                   ))}
                 </select>
               </div>
+
               <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
                 <input 
                   type="checkbox" 
@@ -244,6 +328,7 @@ const TeacherGeneralRegister = () => {
                   <p className="text-xs text-gray-500">Assign this student as the leader of the selected class.</p>
                 </div>
               </div>
+
               <div className="flex justify-end gap-2 mt-6">
                 <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Cancel</button>
                 <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">{editingId ? 'Save Changes' : 'Register'}</button>
