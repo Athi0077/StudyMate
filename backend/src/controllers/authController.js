@@ -70,7 +70,7 @@ const registerUser = async (req, res) => {
       res.cookie("jwt_refresh", refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       });
 
@@ -188,7 +188,7 @@ const loginUser = async (req, res) => {
     res.cookie("jwt_refresh", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
@@ -265,6 +265,8 @@ const getUserProfile = async (req, res) => {
 const logoutUser = async (req, res) => {
   res.cookie("jwt_refresh", "", {
     httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
     expires: new Date(0),
   });
   res.json({ success: true, message: "Logged out successfully" });
@@ -315,7 +317,7 @@ const changePassword = async (req, res) => {
     res.cookie("jwt_refresh", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
@@ -370,7 +372,7 @@ const refreshToken = async (req, res) => {
     res.cookie("jwt_refresh", newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
@@ -392,6 +394,8 @@ const refreshToken = async (req, res) => {
   } catch (error) {
     res.cookie("jwt_refresh", "", {
       httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
       expires: new Date(0),
     });
     return res.status(401).json({ success: false, message: "Invalid or expired refresh token" });

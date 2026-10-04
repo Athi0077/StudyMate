@@ -23,12 +23,14 @@ export const AuthProvider = ({ children }) => {
           initSocket(res.data.token);
         }
       } catch (error) {
-        // If refresh fails, clear everything cleanly
-        localStorage.removeItem('token');
-        setToken(null);
-        setCurrentUser(null);
-        setIsAuthenticated(false);
-        disconnectSocket();
+        // If refresh fails with 401, clear everything cleanly
+        if (error.response && error.response.status === 401) {
+          localStorage.removeItem('token');
+          setToken(null);
+          setCurrentUser(null);
+          setIsAuthenticated(false);
+          disconnectSocket();
+        }
       }
       setLoading(false);
     };
