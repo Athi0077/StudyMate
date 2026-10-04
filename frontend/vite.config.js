@@ -45,8 +45,8 @@ export default defineConfig({
         navigateFallbackAllowlist: [/^(?!\/api\/).*/],
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
-            handler: 'NetworkOnly', // NEVER cache API requests to avoid caching auth/sensitive data
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/') && !url.pathname.startsWith('/api/auth/'),
+            handler: 'NetworkOnly',
             options: {
               backgroundSync: {
                 name: 'api-sync',
