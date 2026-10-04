@@ -209,8 +209,30 @@ const TeacherFunActivities = () => {
     }
   };
 
+  const formatForDatetimeInput = (date) => {
+    const pad = (n) => String(n).padStart(2, '0');
+    const yyyy = date.getFullYear();
+    const mm = pad(date.getMonth() + 1);
+    const dd = pad(date.getDate());
+    const hh = pad(date.getHours());
+    const min = pad(date.getMinutes());
+    return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+  };
+
   const startCategoryCreation = (cat) => {
     setSelectedCategory(cat);
+    
+    const now = new Date();
+    const tomorrowNight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 23, 59);
+
+    setActivityInfo({
+      title: '',
+      description: '',
+      startDate: formatForDatetimeInput(now),
+      endDate: formatForDatetimeInput(tomorrowNight),
+      timeLimit: 10,
+    });
+
     // Reset category items
     setMcqQuestions([
       {

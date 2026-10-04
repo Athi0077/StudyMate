@@ -22,6 +22,16 @@ const scrambleWord = (word) => {
   return scrambled;
 };
 
+// Helper to check if an activity start date is on a future day
+// If the start date falls on today's calendar date or earlier, it is considered ACTIVE today.
+const isActivityComingSoon = (startDate, now = new Date()) => {
+  if (!startDate) return false;
+  const start = new Date(startDate);
+  const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const todayDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return startDay > todayDay;
+};
+
 // @desc    Get teacher's assigned standards, sections, and subjects for activity creation
 // @route   GET /api/fun-activities/teacher-assignments
 // @access  Private (Teacher)
@@ -310,9 +320,9 @@ exports.getTeacherQuizzes = async (req, res) => {
         }
 
         const now = new Date();
-        let displayStatus = quiz.status;
+        let displayStatus = "active";
         if (now > quiz.endDate) displayStatus = "closed";
-        else if (now < quiz.startDate) displayStatus = "coming_soon";
+        else if (isActivityComingSoon(quiz.startDate, now)) displayStatus = "coming_soon";
 
         return {
           ...quizObj,
@@ -388,7 +398,7 @@ exports.getStudentQuizzes = async (req, res) => {
           status = "completed";
         } else if (now > quiz.endDate) {
           status = "closed";
-        } else if (now < quiz.startDate) {
+        } else if (isActivityComingSoon(quiz.startDate, now)) {
           status = "coming_soon";
         }
 
@@ -523,7 +533,7 @@ exports.submitQuiz = async (req, res) => {
 
     const now = new Date();
 
-    if (now < quiz.startDate) {
+    if (isActivityComingSoon(quiz.startDate, now)) {
       return res.status(400).json({ success: false, message: "This activity has not started yet." });
     }
 
@@ -789,7 +799,7 @@ exports.getPrincipalOverview = async (req, res) => {
         }
 
         const isClosed = now > quiz.endDate;
-        const isComingSoon = now < quiz.startDate;
+        const isComingSoon = isActivityComingSoon(quiz.startDate, now);
 
         if (isClosed) completedQuizzes++;
         else if (!isComingSoon) activeQuizzes++;
