@@ -9,6 +9,7 @@ const ReloadPrompt = () => {
   } = useRegisterSW({
     onRegistered(r) {
       console.log('SW Registered: ' + r);
+      console.log('[PWA] service worker active');
     },
     onRegisterError(error) {
       console.log('SW registration error', error);

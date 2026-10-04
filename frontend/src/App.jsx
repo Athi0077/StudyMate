@@ -112,6 +112,18 @@ import TeacherSpecialClasses from './pages/TeacherSpecialClasses';
 import StudentSpecialClasses from './pages/StudentSpecialClasses';
 import WeatherPage from './pages/WeatherPage';
 
+const RootRoute = () => {
+  const { isAuthenticated, loading, currentUser } = useContext(AuthContext);
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (!isAuthenticated || !currentUser) return <Navigate to="/login" replace />;
+  
+  if (currentUser.role === 'superadmin') return <Navigate to="/super-admin/dashboard" replace />;
+  if (currentUser.role === 'principal' || currentUser.role === 'main_principal') return <Navigate to="/principal/dashboard" replace />;
+  if (currentUser.role === 'teacher') return <Navigate to="/teacher/dashboard" replace />;
+  if (currentUser.role === 'parent' || currentUser.role === 'parents') return <Navigate to="/parent/dashboard" replace />;
+  return <Navigate to="/student/dashboard" replace />;
+};
+
 function App() {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
@@ -169,7 +181,7 @@ function App() {
           <InstallPrompt />
           <ReloadPrompt />
           <Routes>
-            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/" element={<RootRoute />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />

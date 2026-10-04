@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { Eye, EyeOff } from 'lucide-react';
 
@@ -10,8 +11,22 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
-  const { login } = useContext(AuthContext);
+  const { login, isAuthenticated, currentUser, loading: authLoading } = useContext(AuthContext);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!authLoading && isAuthenticated && currentUser) {
+      if (currentUser.role === 'superadmin') navigate('/super-admin/dashboard', { replace: true });
+      else if (currentUser.role === 'principal') navigate('/principal/dashboard', { replace: true });
+      else if (currentUser.role === 'teacher') navigate('/teacher/dashboard', { replace: true });
+      else if (currentUser.role === 'parent') navigate('/parent/dashboard', { replace: true });
+      else navigate('/student/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, currentUser, authLoading, navigate]);
+
+  if (authLoading) {
+    return <div className="min-h-screen flex items-center justify-center bg-gray-100">Loading...</div>;
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();

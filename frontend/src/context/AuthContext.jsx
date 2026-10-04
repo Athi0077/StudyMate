@@ -12,9 +12,11 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const checkAuth = async () => {
+      console.log('[AUTH INIT] starting session restoration');
       try {
-        // Always attempt to restore the session using the HttpOnly refresh token cookie on mount
+        console.log('[AUTH INIT] calling /api/auth/refresh');
         const res = await api.post('/auth/refresh');
+        console.log(`[AUTH REFRESH] status: ${res.status}`);
         if (res.data.success) {
           localStorage.setItem('token', res.data.token);
           setToken(res.data.token);
@@ -23,6 +25,11 @@ export const AuthProvider = ({ children }) => {
           initSocket(res.data.token);
         }
       } catch (error) {
+        if (error.response) {
+          console.log(`[AUTH REFRESH] status: ${error.response.status}`);
+        } else {
+          console.log('[AUTH REFRESH] network error');
+        }
         // If refresh fails with 401, clear everything cleanly
         if (error.response && error.response.status === 401) {
           localStorage.removeItem('token');
