@@ -32,14 +32,12 @@ const TopNavbar = ({ user, role: propRole }) => {
   };
 
   const getProfilePath = () => {
-    switch (role) {
-      case 'superadmin': return '/super-admin/profile';
-      case 'principal': return '/principal/profile';
-      case 'teacher': return '/teacher/profile';
-      case 'parent':
-      case 'parents': return '/parent/profile';
-      default: return '/student/profile';
-    }
+    const normRole = (propRole || user?.role || 'student').toLowerCase();
+    if (normRole === 'superadmin') return '/super-admin/profile';
+    if (normRole.includes('principal')) return '/principal/profile';
+    if (normRole === 'teacher') return '/teacher/profile';
+    if (normRole.includes('parent')) return '/parent/profile';
+    return '/student/profile';
   };
 
   // Role-based navbar background styles (unified in dark mode)
@@ -106,7 +104,8 @@ const TopNavbar = ({ user, role: propRole }) => {
         
         <Link 
           to={getProfilePath()} 
-          className="flex items-center gap-2 hover:bg-white/15 p-1 pr-3 rounded-full transition border border-transparent hover:border-white/20"
+          className="flex items-center gap-2 hover:bg-white/15 p-1 sm:pr-3 rounded-full transition border border-transparent hover:border-white/20 cursor-pointer"
+          title="View My Profile"
         >
           <div className="w-9 h-9 bg-white/20 text-white rounded-full flex items-center justify-center text-sm font-bold border border-white/30 shadow-sm overflow-hidden shrink-0">
             {user?.profilePic ? (

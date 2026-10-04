@@ -3,7 +3,19 @@ import { AuthContext } from '../context/AuthContext';
 import Layout from '../components/layout/Layout';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
-import { ShieldCheck, User, Mail, Lock, Phone, MapPin, Camera, Trash2, LogOut, CheckCircle2, KeyRound } from 'lucide-react';
+import { 
+  ShieldCheck, 
+  User, 
+  Mail, 
+  Lock, 
+  Phone, 
+  MapPin, 
+  Camera, 
+  Trash2, 
+  LogOut, 
+  CheckCircle2, 
+  KeyRound 
+} from 'lucide-react';
 
 const SuperAdminProfile = () => {
   const { currentUser, updateUser, logout } = useContext(AuthContext);
@@ -132,78 +144,79 @@ const SuperAdminProfile = () => {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="max-w-3xl mx-auto space-y-6 pb-8">
         
-        {/* Banner Card */}
-        <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-6 md:p-8 shadow-xl border border-indigo-900/40 relative overflow-hidden">
-          <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-6">
-            
-            {/* Avatar upload */}
-            <div className="relative group">
-              {currentUser?.profilePic ? (
-                <img 
-                  src={currentUser.profilePic} 
-                  alt="Super Admin Profile" 
-                  className="w-28 h-28 rounded-2xl object-cover border-4 border-indigo-500/30 shadow-2xl" 
-                />
-              ) : (
-                <div className="w-28 h-28 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-4xl font-extrabold text-white shadow-2xl border-2 border-white/20">
-                  {currentUser?.name?.charAt(0).toUpperCase() || 'S'}
-                </div>
-              )}
-              
-              <label 
-                className="absolute -bottom-2 -right-2 bg-indigo-600 text-white p-2.5 rounded-xl cursor-pointer hover:bg-indigo-500 transition-all shadow-lg border border-white/20"
-                title="Upload Profile Picture"
-              >
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  className="hidden" 
-                  onChange={handlePicUpload} 
-                  disabled={uploadingPic} 
-                />
-                <Camera className="w-4 h-4" />
-              </label>
-            </div>
-
-            <div className="flex-1 text-center sm:text-left space-y-2">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-semibold border border-indigo-500/30">
-                <ShieldCheck className="w-3.5 h-3.5" /> Super Admin Profile
+        {/* Banner Card - Exact Centered Layout from Screenshot */}
+        <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-indigo-900/40 relative overflow-hidden flex flex-col items-center text-center">
+          
+          {/* Centered Avatar Box */}
+          <div className="relative group mb-4">
+            {currentUser?.profilePic ? (
+              <img 
+                src={currentUser.profilePic} 
+                alt="Super Admin Profile" 
+                className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl object-cover border-4 border-indigo-500/30 shadow-2xl" 
+              />
+            ) : (
+              <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-4xl sm:text-5xl font-extrabold text-white shadow-2xl border-4 border-white/20">
+                {currentUser?.name?.charAt(0).toUpperCase() || 'S'}
               </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">{currentUser?.name || 'Super Admin'}</h1>
-              <p className="text-slate-300 text-sm flex items-center justify-center sm:justify-start gap-2">
-                <Mail className="w-4 h-4 text-indigo-400" />
-                {currentUser?.email}
-              </p>
-              
-              {currentUser?.profilePic && (
-                <button 
-                  type="button" 
-                  onClick={handlePicDelete} 
-                  disabled={uploadingPic} 
-                  className="inline-flex items-center gap-1 text-red-400 hover:text-red-300 text-xs font-semibold pt-1 transition"
-                >
-                  <Trash2 className="w-3.5 h-3.5" /> Remove Profile Photo
-                </button>
-              )}
-            </div>
-
-            {/* Top Right Quick Logout Button */}
-            <button
-              onClick={logout}
-              className="flex items-center gap-2 bg-red-600/80 hover:bg-red-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition backdrop-blur-sm shadow-md border border-red-500/30 shrink-0"
-              title="Logout from Super Admin Session"
+            )}
+            
+            {/* Camera Upload Icon */}
+            <label 
+              className="absolute -bottom-2 -right-2 bg-indigo-600 text-white p-2.5 rounded-2xl cursor-pointer hover:bg-indigo-500 transition-all shadow-lg border-2 border-white/40"
+              title="Upload Profile Picture"
             >
-              <LogOut className="w-4 h-4" /> Logout
-            </button>
+              <input 
+                type="file" 
+                accept="image/*" 
+                className="hidden" 
+                onChange={handlePicUpload} 
+                disabled={uploadingPic} 
+              />
+              <Camera className="w-4 h-4" />
+            </label>
           </div>
 
-          <div className="absolute right-0 bottom-0 top-0 opacity-10 w-1/2 bg-gradient-to-l from-indigo-500 to-transparent pointer-events-none"></div>
+          {/* Role Pill Badge */}
+          <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-semibold border border-indigo-500/30 mb-2 shadow-sm">
+            <ShieldCheck className="w-3.5 h-3.5" /> Super Admin Profile
+          </div>
+
+          {/* User Name */}
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-1">{currentUser?.name || 'Super Admin'}</h1>
+          
+          {/* Email */}
+          <p className="text-slate-300 text-sm flex items-center justify-center gap-1.5 mb-2">
+            <Mail className="w-4 h-4 text-indigo-300 shrink-0" />
+            {currentUser?.email}
+          </p>
+          
+          {/* Remove Picture Link */}
+          {currentUser?.profilePic && (
+            <button 
+              type="button" 
+              onClick={handlePicDelete} 
+              disabled={uploadingPic} 
+              className="inline-flex items-center gap-1 text-red-400 hover:text-red-300 text-xs font-semibold mb-4 transition"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Remove Profile Photo
+            </button>
+          )}
+
+          {/* Prominent Red Logout Button */}
+          <button
+            onClick={logout}
+            className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold px-8 py-3 rounded-2xl shadow-lg shadow-red-600/30 transition transform active:scale-95 border border-red-500/40 text-sm mt-2"
+          >
+            <LogOut className="w-4 h-4" /> Logout
+          </button>
+
         </div>
 
         {/* Profile Settings Form */}
-        <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 dark:border-[#1E293B]">
+        <div className="bg-white dark:bg-[#0b1120] rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 dark:border-[#1E293B]">
           <form onSubmit={handleSubmit} className="space-y-6">
             
             {/* Account Information Section */}
@@ -216,10 +229,10 @@ const SuperAdminProfile = () => {
                 Update your Super Admin display name and primary contact email address.
               </p>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-400 mb-2">
-                    Super Admin Name <span className="text-red-500">*</span>
+                    SUPER ADMIN NAME <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <User className="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5" />
@@ -237,7 +250,7 @@ const SuperAdminProfile = () => {
 
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-400 mb-2">
-                    Email Address <span className="text-red-500">*</span>
+                    EMAIL ADDRESS <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5" />
@@ -265,10 +278,10 @@ const SuperAdminProfile = () => {
                 Optional phone number and location details for your administrative contact.
               </p>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-400 mb-2">
-                    Phone Number
+                    PHONE NUMBER
                   </label>
                   <div className="relative">
                     <Phone className="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5" />
@@ -285,7 +298,7 @@ const SuperAdminProfile = () => {
 
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-400 mb-2">
-                    Address / Office Location
+                    ADDRESS / OFFICE LOCATION
                   </label>
                   <div className="relative">
                     <MapPin className="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5" />
@@ -314,10 +327,10 @@ const SuperAdminProfile = () => {
                 Leave password fields blank if you do not wish to change your password.
               </p>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-400 mb-2">
-                    New Password
+                    NEW PASSWORD
                   </label>
                   <div className="relative">
                     <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5" />
@@ -334,7 +347,7 @@ const SuperAdminProfile = () => {
 
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-400 mb-2">
-                    Confirm New Password
+                    CONFIRM NEW PASSWORD
                   </label>
                   <div className="relative">
                     <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5" />
