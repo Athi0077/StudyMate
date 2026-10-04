@@ -86,4 +86,4 @@ const requireSuperAdmin = (req, res, next) => {
   return res.status(403).json({ success: false, message: "Action restricted to Super Admin only" });
 };
 
-module.exports = { protect, requireRole, requireMainPrincipal, requireSuperAdmin };
+module.exports = { protect, requireRole, authorize: requireRole, requireMainPrincipal, requireSuperAdmin };
