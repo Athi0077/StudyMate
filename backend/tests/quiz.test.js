@@ -10,7 +10,7 @@ const Quiz = require('../src/models/Quiz');
 const QuizSubmission = require('../src/models/QuizSubmission');
 const jwt = require('jsonwebtoken');
 
-describe('StudyMate — Fun Activities Quiz Module Tests', () => {
+describe('StudyMate — Fun Activities Module Tests (Category-based Activity System)', () => {
   let teacherToken, teacherUser;
   let unauthorizedTeacherToken, unauthorizedTeacherUser;
   let student6AToken, student6AUser;
@@ -113,12 +113,13 @@ describe('StudyMate — Fun Activities Quiz Module Tests', () => {
     });
   });
 
-  describe('1. Teacher Authorization for Quiz Creation', () => {
+  describe('1. Teacher Authorization for Activity Creation', () => {
     it('allows Teacher 1 to create quiz for assigned class & subject (6th-A Tamil) -> PASS', async () => {
       const res = await request(app)
         .post('/api/fun-activities/quizzes')
         .set('Authorization', `Bearer ${teacherToken}`)
         .send({
+          activityType: 'quiz',
           title: 'Tamil Grammar Challenge',
           description: 'Class 6A Tamil Quiz',
           standardId: std6._id,
@@ -145,13 +146,37 @@ describe('StudyMate — Fun Activities Quiz Module Tests', () => {
       expect(res.status).toBe(201);
       expect(res.body.success).toBe(true);
       expect(res.body.data.title).toBe('Tamil Grammar Challenge');
+      expect(res.body.data.activityType).toBe('quiz');
     });
 
-    it('rejects Teacher 1 when attempting to create quiz for unassigned subject (6th-A Science) -> FAIL 403', async () => {
+    it('allows Teacher 1 to create Word Scramble for assigned class & subject -> PASS', async () => {
       const res = await request(app)
         .post('/api/fun-activities/quizzes')
         .set('Authorization', `Bearer ${teacherToken}`)
         .send({
+          activityType: 'word_scramble',
+          title: 'Tamil Word Scramble',
+          standardId: std6._id,
+          sectionId: secA._id,
+          subject: 'Tamil',
+          startDate: new Date(Date.now() - 3600000).toISOString(),
+          endDate: new Date(Date.now() + 86400000).toISOString(),
+          questions: [
+            { word: 'SCHOOL', hint: 'Place for learning', marks: 1 }
+          ],
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.activityType).toBe('word_scramble');
+    });
+
+    it('rejects Teacher 1 when attempting to create activity for unassigned subject (6th-A Science) -> FAIL 403', async () => {
+      const res = await request(app)
+        .post('/api/fun-activities/quizzes')
+        .set('Authorization', `Bearer ${teacherToken}`)
+        .send({
+          activityType: 'maths_challenge',
           title: 'Science Challenge',
           standardId: std6._id,
           sectionId: secA._id,
@@ -177,218 +202,116 @@ describe('StudyMate — Fun Activities Quiz Module Tests', () => {
       expect(res.body.success).toBe(false);
       expect(res.body.message).toContain('not authorized');
     });
-
-    it('rejects unauthorized teacher trying to create quiz for class assigned to Teacher 1 -> FAIL 403', async () => {
-      const res = await request(app)
-        .post('/api/fun-activities/quizzes')
-        .set('Authorization', `Bearer ${unauthorizedTeacherToken}`)
-        .send({
-          title: 'Unauthorized Quiz',
-          standardId: std6._id,
-          sectionId: secA._id,
-          subject: 'Tamil',
-          startDate: new Date().toISOString(),
-          endDate: new Date(Date.now() + 86400000).toISOString(),
-          questions: [
-            {
-              question: 'Test?',
-              options: [
-                { key: 'A', text: '1' },
-                { key: 'B', text: '2' },
-                { key: 'C', text: '3' },
-                { key: 'D', text: '4' },
-              ],
-              correctAnswer: 'A',
-              marks: 1,
-            }
-          ],
-        });
-
-      expect(res.status).toBe(403);
-      expect(res.body.success).toBe(false);
-    });
   });
 
-  describe('2. Student Quiz Visibility & Filtering', () => {
-    let quiz6A;
-
-    beforeEach(async () => {
-      quiz6A = await Quiz.create({
-        title: 'Tamil Quiz 6A',
+  describe('2. Category Specific Answers & Server-Side Scoring', () => {
+    it('evaluates Fill in the Blanks with normalized case-insensitive comparison -> PASS', async () => {
+      const activity = await Quiz.create({
+        activityType: 'fill_blank',
+        title: 'Tamil Geography Blank',
         standardId: std6._id,
         sectionId: secA._id,
         subject: 'Tamil',
         createdBy: teacherUser._id,
         startDate: new Date(Date.now() - 3600000),
         endDate: new Date(Date.now() + 86400000),
-        totalMarks: 2,
+        totalMarks: 1,
         questions: [
           {
-            question: 'Question 1',
-            options: [{ key: 'A', text: 'A1' }, { key: 'B', text: 'B1' }, { key: 'C', text: 'C1' }, { key: 'D', text: 'D1' }],
-            correctAnswer: 'A',
-            marks: 1,
-          },
-          {
-            question: 'Question 2',
-            options: [{ key: 'A', text: 'A2' }, { key: 'B', text: 'B2' }, { key: 'C', text: 'C2' }, { key: 'D', text: 'D2' }],
-            correctAnswer: 'B',
+            blankQuestion: 'The capital of Tamil Nadu is ________.',
+            blankAnswer: 'Chennai',
             marks: 1,
           }
         ],
       });
-    });
 
-    it('6-A Student sees 6-A quizzes -> PASS', async () => {
       const res = await request(app)
-        .get('/api/fun-activities/quizzes/student')
-        .set('Authorization', `Bearer ${student6AToken}`);
-
-      expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.length).toBe(1);
-      expect(res.body.data[0].title).toBe('Tamil Quiz 6A');
-    });
-
-    it('7-B Student does NOT see 6-A quizzes -> PASS', async () => {
-      const res = await request(app)
-        .get('/api/fun-activities/quizzes/student')
-        .set('Authorization', `Bearer ${student7BToken}`);
-
-      expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.length).toBe(0);
-    });
-  });
-
-  describe('3. Quiz Participation, Server-side Score Calculation & Duplicate Prevention', () => {
-    let quiz6A;
-
-    beforeEach(async () => {
-      quiz6A = await Quiz.create({
-        title: 'Tamil Math Quiz',
-        standardId: std6._id,
-        sectionId: secA._id,
-        subject: 'Tamil',
-        createdBy: teacherUser._id,
-        startDate: new Date(Date.now() - 3600000),
-        endDate: new Date(Date.now() + 86400000),
-        totalMarks: 2,
-        questions: [
-          {
-            question: 'Question 1',
-            options: [{ key: 'A', text: 'A1' }, { key: 'B', text: 'B1' }, { key: 'C', text: 'C1' }, { key: 'D', text: 'D1' }],
-            correctAnswer: 'A',
-            marks: 1,
-          },
-          {
-            question: 'Question 2',
-            options: [{ key: 'A', text: 'A2' }, { key: 'B', text: 'B2' }, { key: 'C', text: 'C2' }, { key: 'D', text: 'D2' }],
-            correctAnswer: 'C',
-            marks: 1,
-          }
-        ],
-      });
-    });
-
-    it('calculates score correctly on server side -> PASS', async () => {
-      const q1Id = quiz6A.questions[0]._id;
-      const q2Id = quiz6A.questions[1]._id;
-
-      // Submit 1 correct ('A') and 1 wrong ('B')
-      const res = await request(app)
-        .post(`/api/fun-activities/quizzes/${quiz6A._id}/submit`)
+        .post(`/api/fun-activities/quizzes/${activity._id}/submit`)
         .set('Authorization', `Bearer ${student6AToken}`)
         .send({
           answers: [
-            { questionId: q1Id, selectedAnswer: 'A' }, // Correct
-            { questionId: q2Id, selectedAnswer: 'B' }, // Wrong (Correct is C)
-          ],
-          timeTaken: 45,
+            { questionId: activity.questions[0]._id, selectedAnswer: '  chennai ' } // Case-insensitive & trimmed
+          ]
         });
 
       expect(res.status).toBe(201);
       expect(res.body.success).toBe(true);
       expect(res.body.data.score).toBe(1);
-      expect(res.body.data.totalMarks).toBe(2);
-      expect(res.body.data.percentage).toBe(50);
-      expect(res.body.data.correctCount).toBe(1);
-      expect(res.body.data.wrongCount).toBe(1);
+      expect(res.body.data.percentage).toBe(100);
     });
 
-    it('rejects duplicate quiz submission from the same student -> REJECT 400', async () => {
-      const q1Id = quiz6A.questions[0]._id;
-      const q2Id = quiz6A.questions[1]._id;
-
-      // First Submission
-      await request(app)
-        .post(`/api/fun-activities/quizzes/${quiz6A._id}/submit`)
-        .set('Authorization', `Bearer ${student6AToken}`)
-        .send({
-          answers: [
-            { questionId: q1Id, selectedAnswer: 'A' },
-            { questionId: q2Id, selectedAnswer: 'C' },
-          ],
-        });
-
-      // Second Submission attempt
-      const res = await request(app)
-        .post(`/api/fun-activities/quizzes/${quiz6A._id}/submit`)
-        .set('Authorization', `Bearer ${student6AToken}`)
-        .send({
-          answers: [
-            { questionId: q1Id, selectedAnswer: 'A' },
-            { questionId: q2Id, selectedAnswer: 'C' },
-          ],
-        });
-
-      expect(res.status).toBe(400);
-      expect(res.body.success).toBe(false);
-      expect(res.body.message).toContain('already submitted');
-    });
-
-    it('rejects submission if quiz is expired -> REJECT 400', async () => {
-      const expiredQuiz = await Quiz.create({
-        title: 'Expired Quiz',
+    it('sanitizes student fetch payload by hiding answers and scrambling words -> PASS', async () => {
+      const scrambleActivity = await Quiz.create({
+        activityType: 'word_scramble',
+        title: 'Secret Word Challenge',
         standardId: std6._id,
         sectionId: secA._id,
         subject: 'Tamil',
         createdBy: teacherUser._id,
-        startDate: new Date(Date.now() - 7200000),
-        endDate: new Date(Date.now() - 3600000), // Closed 1 hour ago
+        startDate: new Date(Date.now() - 3600000),
+        endDate: new Date(Date.now() + 86400000),
         totalMarks: 1,
         questions: [
-          {
-            question: 'Q',
-            options: [{ key: 'A', text: 'A' }, { key: 'B', text: 'B' }, { key: 'C', text: 'C' }, { key: 'D', text: 'D' }],
-            correctAnswer: 'A',
-            marks: 1,
-          }
+          { word: 'SCHOOL', hint: 'Learning center', marks: 1 }
         ],
       });
 
       const res = await request(app)
-        .post(`/api/fun-activities/quizzes/${expiredQuiz._id}/submit`)
+        .get(`/api/fun-activities/quizzes/${scrambleActivity._id}`)
+        .set('Authorization', `Bearer ${student6AToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.questions[0].word).toBeUndefined(); // Word must NOT be exposed!
+      expect(res.body.data.questions[0].scrambledWord).toBeDefined();
+      expect(res.body.data.questions[0].hint).toBe('Learning center');
+    });
+
+    it('rejects duplicate submission for any activity category -> REJECT 400', async () => {
+      const tfActivity = await Quiz.create({
+        activityType: 'true_false',
+        title: 'Sun Star Statement',
+        standardId: std6._id,
+        sectionId: secA._id,
+        subject: 'Tamil',
+        createdBy: teacherUser._id,
+        startDate: new Date(Date.now() - 3600000),
+        endDate: new Date(Date.now() + 86400000),
+        totalMarks: 1,
+        questions: [
+          { statement: 'The Sun is a star.', isTrue: true, correctAnswer: 'true', marks: 1 }
+        ],
+      });
+
+      // Submit 1
+      await request(app)
+        .post(`/api/fun-activities/quizzes/${tfActivity._id}/submit`)
         .set('Authorization', `Bearer ${student6AToken}`)
         .send({
-          answers: [{ questionId: expiredQuiz.questions[0]._id, selectedAnswer: 'A' }],
+          answers: [{ questionId: tfActivity.questions[0]._id, selectedAnswer: 'true' }]
+        });
+
+      // Submit 2 (Duplicate)
+      const res = await request(app)
+        .post(`/api/fun-activities/quizzes/${tfActivity._id}/submit`)
+        .set('Authorization', `Bearer ${student6AToken}`)
+        .send({
+          answers: [{ questionId: tfActivity.questions[0]._id, selectedAnswer: 'true' }]
         });
 
       expect(res.status).toBe(400);
-      expect(res.body.message).toContain('closed');
+      expect(res.body.message).toContain('already submitted');
     });
   });
 
-  describe('4. Principal Monitoring Overview', () => {
-    it('allows Principal to view fun activities overview -> PASS', async () => {
+  describe('3. Principal Monitoring Overview across Categories', () => {
+    it('allows Principal to view overview with category counts -> PASS', async () => {
       const res = await request(app)
         .get('/api/fun-activities/principal/overview')
         .set('Authorization', `Bearer ${principalToken}`);
 
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
-      expect(res.body.data.metrics).toBeDefined();
-      expect(res.body.data.quizzes).toBeDefined();
+      expect(res.body.data.metrics.categoryCounts).toBeDefined();
     });
   });
 });

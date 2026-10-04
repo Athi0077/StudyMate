@@ -4,8 +4,10 @@ const cors = require("cors");
 const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
 const connectDB = require("./src/config/db");
-const dns = require("node:dns")
-dns.setServers(['8.8.8.8', '8.8.4.4'])
+if (process.env.NODE_ENV !== 'test') {
+  const dns = require("node:dns");
+  dns.setServers(['8.8.8.8', '8.8.4.4']);
+}
 
 // Routes 
 const authRoutes = require("./src/routes/authRoutes");

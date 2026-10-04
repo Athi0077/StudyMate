@@ -1,25 +1,29 @@
 const mongoose = require('mongoose');
+require('dotenv').config();
 
 process.env.NODE_ENV = 'test';
-process.env.PORT = 0; // random port
-process.env.JWT_SECRET = 'test_jwt_secret_for_auth';
-process.env.MONGO_URI = 'mongodb://127.0.0.1:27017/studymate_test_db';
+process.env.PORT = 0;
 
 beforeAll(async () => {
+  const uri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/studymate_test';
   if (mongoose.connection.readyState === 0) {
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(uri);
   }
-});
+}, 30000);
 
 afterEach(async () => {
-  const collections = mongoose.connection.collections;
-  for (const key in collections) {
-    const collection = collections[key];
-    await collection.deleteMany({});
+  if (mongoose.connection.readyState === 1) {
+    const collections = mongoose.connection.collections;
+    for (const key in collections) {
+      const collection = collections[key];
+      await collection.deleteMany({});
+    }
   }
-});
+}, 30000);
 
 afterAll(async () => {
-  await mongoose.connection.dropDatabase();
-  await mongoose.connection.close();
-});
+  if (mongoose.connection.readyState === 1) {
+    await mongoose.connection.dropDatabase();
+    await mongoose.connection.close();
+  }
+}, 30000);

@@ -5,7 +5,6 @@ const optionSchema = new mongoose.Schema(
     key: {
       type: String,
       required: true,
-      enum: ["A", "B", "C", "D"],
     },
     text: {
       type: String,
@@ -16,34 +15,49 @@ const optionSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const questionSchema = new mongoose.Schema({
-  question: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  options: {
-    type: [optionSchema],
-    validate: [
-      (val) => val.length === 4,
-      "Question must have exactly 4 options (A, B, C, D)",
-    ],
-  },
-  correctAnswer: {
-    type: String,
-    required: true,
-    enum: ["A", "B", "C", "D"],
-  },
-  marks: {
-    type: Number,
-    required: true,
-    default: 1,
-    min: [1, "Marks must be at least 1"],
-  },
+const itemSchema = new mongoose.Schema({
+  // MCQ / Maths / Puzzle / Image Challenge fields
+  question: { type: String, trim: true },
+  options: [optionSchema],
+  correctAnswer: { type: String, trim: true },
+  imageUrl: { type: String, default: "" },
+
+  // Word Scramble fields
+  word: { type: String, trim: true },
+  hint: { type: String, default: "", trim: true },
+
+  // True / False fields
+  statement: { type: String, trim: true },
+  isTrue: { type: Boolean },
+
+  // Fill in the Blanks fields
+  blankQuestion: { type: String, trim: true },
+  blankAnswer: { type: String, trim: true },
+
+  // Match the Pair fields
+  leftItem: { type: String, trim: true },
+  rightItem: { type: String, trim: true },
+
+  marks: { type: Number, required: true, default: 1, min: 1 },
 });
 
 const quizSchema = new mongoose.Schema(
   {
+    activityType: {
+      type: String,
+      enum: [
+        "quiz",
+        "maths_challenge",
+        "word_scramble",
+        "image_challenge",
+        "puzzle",
+        "true_false",
+        "fill_blank",
+        "match_pair",
+      ],
+      default: "quiz",
+      required: true,
+    },
     title: {
       type: String,
       required: true,
@@ -74,7 +88,7 @@ const quizSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    questions: [questionSchema],
+    questions: [itemSchema],
     totalMarks: {
       type: Number,
       required: true,
@@ -104,7 +118,7 @@ const quizSchema = new mongoose.Schema(
 );
 
 quizSchema.index({ standardId: 1, sectionId: 1, status: 1 });
-quizSchema.index({ createdBy: 1 });
+quizSchema.index({ createdBy: 1, activityType: 1 });
 
 const Quiz = mongoose.model("Quiz", quizSchema);
 

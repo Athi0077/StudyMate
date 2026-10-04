@@ -8,8 +8,7 @@ const answerSchema = new mongoose.Schema(
     },
     selectedAnswer: {
       type: String,
-      required: true,
-      enum: ["A", "B", "C", "D"],
+      default: "",
     },
     isCorrect: {
       type: Boolean,
@@ -70,7 +69,7 @@ const quizSubmissionSchema = new mongoose.Schema(
   }
 );
 
-// Enforce one student -> one submission per quiz
+// Enforce one student -> one submission per activity
 quizSubmissionSchema.index({ quizId: 1, studentId: 1 }, { unique: true });
 
 const QuizSubmission = mongoose.model("QuizSubmission", quizSubmissionSchema);

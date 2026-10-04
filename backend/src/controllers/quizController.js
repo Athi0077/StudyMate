@@ -6,19 +6,33 @@ const Section = require("../models/Section");
 const Class = require("../models/Class");
 const User = require("../models/User");
 
-// @desc    Get teacher's assigned standards, sections, and subjects for quiz creation
+// Helper to scramble a word for Word Scramble activity
+const scrambleWord = (word) => {
+  if (!word) return "";
+  const arr = word.toUpperCase().split("");
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  const scrambled = arr.join(" ");
+  // Avoid returning identical string if word length > 2
+  if (scrambled.replace(/ /g, "") === word.toUpperCase() && word.length > 2) {
+    return scrambleWord(word);
+  }
+  return scrambled;
+};
+
+// @desc    Get teacher's assigned standards, sections, and subjects for activity creation
 // @route   GET /api/fun-activities/teacher-assignments
 // @access  Private (Teacher)
 exports.getTeacherAssignments = async (req, res) => {
   try {
     const teacherId = req.user._id;
 
-    // Fetch all active assignments for this teacher
     const assignments = await TeacherAssignment.find({ teacherId })
       .populate("standardId", "name")
       .populate("sectionId", "name");
 
-    // Format assigned classes and subjects cleanly for frontend cascading dropdowns
     const standardsMap = {};
 
     assignments.forEach((asg) => {
@@ -67,12 +81,13 @@ exports.getTeacherAssignments = async (req, res) => {
   }
 };
 
-// @desc    Create a new Quiz with Teacher Authorization Validation
+// @desc    Create a new Activity (Quiz, Maths, Word Scramble, Image, Puzzle, True/False, Fill Blank, Match Pair)
 // @route   POST /api/fun-activities/quizzes
 // @access  Private (Teacher)
 exports.createQuiz = async (req, res) => {
   try {
     const {
+      activityType = "quiz",
       title,
       description,
       standardId,
@@ -86,6 +101,19 @@ exports.createQuiz = async (req, res) => {
 
     const teacherId = req.user._id;
 
+    const validTypes = [
+      "quiz",
+      "maths_challenge",
+      "word_scramble",
+      "image_challenge",
+      "puzzle",
+      "true_false",
+      "fill_blank",
+      "match_pair",
+    ];
+
+    const type = validTypes.includes(activityType) ? activityType : "quiz";
+
     if (!title || !standardId || !sectionId || !subject || !startDate || !endDate) {
       return res.status(400).json({
         success: false,
@@ -96,11 +124,11 @@ exports.createQuiz = async (req, res) => {
     if (!questions || !Array.isArray(questions) || questions.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "Quiz must have at least one question.",
+        message: "Activity must have at least one question or item.",
       });
     }
 
-    // STRICT BACKEND AUTHORIZATION: Verify teacher assignment
+    // STRICT BACKEND AUTHORIZATION: Verify teacher assignment in TeacherAssignment collection
     const teacherAssignments = await TeacherAssignment.find({
       teacherId,
       standardId,
@@ -110,7 +138,7 @@ exports.createQuiz = async (req, res) => {
     if (!teacherAssignments || teacherAssignments.length === 0) {
       return res.status(403).json({
         success: false,
-        message: "You are not authorized to create a quiz for this class/subject.",
+        message: "You are not authorized to create an activity for this class/subject.",
       });
     }
 
@@ -123,59 +151,79 @@ exports.createQuiz = async (req, res) => {
     if (!hasSubjectAccess) {
       return res.status(403).json({
         success: false,
-        message: "You are not authorized to create a quiz for this class/subject.",
+        message: "You are not authorized to create an activity for this class/subject.",
       });
     }
 
-    // Validate Questions Structure & Calculate Total Marks
+    // Validate Items according to activityType
     let calculatedTotalMarks = 0;
-    const validatedQuestions = [];
+    const validatedItems = [];
 
     for (let i = 0; i < questions.length; i++) {
       const q = questions[i];
-      if (!q.question || !q.question.trim()) {
-        return res.status(400).json({
-          success: false,
-          message: `Question ${i + 1} text is required.`,
-        });
-      }
-
-      if (!q.options || !Array.isArray(q.options) || q.options.length !== 4) {
-        return res.status(400).json({
-          success: false,
-          message: `Question ${i + 1} must have exactly 4 options (A, B, C, D).`,
-        });
-      }
-
-      const validKeys = ["A", "B", "C", "D"];
-      const formattedOptions = [];
-      for (const key of validKeys) {
-        const opt = q.options.find((o) => o.key === key);
-        if (!opt || !opt.text || !opt.text.trim()) {
-          return res.status(400).json({
-            success: false,
-            message: `Question ${i + 1} option ${key} text is required.`,
-          });
-        }
-        formattedOptions.push({ key, text: opt.text.trim() });
-      }
-
-      if (!q.correctAnswer || !validKeys.includes(q.correctAnswer)) {
-        return res.status(400).json({
-          success: false,
-          message: `Question ${i + 1} must have a valid correct answer selected (A, B, C, or D).`,
-        });
-      }
-
       const qMarks = Number(q.marks) > 0 ? Number(q.marks) : 1;
-      calculatedTotalMarks += qMarks;
 
-      validatedQuestions.push({
-        question: q.question.trim(),
-        options: formattedOptions,
-        correctAnswer: q.correctAnswer,
-        marks: qMarks,
-      });
+      if (type === "quiz" || type === "maths_challenge" || type === "puzzle" || type === "image_challenge") {
+        if (!q.question || !q.question.trim()) {
+          return res.status(400).json({ success: false, message: `Item ${i + 1} question text is required.` });
+        }
+        if (!q.options || !Array.isArray(q.options) || q.options.length !== 4) {
+          return res.status(400).json({ success: false, message: `Item ${i + 1} must have 4 options (A, B, C, D).` });
+        }
+        if (!q.correctAnswer) {
+          return res.status(400).json({ success: false, message: `Item ${i + 1} correct answer is required.` });
+        }
+        validatedItems.push({
+          question: q.question.trim(),
+          options: q.options.map((o) => ({ key: o.key, text: o.text ? o.text.trim() : "" })),
+          correctAnswer: q.correctAnswer,
+          imageUrl: q.imageUrl ? q.imageUrl.trim() : "",
+          marks: qMarks,
+        });
+      } else if (type === "word_scramble") {
+        if (!q.word || !q.word.trim()) {
+          return res.status(400).json({ success: false, message: `Word ${i + 1} is required.` });
+        }
+        validatedItems.push({
+          word: q.word.trim().toUpperCase(),
+          hint: q.hint ? q.hint.trim() : "",
+          marks: qMarks,
+        });
+      } else if (type === "true_false") {
+        if (!q.statement || !q.statement.trim()) {
+          return res.status(400).json({ success: false, message: `Statement ${i + 1} is required.` });
+        }
+        const isTrueVal = String(q.correctAnswer || q.isTrue).toLowerCase() === "true";
+        validatedItems.push({
+          statement: q.statement.trim(),
+          isTrue: isTrueVal,
+          correctAnswer: isTrueVal ? "true" : "false",
+          marks: qMarks,
+        });
+      } else if (type === "fill_blank") {
+        if (!q.blankQuestion || !q.blankQuestion.trim()) {
+          return res.status(400).json({ success: false, message: `Question ${i + 1} text is required.` });
+        }
+        if (!q.blankAnswer || !q.blankAnswer.trim()) {
+          return res.status(400).json({ success: false, message: `Answer for blank ${i + 1} is required.` });
+        }
+        validatedItems.push({
+          blankQuestion: q.blankQuestion.trim(),
+          blankAnswer: q.blankAnswer.trim(),
+          marks: qMarks,
+        });
+      } else if (type === "match_pair") {
+        if (!q.leftItem || !q.leftItem.trim() || !q.rightItem || !q.rightItem.trim()) {
+          return res.status(400).json({ success: false, message: `Match Pair ${i + 1} requires both Left and Right items.` });
+        }
+        validatedItems.push({
+          leftItem: q.leftItem.trim(),
+          rightItem: q.rightItem.trim(),
+          marks: qMarks,
+        });
+      }
+
+      calculatedTotalMarks += qMarks;
     }
 
     const start = new Date(startDate);
@@ -189,14 +237,15 @@ exports.createQuiz = async (req, res) => {
       return res.status(400).json({ success: false, message: "End date must be after start date." });
     }
 
-    const newQuiz = await Quiz.create({
+    const newActivity = await Quiz.create({
+      activityType: type,
       title: title.trim(),
       description: description ? description.trim() : "",
       standardId,
       sectionId,
       subject: subject.trim(),
       createdBy: teacherId,
-      questions: validatedQuestions,
+      questions: validatedItems,
       totalMarks: calculatedTotalMarks,
       startDate: start,
       endDate: end,
@@ -206,8 +255,8 @@ exports.createQuiz = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "Quiz created and assigned successfully!",
-      data: newQuiz,
+      message: "Activity created and assigned successfully!",
+      data: newActivity,
     });
   } catch (error) {
     console.error("Error in createQuiz:", error);
@@ -215,25 +264,27 @@ exports.createQuiz = async (req, res) => {
   }
 };
 
-// @desc    Get quizzes created by logged-in teacher
+// @desc    Get activities created by logged-in teacher
 // @route   GET /api/fun-activities/quizzes/teacher
 // @access  Private (Teacher)
 exports.getTeacherQuizzes = async (req, res) => {
   try {
     const teacherId = req.user._id;
+    const { activityType } = req.query;
 
-    const quizzes = await Quiz.find({ createdBy: teacherId })
+    let query = { createdBy: teacherId };
+    if (activityType) query.activityType = activityType;
+
+    const quizzes = await Quiz.find(query)
       .populate("standardId", "name")
       .populate("sectionId", "name")
       .sort({ createdAt: -1 });
 
-    // Enhance quizzes with submission statistics
     const enhancedQuizzes = await Promise.all(
       quizzes.map(async (quiz) => {
         const quizObj = quiz.toObject();
         const submissionsCount = await QuizSubmission.countDocuments({ quizId: quiz._id });
 
-        // Get class student count
         const stdName = quiz.standardId?.name;
         const secName = quiz.sectionId?.name;
         let totalEnrolled = 0;
@@ -279,12 +330,13 @@ exports.getTeacherQuizzes = async (req, res) => {
   }
 };
 
-// @desc    Get quizzes assigned to student's standard + section
+// @desc    Get activities assigned to student's standard + section
 // @route   GET /api/fun-activities/quizzes/student
 // @access  Private (Student)
 exports.getStudentQuizzes = async (req, res) => {
   try {
     let studentId = req.user._id;
+    const { activityType } = req.query;
 
     if (req.user.role === "parent") {
       const parentUser = await User.findById(req.user._id);
@@ -294,7 +346,6 @@ exports.getStudentQuizzes = async (req, res) => {
       studentId = req.query.studentId || parentUser.children[0];
     }
 
-    // Find student's class
     const studentClass = await Class.findOne({ students: studentId });
     if (!studentClass) {
       return res.json({ success: true, data: [] });
@@ -309,11 +360,14 @@ exports.getStudentQuizzes = async (req, res) => {
     });
     if (!sectionDoc) return res.json({ success: true, data: [] });
 
-    // Fetch quizzes assigned to student's exact Standard + Section
-    const quizzes = await Quiz.find({
+    let query = {
       standardId: standardDoc._id,
       sectionId: sectionDoc._id,
-    })
+    };
+
+    if (activityType) query.activityType = activityType;
+
+    const quizzes = await Quiz.find(query)
       .populate("createdBy", "name")
       .populate("standardId", "name")
       .populate("sectionId", "name")
@@ -324,7 +378,6 @@ exports.getStudentQuizzes = async (req, res) => {
       quizzes.map(async (quiz) => {
         const quizObj = quiz.toObject();
 
-        // Check if student has submitted
         const submission = await QuizSubmission.findOne({
           quizId: quiz._id,
           studentId,
@@ -339,7 +392,7 @@ exports.getStudentQuizzes = async (req, res) => {
           status = "coming_soon";
         }
 
-        // Don't leak answers in student list
+        // Hide items details from list payload
         delete quizObj.questions;
 
         return {
@@ -365,7 +418,7 @@ exports.getStudentQuizzes = async (req, res) => {
   }
 };
 
-// @desc    Get single Quiz by ID (sanitized for student if unsubmitted)
+// @desc    Get single Activity by ID (sanitized for unsubmitted student view)
 // @route   GET /api/fun-activities/quizzes/:id
 // @access  Private
 exports.getQuizById = async (req, res) => {
@@ -377,7 +430,7 @@ exports.getQuizById = async (req, res) => {
       .populate("createdBy", "name email");
 
     if (!quiz) {
-      return res.status(404).json({ success: false, message: "Quiz not found." });
+      return res.status(404).json({ success: false, message: "Activity not found." });
     }
 
     const quizObj = quiz.toObject();
@@ -385,7 +438,6 @@ exports.getQuizById = async (req, res) => {
     if (req.user.role === "student") {
       let studentId = req.user._id;
 
-      // Check student is in assigned class
       const studentClass = await Class.findOne({ students: studentId });
       if (
         !studentClass ||
@@ -394,20 +446,46 @@ exports.getQuizById = async (req, res) => {
       ) {
         return res.status(403).json({
           success: false,
-          message: "You are not authorized to view this quiz.",
+          message: "You are not authorized to view this activity.",
         });
       }
 
       const submission = await QuizSubmission.findOne({ quizId: quiz._id, studentId });
       quizObj.submission = submission;
 
-      // If NOT submitted yet, hide correct answers from response
+      // If NOT submitted yet, sanitize answers based on activityType
       if (!submission) {
+        const type = quizObj.activityType || "quiz";
         quizObj.questions = quizObj.questions.map((q) => {
-          const sanitizedQ = { ...q };
-          delete sanitizedQ.correctAnswer;
-          return sanitizedQ;
+          const sanitized = { ...q };
+
+          if (type === "quiz" || type === "maths_challenge" || type === "puzzle" || type === "image_challenge") {
+            delete sanitized.correctAnswer;
+          } else if (type === "word_scramble") {
+            sanitized.scrambledWord = scrambleWord(q.word);
+            delete sanitized.word;
+          } else if (type === "true_false") {
+            delete sanitized.isTrue;
+            delete sanitized.correctAnswer;
+          } else if (type === "fill_blank") {
+            delete sanitized.blankAnswer;
+          } else if (type === "match_pair") {
+            delete sanitized.rightItem;
+          }
+
+          return sanitized;
         });
+
+        // For Match the Pair: provide a shuffled array of all right items so student can pair them
+        if (type === "match_pair") {
+          const rightItems = quiz.questions.map((q) => q.rightItem).filter(Boolean);
+          // Shuffle rightItems
+          for (let i = rightItems.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [rightItems[i], rightItems[j]] = [rightItems[j], rightItems[i]];
+          }
+          quizObj.shuffledRightItems = rightItems;
+        }
       }
     }
 
@@ -417,7 +495,7 @@ exports.getQuizById = async (req, res) => {
   }
 };
 
-// @desc    Submit Quiz answers by Student
+// @desc    Submit Activity answers by Student (Server-side score calculation)
 // @route   POST /api/fun-activities/quizzes/:id/submit
 // @access  Private (Student)
 exports.submitQuiz = async (req, res) => {
@@ -428,10 +506,9 @@ exports.submitQuiz = async (req, res) => {
 
     const quiz = await Quiz.findById(quizId).populate("standardId").populate("sectionId");
     if (!quiz) {
-      return res.status(404).json({ success: false, message: "Quiz not found." });
+      return res.status(404).json({ success: false, message: "Activity not found." });
     }
 
-    // Verify student is enrolled in the quiz's standard and section
     const studentClass = await Class.findOne({ students: studentId });
     if (
       !studentClass ||
@@ -440,18 +517,18 @@ exports.submitQuiz = async (req, res) => {
     ) {
       return res.status(403).json({
         success: false,
-        message: "You are not authorized to participate in this quiz.",
+        message: "You are not authorized to participate in this activity.",
       });
     }
 
     const now = new Date();
 
     if (now < quiz.startDate) {
-      return res.status(400).json({ success: false, message: "This quiz has not started yet." });
+      return res.status(400).json({ success: false, message: "This activity has not started yet." });
     }
 
     if (now > quiz.endDate) {
-      return res.status(400).json({ success: false, message: "This quiz is closed." });
+      return res.status(400).json({ success: false, message: "This activity is closed." });
     }
 
     // STRICT BACKEND CHECK: Prevent duplicate submissions
@@ -459,7 +536,7 @@ exports.submitQuiz = async (req, res) => {
     if (existingSubmission) {
       return res.status(400).json({
         success: false,
-        message: "You have already submitted this quiz.",
+        message: "You have already submitted this activity.",
       });
     }
 
@@ -467,19 +544,35 @@ exports.submitQuiz = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid answers submitted." });
     }
 
-    // SERVER-SIDE SCORE CALCULATION
+    // SERVER-SIDE SCORE CALCULATION PER ACTIVITY TYPE
     let totalScore = 0;
     let correctCount = 0;
     let wrongCount = 0;
     const processedAnswers = [];
+    const type = quiz.activityType || "quiz";
 
     quiz.questions.forEach((q) => {
-      const studentAnswer = answers.find(
+      const studentAns = answers.find(
         (a) => a.questionId && a.questionId.toString() === q._id.toString()
       );
 
-      const selectedAnswer = studentAnswer ? studentAnswer.selectedAnswer : "";
-      const isCorrect = selectedAnswer === q.correctAnswer;
+      const submittedVal = studentAns ? String(studentAns.selectedAnswer || "").trim() : "";
+      let isCorrect = false;
+
+      if (type === "quiz" || type === "maths_challenge" || type === "puzzle" || type === "image_challenge") {
+        isCorrect = submittedVal.toUpperCase() === String(q.correctAnswer || "").toUpperCase();
+      } else if (type === "word_scramble") {
+        isCorrect = submittedVal.toLowerCase() === String(q.word || "").toLowerCase();
+      } else if (type === "true_false") {
+        const expectedBool = q.isTrue !== undefined ? q.isTrue : String(q.correctAnswer).toLowerCase() === "true";
+        isCorrect = submittedVal.toLowerCase() === String(expectedBool).toLowerCase();
+      } else if (type === "fill_blank") {
+        // Normalized case-insensitive matching for fill in the blanks
+        isCorrect = submittedVal.toLowerCase() === String(q.blankAnswer || "").trim().toLowerCase();
+      } else if (type === "match_pair") {
+        isCorrect = submittedVal.toLowerCase() === String(q.rightItem || "").trim().toLowerCase();
+      }
+
       const marksObtained = isCorrect ? q.marks : 0;
 
       if (isCorrect) {
@@ -491,7 +584,7 @@ exports.submitQuiz = async (req, res) => {
 
       processedAnswers.push({
         questionId: q._id,
-        selectedAnswer: selectedAnswer || "N/A",
+        selectedAnswer: submittedVal || "N/A",
         isCorrect,
         marksObtained,
       });
@@ -514,7 +607,7 @@ exports.submitQuiz = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "Quiz submitted successfully 🎉",
+      message: "Activity submitted successfully 🎉",
       data: {
         submissionId: submission._id,
         score: totalScore,
@@ -531,7 +624,7 @@ exports.submitQuiz = async (req, res) => {
   }
 };
 
-// @desc    Get Detailed Quiz Results for Teacher / Principal
+// @desc    Get Detailed Activity Results for Teacher / Principal
 // @route   GET /api/fun-activities/quizzes/:id/results
 // @access  Private (Teacher / Principal)
 exports.getQuizResults = async (req, res) => {
@@ -543,10 +636,9 @@ exports.getQuizResults = async (req, res) => {
       .populate("createdBy", "name email");
 
     if (!quiz) {
-      return res.status(404).json({ success: false, message: "Quiz not found." });
+      return res.status(404).json({ success: false, message: "Activity not found." });
     }
 
-    // Teacher authorization check
     if (req.user.role === "teacher" && quiz.createdBy._id.toString() !== req.user._id.toString()) {
       const teacherAssignments = await TeacherAssignment.find({
         teacherId: req.user._id,
@@ -554,11 +646,10 @@ exports.getQuizResults = async (req, res) => {
         sectionId: quiz.sectionId._id,
       });
       if (!teacherAssignments || teacherAssignments.length === 0) {
-        return res.status(403).json({ success: false, message: "Unauthorized access to quiz results." });
+        return res.status(403).json({ success: false, message: "Unauthorized access to results." });
       }
     }
 
-    // Find class to list all enrolled students
     const stdName = quiz.standardId?.name;
     const secName = quiz.sectionId?.name;
     const studentClass = await Class.findOne({ standard: stdName, section: secName }).populate(
@@ -626,13 +717,14 @@ exports.getQuizResults = async (req, res) => {
       data: {
         quiz: {
           id: quiz._id,
+          activityType: quiz.activityType,
           title: quiz.title,
           description: quiz.description,
           standard: stdName,
           section: secName,
           subject: quiz.subject,
           totalMarks: quiz.totalMarks,
-          questionCount: quiz.questions.length,
+          itemCount: quiz.questions.length,
           startDate: quiz.startDate,
           endDate: quiz.endDate,
           timeLimit: quiz.timeLimit,
@@ -652,18 +744,19 @@ exports.getQuizResults = async (req, res) => {
   }
 };
 
-// @desc    Get Principal Fun Activities Overview & Analytics
+// @desc    Get Principal Fun Activities Overview & Category Analytics
 // @route   GET /api/fun-activities/principal/overview
 // @access  Private (Principal)
 exports.getPrincipalOverview = async (req, res) => {
   try {
-    const { teacherId, standardId, sectionId, subject } = req.query;
+    const { teacherId, standardId, sectionId, subject, activityType } = req.query;
 
     let query = {};
     if (teacherId) query.createdBy = teacherId;
     if (standardId) query.standardId = standardId;
     if (sectionId) query.sectionId = sectionId;
     if (subject) query.subject = { $regex: new RegExp(`^${subject}$`, "i") };
+    if (activityType) query.activityType = activityType;
 
     const quizzes = await Quiz.find(query)
       .populate("createdBy", "name email")
@@ -672,12 +765,29 @@ exports.getPrincipalOverview = async (req, res) => {
       .sort({ createdAt: -1 });
 
     const now = new Date();
-    let totalQuizzes = quizzes.length;
+
+    const categoryCounts = {
+      quiz: 0,
+      maths_challenge: 0,
+      word_scramble: 0,
+      image_challenge: 0,
+      puzzle: 0,
+      true_false: 0,
+      fill_blank: 0,
+      match_pair: 0,
+    };
+
+    let totalActivities = quizzes.length;
     let activeQuizzes = 0;
     let completedQuizzes = 0;
 
     const formattedQuizzes = await Promise.all(
       quizzes.map(async (quiz) => {
+        const type = quiz.activityType || "quiz";
+        if (categoryCounts[type] !== undefined) {
+          categoryCounts[type]++;
+        }
+
         const isClosed = now > quiz.endDate;
         const isComingSoon = now < quiz.startDate;
 
@@ -704,6 +814,7 @@ exports.getPrincipalOverview = async (req, res) => {
 
         return {
           id: quiz._id,
+          activityType: type,
           title: quiz.title,
           teacherName: quiz.createdBy?.name || "Teacher",
           standard: stdName || "-",
@@ -726,10 +837,11 @@ exports.getPrincipalOverview = async (req, res) => {
       success: true,
       data: {
         metrics: {
-          totalQuizzes,
+          totalActivities,
           activeQuizzes,
           completedQuizzes,
           totalParticipation,
+          categoryCounts,
         },
         quizzes: formattedQuizzes,
       },
@@ -739,7 +851,7 @@ exports.getPrincipalOverview = async (req, res) => {
   }
 };
 
-// @desc    Delete Quiz
+// @desc    Delete Activity
 // @route   DELETE /api/fun-activities/quizzes/:id
 // @access  Private (Teacher creator / Principal)
 exports.deleteQuiz = async (req, res) => {
@@ -747,17 +859,17 @@ exports.deleteQuiz = async (req, res) => {
     const quizId = req.params.id;
     const quiz = await Quiz.findById(quizId);
     if (!quiz) {
-      return res.status(404).json({ success: false, message: "Quiz not found." });
+      return res.status(404).json({ success: false, message: "Activity not found." });
     }
 
     if (req.user.role === "teacher" && quiz.createdBy.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ success: false, message: "Unauthorized to delete this quiz." });
+      return res.status(403).json({ success: false, message: "Unauthorized to delete this activity." });
     }
 
     await Quiz.findByIdAndDelete(quizId);
     await QuizSubmission.deleteMany({ quizId });
 
-    res.json({ success: true, message: "Quiz deleted successfully." });
+    res.json({ success: true, message: "Activity deleted successfully." });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
