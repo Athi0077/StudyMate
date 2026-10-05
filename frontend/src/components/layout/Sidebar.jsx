@@ -1,7 +1,7 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
-import { Home, ClipboardList, BookOpen, Calendar, Bell, Users, FileText, CheckSquare, Layers, LogOut, CalendarDays, User, Contact, MessageSquare, Megaphone, Shield, Cake, CloudSun, ClipboardCheck, GraduationCap, Gamepad2, Zap, PartyPopper, Bus, Map, MapPin, Navigation2 } from 'lucide-react';
+import { Home, ClipboardList, BookOpen, Calendar, Bell, Users, FileText, CheckSquare, Layers, LogOut, CalendarDays, User, Contact, MessageSquare, Megaphone, Shield, Cake, CloudSun, ClipboardCheck, GraduationCap, Gamepad2, Zap, PartyPopper, Bus, Map, MapPin, Navigation2, ChevronDown, ChevronUp } from 'lucide-react';
 
 export const navConfig = {
   student: [
@@ -76,13 +76,19 @@ export const navConfig = {
     { name: 'Notifications', path: '/notifications', icon: Bell },
     { name: 'ID Card Management', path: '/principal/id-cards', icon: Contact },
     { name: 'My ID Card', path: '/principal/my-id-card', icon: Contact },
-    { name: 'Transport: Buses', path: '/principal/transport/buses', icon: Bus },
-    { name: 'Transport: Drivers', path: '/principal/transport/drivers', icon: Contact },
-    { name: 'Transport: Routes', path: '/principal/transport/routes', icon: Map },
-    { name: 'Transport: Stops', path: '/principal/transport/stops', icon: MapPin },
-    { name: 'Transport: Attendance', path: '/principal/transport/attendance', icon: ClipboardCheck },
-    { name: 'Transport: Live Tracking', path: '/principal/transport/tracking', icon: Navigation2 },
-    { name: 'Transport: Driver App (Demo)', path: '/driver/tracking', icon: Navigation2 },
+    { 
+      name: 'Transport', 
+      icon: Bus,
+      subItems: [
+        { name: 'Buses', path: '/principal/transport/buses', icon: Bus },
+        { name: 'Drivers', path: '/principal/transport/drivers', icon: Contact },
+        { name: 'Routes', path: '/principal/transport/routes', icon: Map },
+        { name: 'Stops', path: '/principal/transport/stops', icon: MapPin },
+        { name: 'Attendance', path: '/principal/transport/attendance', icon: ClipboardCheck },
+        { name: 'Live Tracking', path: '/principal/transport/tracking', icon: Navigation2 },
+        { name: 'Driver App (Demo)', path: '/driver/tracking', icon: Navigation2 }
+      ]
+    },
     { name: 'Help Center', path: '/principal/reports', icon: MessageSquare },
     { name: 'Profile', path: '/principal/profile', icon: User }
     // { name: 'AI Student Insights', path: '/principal/ai-dashboard', icon: Sparkles },
@@ -116,6 +122,11 @@ const Sidebar = ({ role }) => {
   const location = useLocation();
   const normRole = (role || 'student').toLowerCase();
   const navItems = navConfig[normRole] || navConfig.student;
+  const [expandedMenus, setExpandedMenus] = useState({});
+
+  const toggleMenu = (name) => {
+    setExpandedMenus(prev => ({ ...prev, [name]: !prev[name] }));
+  };
 
   // Light mode: role-specific tints. Dark mode: unified navy sidebar with precise colors.
   const getRoleSidebarTheme = () => {
@@ -196,6 +207,49 @@ const Sidebar = ({ role }) => {
         }).map((item) => {
           const isActive = location.pathname.startsWith(item.path);
           const IconComponent = item.icon;
+          
+          if (item.subItems) {
+            const isExpanded = expandedMenus[item.name] || item.subItems.some(sub => location.pathname.startsWith(sub.path));
+            return (
+              <div key={item.name} className="space-y-1">
+                <button
+                  onClick={() => toggleMenu(item.name)}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                    isExpanded ? theme.activeItem : theme.inactiveItem
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <IconComponent className="w-5 h-5" />
+                    {item.name}
+                  </div>
+                  {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+                {isExpanded && (
+                  <div className="pl-11 pr-2 py-1 space-y-1">
+                    {item.subItems.map(subItem => {
+                      const isSubActive = location.pathname.startsWith(subItem.path);
+                      const SubIcon = subItem.icon;
+                      return (
+                        <Link
+                          key={subItem.path}
+                          to={subItem.path}
+                          className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                            isSubActive 
+                              ? 'text-gray-900 bg-gray-100/80 dark:text-white dark:bg-[#1E293B]' 
+                              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/50 dark:text-gray-400 dark:hover:text-white dark:hover:bg-[#172235]'
+                          }`}
+                        >
+                          <SubIcon className="w-4 h-4 opacity-70" />
+                          {subItem.name}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          }
+
           return (
             <Link 
               key={item.path}
