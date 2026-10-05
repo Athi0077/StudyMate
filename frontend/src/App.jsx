@@ -49,6 +49,7 @@ import PrincipalTransportAttendance from './pages/PrincipalTransportAttendance';
 import PrincipalTransportTracking from './pages/PrincipalTransportTracking';
 import DriverTracking from './pages/DriverTracking';
 import AttendantDashboard from './pages/AttendantDashboard';
+import PrincipalTransportHub from './pages/PrincipalTransportHub';
 
 import TeacherDashboard from './pages/TeacherDashboard';
 import TeacherClasses from './pages/TeacherClasses';
@@ -256,6 +257,7 @@ function App() {
             <Route path="/principal/ai-progress" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalAIProgress /></ProtectedRoute>} />
             <Route path="/principal/ai-student/:studentId" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalAIStudentAnalysis /></ProtectedRoute>} />
 
+            <Route path="/principal/transport" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalTransportHub /></ProtectedRoute>} />
             <Route path="/principal/transport/buses" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalTransportBuses /></ProtectedRoute>} />
             <Route path="/principal/transport/drivers" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalTransportDrivers /></ProtectedRoute>} />
             <Route path="/principal/transport/routes" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalTransportRoutes /></ProtectedRoute>} />

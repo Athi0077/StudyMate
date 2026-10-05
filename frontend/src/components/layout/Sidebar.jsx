@@ -76,19 +76,7 @@ export const navConfig = {
     { name: 'Notifications', path: '/notifications', icon: Bell },
     { name: 'ID Card Management', path: '/principal/id-cards', icon: Contact },
     { name: 'My ID Card', path: '/principal/my-id-card', icon: Contact },
-    { 
-      name: 'Transport', 
-      icon: Bus,
-      subItems: [
-        { name: 'Buses', path: '/principal/transport/buses', icon: Bus },
-        { name: 'Drivers', path: '/principal/transport/drivers', icon: Contact },
-        { name: 'Routes', path: '/principal/transport/routes', icon: Map },
-        { name: 'Stops', path: '/principal/transport/stops', icon: MapPin },
-        { name: 'Attendance', path: '/principal/transport/attendance', icon: ClipboardCheck },
-        { name: 'Live Tracking', path: '/principal/transport/tracking', icon: Navigation2 },
-        { name: 'Driver App (Demo)', path: '/driver/tracking', icon: Navigation2 }
-      ]
-    },
+    { name: 'Transport', path: '/principal/transport', icon: Bus },
     { name: 'Help Center', path: '/principal/reports', icon: MessageSquare },
     { name: 'Profile', path: '/principal/profile', icon: User }
     // { name: 'AI Student Insights', path: '/principal/ai-dashboard', icon: Sparkles },
