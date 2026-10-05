@@ -8,12 +8,18 @@ const transportService = {
   updateDriver: (id, data) => api.put(`/transport/drivers/${id}`, data),
   deleteDriver: (id) => api.delete(`/transport/drivers/${id}`),
 
+  // Attendants
+  getAttendants: () => api.get('/transport/attendants'),
+  createAttendant: (data) => api.post('/transport/attendants', data),
+  deleteAttendant: (id) => api.delete(`/transport/attendants/${id}`),
+
   // Buses
   getBuses: () => api.get('/transport/buses'),
   getBus: (id) => api.get(`/transport/buses/${id}`),
   createBus: (data) => api.post('/transport/buses', data),
   updateBus: (id, data) => api.put(`/transport/buses/${id}`, data),
   deleteBus: (id) => api.delete(`/transport/buses/${id}`),
+  getMyAssignedBus: () => api.get('/transport/my-bus'),
 
   // Routes
   getRoutes: () => api.get('/transport/routes'),

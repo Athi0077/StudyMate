@@ -102,6 +102,12 @@ export const navConfig = {
     { name: 'Principals', path: '/super-admin/principals', icon: Users },
     { name: 'Amount Calculator', path: '/super-admin/calculator', icon: FileText },
     { name: 'Profile', path: '/super-admin/profile', icon: User }
+  ],
+  driver: [
+    { name: 'Live Tracking', path: '/driver/dashboard', icon: Navigation2 },
+  ],
+  attendant: [
+    { name: 'Attendance', path: '/attendant/dashboard', icon: ClipboardCheck },
   ]
 };
 
@@ -153,6 +159,14 @@ const Sidebar = ({ role }) => {
           logoAccent: 'text-orange-500 dark:text-[#E2E8F0]',
           activeItem: `bg-orange-500 text-white shadow-sm shadow-orange-500/30 ${darkActive}`,
           inactiveItem: `text-gray-700 hover:bg-orange-100/70 hover:text-orange-700 ${darkInactive}`
+        };
+      case 'driver':
+      case 'attendant':
+        return {
+          aside: `bg-slate-50/80 border-r border-slate-200/60 ${darkSidebar}`,
+          logoAccent: 'text-slate-600 dark:text-[#E2E8F0]',
+          activeItem: `bg-slate-700 text-white shadow-sm shadow-slate-700/30 ${darkActive}`,
+          inactiveItem: `text-gray-700 hover:bg-slate-100/70 hover:text-slate-700 ${darkInactive}`
         };
       default:
         return {

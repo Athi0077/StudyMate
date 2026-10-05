@@ -48,6 +48,7 @@ import PrincipalTransportRouteDetails from './pages/PrincipalTransportRouteDetai
 import PrincipalTransportAttendance from './pages/PrincipalTransportAttendance';
 import PrincipalTransportTracking from './pages/PrincipalTransportTracking';
 import DriverTracking from './pages/DriverTracking';
+import AttendantDashboard from './pages/AttendantDashboard';
 
 import TeacherDashboard from './pages/TeacherDashboard';
 import TeacherClasses from './pages/TeacherClasses';
@@ -136,6 +137,8 @@ const RootRoute = () => {
   if (currentUser.role === 'principal' || currentUser.role === 'main_principal') return <Navigate to="/principal/dashboard" replace />;
   if (currentUser.role === 'teacher') return <Navigate to="/teacher/dashboard" replace />;
   if (currentUser.role === 'parent' || currentUser.role === 'parents') return <Navigate to="/parent/dashboard" replace />;
+  if (currentUser.role === 'driver') return <Navigate to="/driver/dashboard" replace />;
+  if (currentUser.role === 'attendant') return <Navigate to="/attendant/dashboard" replace />;
   return <Navigate to="/student/dashboard" replace />;
 };
 
@@ -261,6 +264,10 @@ function App() {
             <Route path="/principal/transport/attendance" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalTransportAttendance /></ProtectedRoute>} />
             <Route path="/principal/transport/tracking" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalTransportTracking /></ProtectedRoute>} />
             <Route path="/driver/tracking" element={<ProtectedRoute allowedRoles={['principal', 'driver']}><DriverTracking /></ProtectedRoute>} />
+            <Route path="/driver/dashboard" element={<ProtectedRoute allowedRoles={['principal', 'driver']}><DriverTracking /></ProtectedRoute>} />
+            
+            {/* Attendant Routes */}
+            <Route path="/attendant/dashboard" element={<ProtectedRoute allowedRoles={['attendant', 'principal']}><AttendantDashboard /></ProtectedRoute>} />
 
             {/* Teacher Routes */}
             <Route path="/teacher/dashboard" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherDashboard /></ProtectedRoute>} />

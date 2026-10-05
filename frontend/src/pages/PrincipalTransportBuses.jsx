@@ -18,17 +18,19 @@ const PrincipalTransportBuses = () => {
     registrationNumber: '',
     capacity: '',
     driver: '',
-    attenderName: '',
-    attenderPhone: '',
+    attendant: '',
     status: 'ACTIVE'
   });
   const [editingId, setEditingId] = useState(null);
   const [search, setSearch] = useState('');
   const [summary, setSummary] = useState(null);
 
+  const [attendants, setAttendants] = useState([]);
+
   useEffect(() => {
     fetchBuses();
     fetchDrivers();
+    fetchAttendants();
     fetchSummary();
   }, []);
 
@@ -59,6 +61,15 @@ const PrincipalTransportBuses = () => {
     }
   };
 
+  const fetchAttendants = async () => {
+    try {
+      const res = await transportService.getAttendants();
+      setAttendants(res.data.attendants);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const handleOpenModal = (bus = null) => {
     if (bus) {
       setFormData({
@@ -66,8 +77,7 @@ const PrincipalTransportBuses = () => {
         registrationNumber: bus.registrationNumber,
         capacity: bus.capacity,
         driver: bus.driver?._id || '',
-        attenderName: bus.attenderName || '',
-        attenderPhone: bus.attenderPhone || '',
+        attendant: bus.attendant?._id || '',
         status: bus.status
       });
       setEditingId(bus._id);
@@ -77,8 +87,7 @@ const PrincipalTransportBuses = () => {
         registrationNumber: '',
         capacity: '',
         driver: '',
-        attenderName: '',
-        attenderPhone: '',
+        attendant: '',
         status: 'ACTIVE'
       });
       setEditingId(null);
@@ -90,7 +99,7 @@ const PrincipalTransportBuses = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const payload = { ...formData, driver: formData.driver || null };
+      const payload = { ...formData, driver: formData.driver || null, attendant: formData.attendant || null };
       if (editingId) {
         await transportService.updateBus(editingId, payload);
         toast.success('Bus updated successfully');
@@ -197,12 +206,12 @@ const PrincipalTransportBuses = () => {
                     <td className="p-4">{bus.capacity}</td>
                     <td className="p-4">{bus.driver?.name || <span className="text-gray-400">Unassigned</span>}</td>
                     <td className="p-4">
-                      {bus.attenderName ? (
+                      {bus.attendant ? (
                         <div>
-                          <div>{bus.attenderName}</div>
-                          <div className="text-xs text-gray-500">{bus.attenderPhone}</div>
+                          <div>{bus.attendant.name}</div>
+                          <div className="text-xs text-gray-500">{bus.attendant.phone}</div>
                         </div>
-                      ) : <span className="text-gray-400">None</span>}
+                      ) : <span className="text-gray-400">Unassigned</span>}
                     </td>
                     <td className="p-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-semibold 
@@ -266,15 +275,14 @@ const PrincipalTransportBuses = () => {
                     ))}
                   </select>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Attender Name</label>
-                    <input type="text" value={formData.attenderName} onChange={e => setFormData({...formData, attenderName: e.target.value})} className="w-full p-2.5 border border-gray-200 dark:border-[#334155] rounded-xl bg-white dark:bg-[#1E293B] text-gray-800 dark:text-white" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Attender Phone</label>
-                    <input type="text" value={formData.attenderPhone} onChange={e => setFormData({...formData, attenderPhone: e.target.value})} className="w-full p-2.5 border border-gray-200 dark:border-[#334155] rounded-xl bg-white dark:bg-[#1E293B] text-gray-800 dark:text-white" />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Attendant</label>
+                  <select value={formData.attendant} onChange={e => setFormData({...formData, attendant: e.target.value})} className="w-full p-2.5 border border-gray-200 dark:border-[#334155] rounded-xl bg-white dark:bg-[#1E293B] text-gray-800 dark:text-white">
+                    <option value="">Select an attendant</option>
+                    {attendants.filter(a => a.status === 'ACTIVE').map(a => (
+                      <option key={a._id} value={a._id}>{a.name} ({a.phone})</option>
+                    ))}
+                  </select>
                 </div>
                 
                 <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100 dark:border-[#1E293B]">

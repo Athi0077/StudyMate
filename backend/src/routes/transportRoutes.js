@@ -20,6 +20,9 @@ router.get("/student-assignments/:studentId/history", transportAttendanceControl
 // Tracking views for Parents/Students
 router.get("/tracking/bus/:busId", transportTrackingController.getSessionForBus);
 
+// My Assigned Bus for Driver and Attendant
+router.get("/my-bus", requireRole("driver", "attendant"), transportController.getMyAssignedBus);
+
 // Driver routes (assuming drivers have role 'driver', or we can allow principal for testing)
 // We use a middleware to check if user is driver or principal
 const requireDriverOrPrincipal = requireRole("driver", "principal");
@@ -37,6 +40,11 @@ router.get("/drivers", transportController.getDrivers);
 router.get("/drivers/:id", transportController.getDriver);
 router.put("/drivers/:id", transportController.updateDriver);
 router.delete("/drivers/:id", transportController.deleteDriver);
+
+// Attendants
+router.post("/attendants", transportController.createAttendant);
+router.get("/attendants", transportController.getAttendants);
+router.delete("/attendants/:id", transportController.deleteAttendant);
 
 // Buses
 router.post("/buses", transportController.createBus);

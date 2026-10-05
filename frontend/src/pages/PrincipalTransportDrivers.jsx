@@ -6,22 +6,34 @@ import { User, Edit, Trash2, Plus } from 'lucide-react';
 
 const PrincipalTransportDrivers = () => {
   const [drivers, setDrivers] = useState([]);
+  const [attendants, setAttendants] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAttendantModalOpen, setIsAttendantModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
+    password: '',
     licenseNumber: '',
     licenseExpiry: '',
     experience: '',
     emergencyContact: '',
     status: 'ACTIVE'
   });
+  
+  const [attendantFormData, setAttendantFormData] = useState({
+    name: '',
+    phone: '',
+    password: '',
+    status: 'ACTIVE'
+  });
+
   const [editingId, setEditingId] = useState(null);
   const [search, setSearch] = useState('');
 
   useEffect(() => {
     fetchDrivers();
+    fetchAttendants();
   }, []);
 
   const fetchDrivers = async () => {
@@ -33,11 +45,21 @@ const PrincipalTransportDrivers = () => {
     }
   };
 
+  const fetchAttendants = async () => {
+    try {
+      const res = await transportService.getAttendants();
+      setAttendants(res.data.attendants);
+    } catch (err) {
+      toast.error('Failed to load attendants');
+    }
+  };
+
   const handleOpenModal = (driver = null) => {
     if (driver) {
       setFormData({
         name: driver.name,
         phone: driver.phone,
+        password: '',
         licenseNumber: driver.licenseNumber,
         licenseExpiry: new Date(driver.licenseExpiry).toISOString().split('T')[0],
         experience: driver.experience || '',
@@ -49,6 +71,7 @@ const PrincipalTransportDrivers = () => {
       setFormData({
         name: '',
         phone: '',
+        password: '',
         licenseNumber: '',
         licenseExpiry: '',
         experience: '',
@@ -58,6 +81,11 @@ const PrincipalTransportDrivers = () => {
       setEditingId(null);
     }
     setIsModalOpen(true);
+  };
+
+  const handleOpenAttendantModal = () => {
+    setAttendantFormData({ name: '', phone: '', password: '', status: 'ACTIVE' });
+    setIsAttendantModalOpen(true);
   };
 
   const handleSubmit = async (e) => {
@@ -91,6 +119,32 @@ const PrincipalTransportDrivers = () => {
     }
   };
 
+  const handleAttendantSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      await transportService.createAttendant(attendantFormData);
+      toast.success('Attendant created successfully');
+      setIsAttendantModalOpen(false);
+      fetchAttendants();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Error saving attendant');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteAttendant = async (id) => {
+    if (!window.confirm("Delete Attendant?")) return;
+    try {
+      await transportService.deleteAttendant(id);
+      toast.success('Attendant deleted successfully');
+      fetchAttendants();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Error deleting attendant');
+    }
+  };
+
   const filteredDrivers = drivers.filter(d => 
     d.name.toLowerCase().includes(search.toLowerCase()) || 
     d.phone.includes(search) ||
@@ -113,12 +167,20 @@ const PrincipalTransportDrivers = () => {
             onChange={(e) => setSearch(e.target.value)}
             className="w-full sm:w-1/3 p-2.5 border border-gray-200 dark:border-[#334155] rounded-xl bg-white dark:bg-[#0F172A] text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <button 
-            onClick={() => handleOpenModal()} 
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 transition"
-          >
-            <Plus size={18} /> Add Driver
-          </button>
+          <div className="flex gap-2">
+            <button 
+              onClick={() => handleOpenAttendantModal()} 
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 transition"
+            >
+              <Plus size={18} /> Add Attendant
+            </button>
+            <button 
+              onClick={() => handleOpenModal()} 
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 transition"
+            >
+              <Plus size={18} /> Add Driver
+            </button>
+          </div>
         </div>
 
         {filteredDrivers.length === 0 ? (
@@ -172,6 +234,47 @@ const PrincipalTransportDrivers = () => {
           </div>
         )}
 
+        {/* ATTENDANT TABLE */}
+        <div className="mt-8">
+          <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">Attendants</h3>
+          {attendants.length === 0 ? (
+            <div className="bg-white dark:bg-[#0F172A] p-6 rounded-2xl border border-gray-100 dark:border-[#1E293B] text-center text-gray-500">
+              No attendants found
+            </div>
+          ) : (
+            <div className="bg-white dark:bg-[#0F172A] rounded-2xl border border-gray-100 dark:border-[#1E293B] overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 dark:bg-[#1E293B] text-gray-600 dark:text-gray-300 text-sm">
+                    <th className="p-4 font-semibold rounded-tl-2xl">Attendant Name</th>
+                    <th className="p-4 font-semibold">Phone (Login ID)</th>
+                    <th className="p-4 font-semibold">Status</th>
+                    <th className="p-4 font-semibold rounded-tr-2xl text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-[#1E293B]">
+                  {attendants.map((att) => (
+                    <tr key={att._id} className="hover:bg-gray-50 dark:hover:bg-[#172235] transition text-gray-800 dark:text-gray-200">
+                      <td className="p-4 font-medium">{att.name}</td>
+                      <td className="p-4 font-mono text-blue-600">{att.phone}</td>
+                      <td className="p-4">
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${att.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                          {att.status}
+                        </span>
+                      </td>
+                      <td className="p-4 text-right">
+                        <button onClick={() => handleDeleteAttendant(att._id)} className="text-red-500 hover:text-red-700 p-1">
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
         {isModalOpen && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
             <div className="bg-white dark:bg-[#0F172A] rounded-2xl w-full max-w-lg p-6 shadow-xl border border-gray-100 dark:border-[#1E293B]">
@@ -183,9 +286,15 @@ const PrincipalTransportDrivers = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Driver Name *</label>
                   <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full p-2.5 border border-gray-200 dark:border-[#334155] rounded-xl bg-white dark:bg-[#1E293B] text-gray-800 dark:text-white" />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone *</label>
-                  <input type="text" required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full p-2.5 border border-gray-200 dark:border-[#334155] rounded-xl bg-white dark:bg-[#1E293B] text-gray-800 dark:text-white" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone (Login ID) *</label>
+                    <input type="text" required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full p-2.5 border border-gray-200 dark:border-[#334155] rounded-xl bg-white dark:bg-[#1E293B] text-gray-800 dark:text-white" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Login Password</label>
+                    <input type="text" placeholder={editingId ? "Leave blank to keep same" : "driver123"} value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full p-2.5 border border-gray-200 dark:border-[#334155] rounded-xl bg-white dark:bg-[#1E293B] text-gray-800 dark:text-white" />
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -221,6 +330,36 @@ const PrincipalTransportDrivers = () => {
                   </button>
                   <button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl transition disabled:opacity-50">
                     {isLoading ? 'Saving...' : (editingId ? 'Update Driver' : 'Create Driver')}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {isAttendantModalOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white dark:bg-[#0F172A] rounded-2xl w-full max-w-sm p-6 shadow-xl border border-gray-100 dark:border-[#1E293B]">
+              <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">Add Attendant</h3>
+              <form onSubmit={handleAttendantSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Attendant Name *</label>
+                  <input type="text" required value={attendantFormData.name} onChange={e => setAttendantFormData({...attendantFormData, name: e.target.value})} className="w-full p-2.5 border border-gray-200 dark:border-[#334155] rounded-xl bg-white dark:bg-[#1E293B] text-gray-800 dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone (Login ID) *</label>
+                  <input type="text" required value={attendantFormData.phone} onChange={e => setAttendantFormData({...attendantFormData, phone: e.target.value})} className="w-full p-2.5 border border-gray-200 dark:border-[#334155] rounded-xl bg-white dark:bg-[#1E293B] text-gray-800 dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Login Password</label>
+                  <input type="text" placeholder="attendant123" value={attendantFormData.password} onChange={e => setAttendantFormData({...attendantFormData, password: e.target.value})} className="w-full p-2.5 border border-gray-200 dark:border-[#334155] rounded-xl bg-white dark:bg-[#1E293B] text-gray-800 dark:text-white" />
+                </div>
+                <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100 dark:border-[#1E293B]">
+                  <button type="button" onClick={() => setIsAttendantModalOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-[#1E293B] rounded-xl transition">
+                    Cancel
+                  </button>
+                  <button type="submit" disabled={isLoading} className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-xl transition disabled:opacity-50">
+                    {isLoading ? 'Saving...' : 'Create'}
                   </button>
                 </div>
               </form>

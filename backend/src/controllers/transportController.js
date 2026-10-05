@@ -2,11 +2,32 @@ const Bus = require("../models/Bus");
 const Driver = require("../models/Driver");
 const Route = require("../models/Route");
 const BusStop = require("../models/BusStop");
+const User = require("../models/User");
+const Attendant = require("../models/Attendant");
 
 // --- DRIVER ---
 exports.createDriver = async (req, res) => {
   try {
-    const driver = await Driver.create(req.body);
+    const { name, phone, password, licenseNumber, licenseExpiry, experience, emergencyContact, status } = req.body;
+    
+    // Create User for driver
+    const user = await User.create({
+      name,
+      mobileNumber: phone,
+      password: password || "driver123", // Default if not provided
+      role: "driver"
+    });
+
+    const driver = await Driver.create({
+      name,
+      phone,
+      licenseNumber,
+      licenseExpiry,
+      experience,
+      emergencyContact,
+      status,
+      user: user._id
+    });
     res.status(201).json({ success: true, driver });
   } catch (error) {
     if (error.code === 11000) {
@@ -48,7 +69,59 @@ exports.deleteDriver = async (req, res) => {
   try {
     const driver = await Driver.findByIdAndDelete(req.params.id);
     if (!driver) return res.status(404).json({ success: false, message: "Driver not found" });
+    if (driver.user) {
+      await User.findByIdAndDelete(driver.user);
+    }
     res.json({ success: true, message: "Driver deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// --- ATTENDANT ---
+exports.createAttendant = async (req, res) => {
+  try {
+    const { name, phone, password, status } = req.body;
+    
+    const user = await User.create({
+      name,
+      mobileNumber: phone,
+      password: password || "attendant123",
+      role: "attendant"
+    });
+
+    const attendant = await Attendant.create({
+      name,
+      phone,
+      status,
+      user: user._id
+    });
+    res.status(201).json({ success: true, attendant });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({ success: false, message: "Phone number already exists" });
+    }
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+exports.getAttendants = async (req, res) => {
+  try {
+    const attendants = await Attendant.find().sort({ createdAt: -1 });
+    res.json({ success: true, attendants });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.deleteAttendant = async (req, res) => {
+  try {
+    const attendant = await Attendant.findByIdAndDelete(req.params.id);
+    if (!attendant) return res.status(404).json({ success: false, message: "Attendant not found" });
+    if (attendant.user) {
+      await User.findByIdAndDelete(attendant.user);
+    }
+    res.json({ success: true, message: "Attendant deleted successfully" });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -58,7 +131,7 @@ exports.deleteDriver = async (req, res) => {
 exports.createBus = async (req, res) => {
   try {
     const bus = await Bus.create(req.body);
-    const populatedBus = await Bus.findById(bus._id).populate('driver');
+    const populatedBus = await Bus.findById(bus._id).populate('driver').populate('attendant');
     res.status(201).json({ success: true, bus: populatedBus });
   } catch (error) {
     if (error.code === 11000) {
@@ -69,7 +142,7 @@ exports.createBus = async (req, res) => {
 };
 exports.getBuses = async (req, res) => {
   try {
-    const buses = await Bus.find().populate("driver").sort({ createdAt: -1 });
+    const buses = await Bus.find().populate("driver").populate("attendant").sort({ createdAt: -1 });
     res.json({ success: true, buses });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -77,7 +150,7 @@ exports.getBuses = async (req, res) => {
 };
 exports.getBus = async (req, res) => {
   try {
-    const bus = await Bus.findById(req.params.id).populate("driver");
+    const bus = await Bus.findById(req.params.id).populate("driver").populate("attendant");
     if (!bus) return res.status(404).json({ success: false, message: "Bus not found" });
     res.json({ success: true, bus });
   } catch (error) {
@@ -86,7 +159,7 @@ exports.getBus = async (req, res) => {
 };
 exports.updateBus = async (req, res) => {
   try {
-    const bus = await Bus.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }).populate('driver');
+    const bus = await Bus.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }).populate('driver').populate('attendant');
     if (!bus) return res.status(404).json({ success: false, message: "Bus not found" });
     res.json({ success: true, bus });
   } catch (error) {
@@ -101,6 +174,31 @@ exports.deleteBus = async (req, res) => {
     const bus = await Bus.findByIdAndDelete(req.params.id);
     if (!bus) return res.status(404).json({ success: false, message: "Bus not found" });
     res.json({ success: true, message: "Bus deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.getMyAssignedBus = async (req, res) => {
+  try {
+    const user = req.user;
+    let query = {};
+    if (user.role === 'driver') {
+      const driver = await Driver.findOne({ user: user._id });
+      if (!driver) return res.status(404).json({ success: false, message: "Driver profile not found" });
+      query = { driver: driver._id };
+    } else if (user.role === 'attendant') {
+      const attendant = await Attendant.findOne({ user: user._id });
+      if (!attendant) return res.status(404).json({ success: false, message: "Attendant profile not found" });
+      query = { attendant: attendant._id };
+    } else {
+      return res.status(403).json({ success: false, message: "Only driver or attendant can fetch assigned bus" });
+    }
+
+    const bus = await Bus.findOne(query).populate('driver').populate('attendant');
+    if (!bus) return res.status(404).json({ success: false, message: "No bus assigned to you" });
+
+    res.json({ success: true, bus });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

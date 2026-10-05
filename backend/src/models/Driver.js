@@ -7,6 +7,7 @@ const driverSchema = new mongoose.Schema({
   licenseExpiry: { type: Date, required: true },
   experience: { type: Number },
   emergencyContact: { type: String },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   status: { type: String, enum: ["ACTIVE", "INACTIVE"], default: "ACTIVE" }
 }, { timestamps: true });
 
