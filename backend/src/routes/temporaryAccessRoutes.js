@@ -3,7 +3,7 @@ const router = express.Router();
 const {
   grantAccess,
   getAllAccessRecords,
-  getMyAccess,
+  getMyAccess, 
   getAccessRecord,
   revokeAccess
 } = require("../controllers/temporaryAccessController");
