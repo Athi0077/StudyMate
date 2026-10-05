@@ -31,6 +31,13 @@ router.post("/tracking/start", requireDriverOrPrincipal, transportTrackingContro
 router.post("/tracking/stop", requireDriverOrPrincipal, transportTrackingController.stopTrip);
 router.post("/tracking/location", requireDriverOrPrincipal, transportTrackingController.updateLocation);
 
+// Staff Routes (Driver / Attendant)
+router.get("/routes", requireRole("principal", "driver", "attendant"), transportController.getRoutes);
+
+// Attendance (Principal & Attendant)
+router.post("/attendance", requireRole("principal", "attendant"), transportAttendanceController.markAttendance);
+router.get("/attendance/bus", requireRole("principal", "attendant"), transportAttendanceController.getBusAttendance);
+
 // Restrict all below to principal
 router.use(requireRole("principal"));
 
@@ -55,7 +62,6 @@ router.delete("/buses/:id", transportController.deleteBus);
 
 // Routes
 router.post("/routes", transportController.createRoute);
-router.get("/routes", transportController.getRoutes);
 router.get("/routes/:id", transportController.getRoute);
 router.put("/routes/:id", transportController.updateRoute);
 router.delete("/routes/:id", transportController.deleteRoute);
@@ -76,8 +82,6 @@ router.put("/student-assignments/:studentId", studentTransportController.updateS
 router.delete("/student-assignments/:studentId", studentTransportController.removeStudentTransport);
 
 // Transport Attendance (Principal)
-router.post("/attendance", transportAttendanceController.markAttendance);
-router.get("/attendance/bus", transportAttendanceController.getBusAttendance);
 router.get("/attendance/summary", transportAttendanceController.getSummary);
 router.get("/attendance/bus-summary", transportAttendanceController.getBusWiseSummary);
 

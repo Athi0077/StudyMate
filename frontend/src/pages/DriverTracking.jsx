@@ -19,19 +19,31 @@ const DriverTracking = () => {
   const lastUpdateRef = useRef(0);
 
   useEffect(() => {
-    fetchBuses();
+    fetchMyBus();
     fetchRoutes();
   }, []);
 
-  const fetchBuses = async () => {
+  const fetchMyBus = async () => {
     try {
-      const res = await transportService.getBuses();
-      setBuses(res.data.buses.filter(b => b.status === 'ACTIVE'));
-    } catch (err) {}
+      // Driver might just have one assigned bus
+      const res = await transportService.getMyAssignedBus();
+      if (res.data.bus) {
+        setBuses([res.data.bus]);
+        setSelectedBus(res.data.bus._id);
+        if (res.data.bus.route) setSelectedRoute(res.data.bus.route);
+      }
+    } catch (err) {
+      // If error, it might mean they are a principal testing it, or not assigned
+      if (err.response?.status !== 404) {
+        console.error("Failed to fetch assigned bus", err);
+      }
+    }
   };
 
   const fetchRoutes = async () => {
     try {
+      // Note: routes might also be protected to principal. 
+      // If so, we need to handle or bypass. Let's try fetching.
       const res = await transportService.getRoutes();
       setRoutes(res.data.routes.filter(r => r.status === 'ACTIVE'));
     } catch (err) {}

@@ -19,7 +19,9 @@ const Login = () => {
       if (currentUser.role === 'superadmin') navigate('/super-admin/dashboard', { replace: true });
       else if (currentUser.role === 'principal') navigate('/principal/dashboard', { replace: true });
       else if (currentUser.role === 'teacher') navigate('/teacher/dashboard', { replace: true });
-      else if (currentUser.role === 'parent') navigate('/parent/dashboard', { replace: true });
+      else if (currentUser.role === 'parent' || currentUser.role === 'parents') navigate('/parent/dashboard', { replace: true });
+      else if (currentUser.role === 'driver') navigate('/driver/dashboard', { replace: true });
+      else if (currentUser.role === 'attendant') navigate('/attendant/dashboard', { replace: true });
       else navigate('/student/dashboard', { replace: true });
     }
   }, [isAuthenticated, currentUser, authLoading, navigate]);
@@ -44,7 +46,9 @@ const Login = () => {
         if (data.user.role === 'superadmin') navigate('/super-admin/dashboard');
         else if (data.user.role === 'principal') navigate('/principal/dashboard');
         else if (data.user.role === 'teacher') navigate('/teacher/dashboard');
-        else if (data.user.role === 'parent') navigate('/parent/dashboard');
+        else if (data.user.role === 'parent' || data.user.role === 'parents') navigate('/parent/dashboard');
+        else if (data.user.role === 'driver') navigate('/driver/dashboard');
+        else if (data.user.role === 'attendant') navigate('/attendant/dashboard');
         else navigate('/student/dashboard');
       }
     } catch (err) {
