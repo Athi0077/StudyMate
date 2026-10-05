@@ -12,6 +12,8 @@ const PrincipalTransportStops = () => {
   const [formData, setFormData] = useState({
     name: '',
     location: '',
+    latitude: '',
+    longitude: '',
     pickupTime: '',
     dropTime: '',
     sequence: '',
@@ -49,6 +51,8 @@ const PrincipalTransportStops = () => {
       setFormData({
         name: stop.name,
         location: stop.location || '',
+        latitude: stop.latitude || '',
+        longitude: stop.longitude || '',
         pickupTime: stop.pickupTime,
         dropTime: stop.dropTime,
         sequence: stop.sequence,
@@ -60,6 +64,8 @@ const PrincipalTransportStops = () => {
       setFormData({
         name: '',
         location: '',
+        latitude: '',
+        longitude: '',
         pickupTime: '',
         dropTime: '',
         sequence: '',
@@ -234,6 +240,16 @@ const PrincipalTransportStops = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Location / Landmark</label>
                   <input type="text" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} className="w-full p-2.5 border border-gray-200 dark:border-[#334155] rounded-xl bg-white dark:bg-[#1E293B] text-gray-800 dark:text-white" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Latitude (for map)</label>
+                    <input type="number" step="any" placeholder="e.g. 13.1234" value={formData.latitude} onChange={e => setFormData({...formData, latitude: e.target.value})} className="w-full p-2.5 border border-gray-200 dark:border-[#334155] rounded-xl bg-white dark:bg-[#1E293B] text-gray-800 dark:text-white" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Longitude (for map)</label>
+                    <input type="number" step="any" placeholder="e.g. 80.1234" value={formData.longitude} onChange={e => setFormData({...formData, longitude: e.target.value})} className="w-full p-2.5 border border-gray-200 dark:border-[#334155] rounded-xl bg-white dark:bg-[#1E293B] text-gray-800 dark:text-white" />
+                  </div>
                 </div>
                 
                 <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100 dark:border-[#1E293B]">

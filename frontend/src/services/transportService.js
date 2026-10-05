@@ -37,6 +37,21 @@ const transportService = {
   removeStudentTransport: (studentId) => api.delete(`/transport/student-assignments/${studentId}`),
   getTransportSummary: () => api.get('/transport/student-assignments/summary'),
 
+  // Transport Attendance
+  markTransportAttendance: (data) => api.post('/transport/attendance', data),
+  getBusAttendance: (busId, date) => api.get(`/transport/attendance/bus?busId=${busId}&date=${date}`),
+  getAttendanceSummary: (date) => api.get(`/transport/attendance/summary?date=${date}`),
+  getBusWiseSummary: (date) => api.get(`/transport/attendance/bus-summary?date=${date}`),
+  getStudentHistory: (studentId) => api.get(`/transport/student-assignments/${studentId}/history`),
+  getTodayStudentAttendance: (studentId) => api.get(`/transport/my-transport-attendance${studentId ? `/${studentId}` : ''}`),
+  
+  // Tracking
+  startTracking: (data) => api.post('/transport/tracking/start', data),
+  stopTracking: (data) => api.post('/transport/tracking/stop', data),
+  updateLocation: (data) => api.post('/transport/tracking/location', data),
+  getActiveSessions: () => api.get('/transport/tracking/sessions'),
+  getSessionForBus: (busId) => api.get(`/transport/tracking/bus/${busId}`),
+
   // Views for Student & Parent
   getMyTransport: () => api.get('/transport/my-transport'),
   getParentTransport: () => api.get('/transport/parent-transport')

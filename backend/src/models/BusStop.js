@@ -7,6 +7,8 @@ const busStopSchema = new mongoose.Schema({
   dropTime: { type: String, required: true },
   sequence: { type: Number, required: true },
   route: { type: mongoose.Schema.Types.ObjectId, ref: "Route", required: true },
+  latitude: { type: Number },
+  longitude: { type: Number },
   status: { type: String, enum: ["ACTIVE", "INACTIVE"], default: "ACTIVE" }
 }, { timestamps: true });
 

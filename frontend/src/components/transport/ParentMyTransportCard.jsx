@@ -1,21 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { Bus, MapPin, User, Phone } from 'lucide-react';
+import { Bus, MapPin, User, Phone, Navigation2 } from 'lucide-react';
 import transportService from '../../services/transportService';
+import { useNavigate } from 'react-router-dom';
 
 const ParentMyTransportCard = ({ childId, childName }) => {
+  const navigate = useNavigate();
   const [assignment, setAssignment] = useState(null);
+  const [attendance, setAttendance] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchTransport = async () => {
       try {
         setLoading(true);
-        const res = await transportService.getParentTransport();
-        const myChildTransport = res.data.assignments.find(a => 
+        const [transRes, attRes] = await Promise.all([
+          transportService.getParentTransport(),
+          transportService.getTodayStudentAttendance(childId).catch(() => ({ data: { attendance: null } }))
+        ]);
+        
+        const myChildTransport = transRes.data.assignments.find(a => 
           a.student === childId || 
           (a.student && a.student._id === childId)
         );
         setAssignment(myChildTransport);
+        setAttendance(attRes.data.attendance);
       } catch (err) {
         setAssignment(null);
       } finally {
@@ -42,9 +50,17 @@ const ParentMyTransportCard = ({ childId, childName }) => {
         <h3 className="text-base font-bold text-blue-900 dark:text-blue-100 flex items-center gap-2">
           <Bus className="w-5 h-5 text-blue-600" /> School Transport ({childName})
         </h3>
-        <span className="px-2 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded-full">
-          🟢 Active
-        </span>
+        <div className="flex gap-2">
+          <button 
+            onClick={() => navigate(`/parent/transport/tracking/${assignment.bus?._id || assignment.bus}`)}
+            className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold rounded-full flex items-center gap-1 transition"
+          >
+            <Navigation2 className="w-3 h-3" /> Track Bus
+          </button>
+          <span className="px-2 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded-full">
+            🟢 Active
+          </span>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -90,6 +106,54 @@ const ParentMyTransportCard = ({ childId, childName }) => {
               <p className="text-sm font-bold text-gray-800 dark:text-gray-200">{assignment.dropStop?.name}</p>
               <p className="text-xs font-semibold text-rose-600">{assignment.dropStop?.dropTime}</p>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Today's Attendance Section */}
+      <div className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl p-4 mt-4 shadow-sm">
+        <h4 className="text-[11px] font-bold text-gray-500 uppercase mb-3 text-center border-b border-gray-100 dark:border-slate-700 pb-2 flex items-center justify-center gap-2">
+          Today's Transport Status
+        </h4>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="text-center p-2 bg-gray-50 dark:bg-slate-700/50 rounded-lg border border-gray-100 dark:border-slate-600">
+            <p className="text-[9px] text-gray-500 dark:text-gray-400 font-bold uppercase mb-1">Morning Boarding</p>
+            {attendance?.morningBoarding === 'BOARDED' ? (
+              <div><span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">🟢 Boarded</span><br/><span className="text-[9px] text-gray-400">{new Date(attendance.morningBoardingTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>
+            ) : attendance?.morningBoarding === 'NOT_BOARDED' ? (
+              <span className="text-xs font-bold text-rose-600 dark:text-rose-400">🔴 Not Boarded</span>
+            ) : (
+              <span className="text-xs font-bold text-gray-400 dark:text-gray-500">🟡 Not Marked</span>
+            )}
+          </div>
+          
+          <div className="text-center p-2 bg-gray-50 dark:bg-slate-700/50 rounded-lg border border-gray-100 dark:border-slate-600">
+            <p className="text-[9px] text-gray-500 dark:text-gray-400 font-bold uppercase mb-1">School Arrival</p>
+            {attendance?.schoolArrival === 'ARRIVED' ? (
+              <div><span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">🟢 Arrived</span><br/><span className="text-[9px] text-gray-400">{new Date(attendance.schoolArrivalTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>
+            ) : (
+              <span className="text-xs font-bold text-gray-400 dark:text-gray-500">🟡 Not Marked</span>
+            )}
+          </div>
+
+          <div className="text-center p-2 bg-gray-50 dark:bg-slate-700/50 rounded-lg border border-gray-100 dark:border-slate-600">
+            <p className="text-[9px] text-gray-500 dark:text-gray-400 font-bold uppercase mb-1">Evening Boarding</p>
+            {attendance?.eveningBoarding === 'BOARDED' ? (
+              <div><span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">🟢 Boarded</span><br/><span className="text-[9px] text-gray-400">{new Date(attendance.eveningBoardingTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>
+            ) : attendance?.eveningBoarding === 'NOT_BOARDED' ? (
+              <span className="text-xs font-bold text-rose-600 dark:text-rose-400">🔴 Not Boarded</span>
+            ) : (
+              <span className="text-xs font-bold text-gray-400 dark:text-gray-500">🟡 Not Marked</span>
+            )}
+          </div>
+
+          <div className="text-center p-2 bg-gray-50 dark:bg-slate-700/50 rounded-lg border border-gray-100 dark:border-slate-600">
+            <p className="text-[9px] text-gray-500 dark:text-gray-400 font-bold uppercase mb-1">Home Drop</p>
+            {attendance?.homeDrop === 'DROPPED' ? (
+              <div><span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">🟢 Dropped</span><br/><span className="text-[9px] text-gray-400">{new Date(attendance.homeDropTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>
+            ) : (
+              <span className="text-xs font-bold text-gray-400 dark:text-gray-500">🟡 Not Marked</span>
+            )}
           </div>
         </div>
       </div>

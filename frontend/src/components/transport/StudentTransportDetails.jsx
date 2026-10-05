@@ -11,6 +11,7 @@ const StudentTransportDetails = ({ studentId, studentName }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState(1);
+  const [history, setHistory] = useState([]);
   
   // Data lists
   const [buses, setBuses] = useState([]);
@@ -32,12 +33,17 @@ const StudentTransportDetails = ({ studentId, studentName }) => {
   const fetchAssignment = async () => {
     try {
       setLoading(true);
-      const res = await transportService.getStudentTransport(studentId);
-      setAssignment(res.data.assignment);
+      const [transRes, histRes] = await Promise.all([
+        transportService.getStudentTransport(studentId).catch(err => {
+          if (err.response?.status !== 404) throw err;
+          return { data: { assignment: null } };
+        }),
+        transportService.getStudentHistory(studentId).catch(() => ({ data: { history: [] } }))
+      ]);
+      setAssignment(transRes.data.assignment);
+      setHistory(histRes.data.history);
     } catch (err) {
-      if (err.response?.status !== 404) {
-        toast.error('Failed to load transport details');
-      }
+      toast.error('Failed to load transport details');
       setAssignment(null);
     } finally {
       setLoading(false);
@@ -233,6 +239,49 @@ const StudentTransportDetails = ({ studentId, studentName }) => {
               Remove Transport
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Attendance History */}
+      {assignment && (
+        <div className="mt-8 border-t border-gray-100 dark:border-[#1E293B] pt-6">
+          <h4 className="text-sm font-bold text-gray-800 dark:text-slate-200 mb-4 uppercase">Attendance History</h4>
+          {history.length === 0 ? (
+            <p className="text-xs text-gray-500">No attendance records found.</p>
+          ) : (
+            <div className="bg-white dark:bg-[#0F172A] rounded-2xl border border-gray-100 dark:border-[#1E293B] overflow-hidden shadow-sm">
+              <table className="w-full text-left text-xs whitespace-nowrap">
+                <thead className="bg-gray-50 dark:bg-[#172235] text-gray-500 dark:text-gray-400 font-bold uppercase">
+                  <tr>
+                    <th className="p-3">Date</th>
+                    <th className="p-3 text-center">Morning</th>
+                    <th className="p-3 text-center">Arrival</th>
+                    <th className="p-3 text-center">Evening</th>
+                    <th className="p-3 text-center">Drop</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-[#1E293B]">
+                  {history.map((record) => (
+                    <tr key={record._id} className="text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-[#172235]/50">
+                      <td className="p-3">{record.date}</td>
+                      <td className="p-3 text-center">
+                        {record.morningBoarding === 'BOARDED' ? <span className="text-emerald-600">Boarded</span> : record.morningBoarding === 'NOT_BOARDED' ? <span className="text-rose-600">Not Boarded</span> : <span className="text-gray-400">-</span>}
+                      </td>
+                      <td className="p-3 text-center">
+                        {record.schoolArrival === 'ARRIVED' ? <span className="text-blue-600">Arrived</span> : <span className="text-gray-400">-</span>}
+                      </td>
+                      <td className="p-3 text-center">
+                        {record.eveningBoarding === 'BOARDED' ? <span className="text-indigo-600">Boarded</span> : record.eveningBoarding === 'NOT_BOARDED' ? <span className="text-rose-600">Not Boarded</span> : <span className="text-gray-400">-</span>}
+                      </td>
+                      <td className="p-3 text-center">
+                        {record.homeDrop === 'DROPPED' ? <span className="text-amber-600">Dropped</span> : <span className="text-gray-400">-</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 

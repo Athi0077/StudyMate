@@ -3,12 +3,30 @@ const router = express.Router();
 const { protect, requireRole } = require("../middleware/authMiddleware");
 const transportController = require("../controllers/transportController");
 const studentTransportController = require("../controllers/studentTransportController");
+const transportAttendanceController = require("../controllers/transportAttendanceController");
+const transportTrackingController = require("../controllers/transportTrackingController");
 
 router.use(protect);
 
 // Routes for students and parents
 router.get("/my-transport", requireRole("student"), studentTransportController.getMyTransport);
+router.get("/my-transport-attendance", requireRole("student"), transportAttendanceController.getTodayStudentAttendance);
+router.get("/my-transport-attendance/:studentId", requireRole("student", "parent", "parents"), transportAttendanceController.getTodayStudentAttendance);
 router.get("/parent-transport", requireRole("parent", "parents"), studentTransportController.getParentChildrenTransport);
+
+// Add student history route that parents and students can access (with checks inside)
+router.get("/student-assignments/:studentId/history", transportAttendanceController.getStudentHistory);
+
+// Tracking views for Parents/Students
+router.get("/tracking/bus/:busId", transportTrackingController.getSessionForBus);
+
+// Driver routes (assuming drivers have role 'driver', or we can allow principal for testing)
+// We use a middleware to check if user is driver or principal
+const requireDriverOrPrincipal = requireRole("driver", "principal");
+
+router.post("/tracking/start", requireDriverOrPrincipal, transportTrackingController.startTrip);
+router.post("/tracking/stop", requireDriverOrPrincipal, transportTrackingController.stopTrip);
+router.post("/tracking/location", requireDriverOrPrincipal, transportTrackingController.updateLocation);
 
 // Restrict all below to principal
 router.use(requireRole("principal"));
@@ -48,5 +66,14 @@ router.get("/student-assignments/summary", studentTransportController.getTranspo
 router.get("/student-assignments/:studentId", studentTransportController.getStudentTransport);
 router.put("/student-assignments/:studentId", studentTransportController.updateStudentTransport);
 router.delete("/student-assignments/:studentId", studentTransportController.removeStudentTransport);
+
+// Transport Attendance (Principal)
+router.post("/attendance", transportAttendanceController.markAttendance);
+router.get("/attendance/bus", transportAttendanceController.getBusAttendance);
+router.get("/attendance/summary", transportAttendanceController.getSummary);
+router.get("/attendance/bus-summary", transportAttendanceController.getBusWiseSummary);
+
+// Principal Tracking Dashboard
+router.get("/tracking/sessions", transportTrackingController.getActiveSessions);
 
 module.exports = router;
