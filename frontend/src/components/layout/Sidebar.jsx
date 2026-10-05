@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
-import { Home, ClipboardList, BookOpen, Calendar, Bell, Users, FileText, CheckSquare, Layers, LogOut, CalendarDays, User, Contact, MessageSquare, Megaphone, Shield, Cake, CloudSun, ClipboardCheck, GraduationCap, Gamepad2, Zap, PartyPopper } from 'lucide-react';
+import { Home, ClipboardList, BookOpen, Calendar, Bell, Users, FileText, CheckSquare, Layers, LogOut, CalendarDays, User, Contact, MessageSquare, Megaphone, Shield, Cake, CloudSun, ClipboardCheck, GraduationCap, Gamepad2, Zap, PartyPopper, Bus, Map, MapPin } from 'lucide-react';
 
 export const navConfig = {
   student: [
@@ -76,6 +76,10 @@ export const navConfig = {
     { name: 'Notifications', path: '/notifications', icon: Bell },
     { name: 'ID Card Management', path: '/principal/id-cards', icon: Contact },
     { name: 'My ID Card', path: '/principal/my-id-card', icon: Contact },
+    { name: 'Transport: Buses', path: '/principal/transport/buses', icon: Bus },
+    { name: 'Transport: Drivers', path: '/principal/transport/drivers', icon: Contact },
+    { name: 'Transport: Routes', path: '/principal/transport/routes', icon: Map },
+    { name: 'Transport: Stops', path: '/principal/transport/stops', icon: MapPin },
     { name: 'Help Center', path: '/principal/reports', icon: MessageSquare },
     { name: 'Profile', path: '/principal/profile', icon: User }
     // { name: 'AI Student Insights', path: '/principal/ai-dashboard', icon: Sparkles },

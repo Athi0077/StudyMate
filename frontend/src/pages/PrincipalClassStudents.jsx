@@ -5,6 +5,7 @@ import api from '../utils/api';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import TimetableView from '../components/timetable/TimetableView';
+import transportService from '../services/transportService';
 import { Search, ArrowLeft, Download, User, Sparkles, ChevronRight, GraduationCap, CalendarCheck, Award, FileSpreadsheet } from 'lucide-react';
 
 const PrincipalClassStudents = () => {
@@ -14,13 +15,19 @@ const PrincipalClassStudents = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [transportAssignments, setTransportAssignments] = useState([]);
+  const [filterTransport, setFilterTransport] = useState('ALL'); // ALL, TRANSPORT, NO_TRANSPORT
 
   useEffect(() => {
     const fetchClass = async () => {
       try {
         setLoading(true);
-        const res = await api.get(`/classes/${classId}`);
-        setClassData(res.data.data);
+        const [classRes, transportRes] = await Promise.all([
+          api.get(`/classes/${classId}`),
+          transportService.getAllAssignments().catch(() => ({ data: { assignments: [] } }))
+        ]);
+        setClassData(classRes.data.data);
+        setTransportAssignments(transportRes.data.assignments || []);
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to load class');
       } finally {
@@ -115,14 +122,27 @@ const PrincipalClassStudents = () => {
   }
 
   const filteredStudents = (classData.students || []).filter((student) => {
-    const q = searchTerm.toLowerCase().trim();
-    if (!q) return true;
-    return (
-      student.name?.toLowerCase().includes(q) ||
-      student.studentId?.toLowerCase().includes(q) ||
-      student.grNumber?.toLowerCase().includes(q) ||
-      student.rollNo?.toString().includes(q)
-    );
+    // Search filter
+    let matchesSearch = true;
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase().trim();
+      matchesSearch = (
+        student.name?.toLowerCase().includes(q) ||
+        student.studentId?.toLowerCase().includes(q) ||
+        student.grNumber?.toLowerCase().includes(q) ||
+        student.rollNo?.toString().includes(q)
+      );
+    }
+    
+    // Transport filter
+    let matchesTransport = true;
+    if (filterTransport !== 'ALL') {
+      const hasTransport = transportAssignments.some(a => a.student?._id === student._id);
+      if (filterTransport === 'TRANSPORT') matchesTransport = hasTransport;
+      if (filterTransport === 'NO_TRANSPORT') matchesTransport = !hasTransport;
+    }
+
+    return matchesSearch && matchesTransport;
   });
 
   return (
@@ -186,16 +206,27 @@ const PrincipalClassStudents = () => {
               <p className="text-xs text-gray-500">Click any student card to view their complete academic and intelligence report.</p>
             </div>
 
-            {/* Search Box */}
-            <div className="relative w-full sm:w-72">
-              <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search students..."
-                className="w-full pl-9 pr-4 py-2 bg-gray-50 dark:bg-[#172235] border border-gray-200 dark:border-[#334155] rounded-xl text-xs font-semibold text-gray-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
+            {/* Filters */}
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <select
+                value={filterTransport}
+                onChange={(e) => setFilterTransport(e.target.value)}
+                className="w-full sm:w-auto px-4 py-2 bg-gray-50 dark:bg-[#172235] border border-gray-200 dark:border-[#334155] rounded-xl text-xs font-semibold text-gray-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
+                <option value="ALL">All Students</option>
+                <option value="TRANSPORT">Has Transport</option>
+                <option value="NO_TRANSPORT">No Transport</option>
+              </select>
+              <div className="relative w-full sm:w-64">
+                <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search students..."
+                  className="w-full pl-9 pr-4 py-2 bg-gray-50 dark:bg-[#172235] border border-gray-200 dark:border-[#334155] rounded-xl text-xs font-semibold text-gray-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
             </div>
           </div>
 
@@ -235,9 +266,16 @@ const PrincipalClassStudents = () => {
                           <p className="text-[11px] text-gray-500 dark:text-slate-400 font-medium">
                             Roll / ID: <strong className="text-gray-700 dark:text-slate-300">{student.studentId || 'N/A'}</strong>
                           </p>
-                          {student.grNumber && student.grNumber !== 'N/A' && (
-                            <p className="text-[10px] text-gray-400 font-medium">GR: {student.grNumber}</p>
-                          )}
+                          <div className="flex gap-2 items-center mt-1">
+                            {student.grNumber && student.grNumber !== 'N/A' && (
+                              <p className="text-[10px] text-gray-400 font-medium">GR: {student.grNumber}</p>
+                            )}
+                            {transportAssignments.some(a => a.student?._id === student._id) && (
+                              <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[9px] font-bold rounded-sm border border-blue-200">
+                                🚌 BUS
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
 

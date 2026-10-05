@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
+import StudentTransportDetails from '../components/transport/StudentTransportDetails';
 import { 
   Sparkles, 
   ArrowLeft, 
@@ -25,7 +26,8 @@ import {
   Shield,
   Layers,
   Search,
-  ChevronRight
+  ChevronRight,
+  Bus
 } from 'lucide-react';
 
 const CATEGORY_ICONS = {
@@ -119,6 +121,7 @@ const PrincipalStudentDetails = () => {
     { id: 'exams', label: '🎓 Exams' },
     { id: 'projects', label: '📁 Projects' },
     { id: 'fun_activities', label: '🎯 Fun Activities' },
+    { id: 'transport', label: '🚌 Transport' },
     { id: 'analytics', label: '📈 Analytics' },
     { id: 'timeline', label: '⚡ Recent Activity' },
   ];
@@ -890,6 +893,11 @@ const PrincipalStudentDetails = () => {
               </div>
             )}
           </div>
+        )}
+
+        {/* TAB 11: TRANSPORT DETAILS */}
+        {activeTab === 'transport' && (
+          <StudentTransportDetails studentId={studentId} studentName={student.name} />
         )}
 
       </div>

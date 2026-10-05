@@ -9,6 +9,7 @@ import { Sparkles } from 'lucide-react';
 import { initSocket } from '../services/socket';
 import WeatherWidget from '../components/common/WeatherWidget';
 import WeatherBannerEffect from '../components/common/WeatherBannerEffect';
+import StudentMyTransportCard from '../components/transport/StudentMyTransportCard';
 
 const StudentDashboard = () => {
   const { currentUser } = useContext(AuthContext);
@@ -305,6 +306,9 @@ const StudentDashboard = () => {
                 )}
               </div>
             </div>
+
+            {/* Transport Card */}
+            <StudentMyTransportCard />
           </div>
 
           {/* Column 2 */}

@@ -29,7 +29,19 @@ const ParentActivities = () => {
     { id: 'tests', label: 'Tests', icon: '📝' },
     { id: 'projects', label: 'Projects', icon: '🎨' },
     { id: 'todos', label: 'Tasks & Todos', icon: '✅' },
+    { id: 'fun', label: 'Fun Activities', icon: '🎯' },
   ];
+
+  const CATEGORY_NAMES = {
+    quiz: 'Quiz 🧠',
+    maths_challenge: 'Maths Challenge 🔢',
+    word_scramble: 'Word Scramble 🔤',
+    image_challenge: 'Image Challenge 🖼️',
+    puzzle: 'Puzzle 🧩',
+    true_false: 'True/False ✓',
+    fill_blank: 'Fill Blanks 📝',
+    match_pair: 'Match Pair 🔗',
+  };
 
   if (loading) return <Layout><div className="p-6">Loading activities...</div></Layout>;
 
@@ -38,7 +50,7 @@ const ParentActivities = () => {
       <div className="space-y-6 max-w-6xl mx-auto">
         <div className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-3xl p-8 shadow-sm">
           <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">Student Activities</h1>
-          <p className="text-gray-600 dark:text-gray-400">View all homework, tests, projects, and tasks assigned to your children.</p>
+          <p className="text-gray-600 dark:text-gray-400">View all homework, tests, projects, tasks, and fun activities assigned to your children.</p>
         </div>
 
         <div className="space-y-6">
@@ -155,6 +167,48 @@ const ParentActivities = () => {
                       </div>
                     </div>
                   )) : <p className="col-span-full text-gray-500 text-center py-4">No task records found.</p>
+                )}
+
+                {activeTab === 'fun' && (
+                  child.funActivities && child.funActivities.length > 0 ? child.funActivities.map(act => (
+                    <div key={act._id} className="p-4 bg-rose-50/40 dark:bg-rose-950/20 rounded-xl border border-rose-100 dark:border-rose-900/50 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-300">
+                            {CATEGORY_NAMES[act.activityType] || act.activityType}
+                          </span>
+                          <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
+                            act.studentStatus === 'Completed'
+                              ? 'bg-emerald-100 text-emerald-700'
+                              : act.studentStatus === 'Closed'
+                              ? 'bg-gray-100 text-gray-600'
+                              : 'bg-amber-100 text-amber-700'
+                          }`}>
+                            {act.studentStatus === 'Completed' ? '✓ Completed' : act.studentStatus}
+                          </span>
+                        </div>
+
+                        <h4 className="font-bold text-gray-800 dark:text-slate-100 text-sm mt-1">{act.title}</h4>
+                        {act.subject && (
+                          <span className="text-[11px] font-semibold text-gray-500 dark:text-slate-400 block mt-0.5">Subject: {act.subject}</span>
+                        )}
+
+                        {act.submission && (
+                          <div className="mt-3 p-2.5 bg-emerald-50 dark:bg-emerald-950/40 rounded-lg border border-emerald-200 dark:border-emerald-900/50 flex items-center justify-between text-xs">
+                            <span className="font-bold text-emerald-800 dark:text-emerald-300">Score:</span>
+                            <span className="font-extrabold text-emerald-900 dark:text-emerald-100">
+                              {act.submission.score} / {act.submission.totalMarks} ({act.submission.percentage}%)
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mt-3 pt-2 border-t border-rose-100 dark:border-rose-900/30 flex justify-between items-center text-[11px] text-gray-500 font-medium">
+                        <span>Items: {act.questions ? act.questions.length : act.questionCount || '-'}</span>
+                        <span>End: {new Date(act.endDate).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  )) : <p className="col-span-full text-gray-500 text-center py-4">No fun activity records found.</p>
                 )}
               </div>
             </div>

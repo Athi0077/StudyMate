@@ -80,6 +80,7 @@ app.use("/api/birthdays", require("./src/routes/birthdayRoutes"));
 app.use("/api/fun-activities", require("./src/routes/quizRoutes"));
 app.use("/api/super-admin", require("./src/routes/superAdminRoutes"));
 app.use("/api/principal/ai", require("./src/routes/principalAiRoutes"));
+app.use("/api/transport", require("./src/routes/transportRoutes"));
 app.use("/api", dashboardRoutes);
 
 // Root route

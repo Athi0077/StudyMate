@@ -6,6 +6,7 @@ import { getSocket } from '../services/socket';
 import { Link } from 'react-router-dom';
 import WeatherWidget from '../components/common/WeatherWidget';
 import WeatherBannerEffect from '../components/common/WeatherBannerEffect';
+import ParentMyTransportCard from '../components/transport/ParentMyTransportCard';
 
 const ParentDashboard = () => {
   const { currentUser } = useContext(AuthContext);
@@ -188,7 +189,9 @@ const ParentDashboard = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <ParentMyTransportCard childId={child._id} childName={child.name} />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                   {/* Upcoming Activities Section */}
                   <div className="md:row-span-2">
                     <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-5 flex items-center gap-2">

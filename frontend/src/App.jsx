@@ -40,6 +40,12 @@ import PrincipalAIAssistant from './pages/PrincipalAIAssistant';
 import PrincipalAIReports from './pages/PrincipalAIReports';
 import PrincipalAIProgress from './pages/PrincipalAIProgress';
 
+import PrincipalTransportBuses from './pages/PrincipalTransportBuses';
+import PrincipalTransportDrivers from './pages/PrincipalTransportDrivers';
+import PrincipalTransportRoutes from './pages/PrincipalTransportRoutes';
+import PrincipalTransportStops from './pages/PrincipalTransportStops';
+import PrincipalTransportRouteDetails from './pages/PrincipalTransportRouteDetails';
+
 import TeacherDashboard from './pages/TeacherDashboard';
 import TeacherClasses from './pages/TeacherClasses';
 import TeacherClassDetails from './pages/TeacherClassDetails';
@@ -242,6 +248,12 @@ function App() {
             <Route path="/principal/ai-reports" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalAIReports /></ProtectedRoute>} />
             <Route path="/principal/ai-progress" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalAIProgress /></ProtectedRoute>} />
             <Route path="/principal/ai-student/:studentId" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalAIStudentAnalysis /></ProtectedRoute>} />
+
+            <Route path="/principal/transport/buses" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalTransportBuses /></ProtectedRoute>} />
+            <Route path="/principal/transport/drivers" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalTransportDrivers /></ProtectedRoute>} />
+            <Route path="/principal/transport/routes" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalTransportRoutes /></ProtectedRoute>} />
+            <Route path="/principal/transport/routes/:id" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalTransportRouteDetails /></ProtectedRoute>} />
+            <Route path="/principal/transport/stops" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalTransportStops /></ProtectedRoute>} />
 
             {/* Teacher Routes */}
             <Route path="/teacher/dashboard" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherDashboard /></ProtectedRoute>} />

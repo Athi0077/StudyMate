@@ -414,6 +414,45 @@ const getParentDashboard = async (req, res) => {
           }
           return { ...tObj, studentStatus: subStatus };
         });
+
+        // Fetch Fun Activities / Quizzes for child
+        var funActivities = [];
+        const Standard = require("../models/Standard");
+        const Section = require("../models/Section");
+        const Quiz = require("../models/Quiz");
+        const QuizSubmission = require("../models/QuizSubmission");
+
+        const standardDoc = await Standard.findOne({ name: childClass.standard });
+        const sectionDoc = standardDoc ? await Section.findOne({ name: childClass.section, standardId: standardDoc._id }) : null;
+
+        if (standardDoc && sectionDoc) {
+          const rawQuizzes = await Quiz.find({ standardId: standardDoc._id, sectionId: sectionDoc._id })
+            .populate("createdBy", "name")
+            .sort({ createdAt: -1 });
+
+          const qSubs = await QuizSubmission.find({ studentId: child._id });
+
+          funActivities = rawQuizzes.map(quiz => {
+            const sub = qSubs.find(s => s.quizId.toString() === quiz._id.toString());
+            let subStatus = "Pending";
+            const now = new Date();
+            if (sub) {
+              subStatus = "Completed";
+            } else if (now > quiz.endDate) {
+              subStatus = "Closed";
+            }
+            return {
+              ...quiz.toObject(),
+              studentStatus: subStatus,
+              submission: sub ? {
+                score: sub.score,
+                totalMarks: sub.totalMarks,
+                percentage: sub.percentage,
+                submittedAt: sub.submittedAt
+              } : null
+            };
+          });
+        }
       }
 
       return {
@@ -424,7 +463,8 @@ const getParentDashboard = async (req, res) => {
         homework,
         tests,
         projects,
-        todos
+        todos,
+        funActivities: funActivities || []
       };
     }));
 
