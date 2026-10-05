@@ -9,7 +9,18 @@ const MobileBottomNav = ({ role }) => {
   const { logout } = useContext(AuthContext);
   const [showMore, setShowMore] = useState(false);
   
-  const allNavItems = navConfig[role] || navConfig.student;
+  const rawNavItems = navConfig[role] || navConfig.student;
+  
+  // Flatten any items that have subItems so they appear in the mobile grid
+  const allNavItems = rawNavItems.reduce((acc, item) => {
+    if (item.subItems) {
+      acc.push(...item.subItems);
+    } else {
+      acc.push(item);
+    }
+    return acc;
+  }, []);
+
   const visibleItems = allNavItems.slice(0, 4);
   const hiddenItems = allNavItems.slice(4);
 
