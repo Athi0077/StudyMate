@@ -99,7 +99,8 @@ exports.createAttendant = async (req, res) => {
     res.status(201).json({ success: true, attendant });
   } catch (error) {
     if (error.code === 11000) {
-      return res.status(409).json({ success: false, message: "Phone number already exists" });
+      console.error("Duplicate key error:", error.keyValue);
+      return res.status(409).json({ success: false, message: "Phone number already exists or duplicate data: " + JSON.stringify(error.keyValue) });
     }
     res.status(400).json({ success: false, message: error.message });
   }

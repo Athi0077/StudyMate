@@ -6,6 +6,16 @@ const studentTransportController = require("../controllers/studentTransportContr
 const transportAttendanceController = require("../controllers/transportAttendanceController");
 const transportTrackingController = require("../controllers/transportTrackingController");
 
+router.get("/debug-indexes", async (req, res) => {
+  const User = require("../models/User");
+  const Attendant = require("../models/Attendant");
+  const Driver = require("../models/Driver");
+  const userIndexes = await User.collection.indexes();
+  const attendantIndexes = await Attendant.collection.indexes();
+  const driverIndexes = await Driver.collection.indexes();
+  res.json({ userIndexes, attendantIndexes, driverIndexes });
+});
+
 router.use(protect);
 
 // Routes for students and parents
