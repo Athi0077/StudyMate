@@ -32,6 +32,10 @@ const leaveRequestSchema = new mongoose.Schema(
     reviewedAt: {
       type: Date,
     },
+    comment: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,

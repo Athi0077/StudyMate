@@ -30,6 +30,7 @@ export const navConfig = {
   teacher: [
     { name: 'Dashboard', path: '/teacher/dashboard', icon: Home },
     { name: 'My Classes', path: '/teacher/classes', icon: Layers },
+    { name: 'Syllabus', path: '/teacher/syllabus', icon: BookOpen },
     { name: 'Add Students', path: '/teacher/general-register', icon: Contact },
     { name: 'Attendance', path: '/teacher/attendance', icon: Calendar },
     { name: 'Timetable', path: '/teacher/timetable', icon: CalendarDays },

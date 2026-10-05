@@ -174,13 +174,11 @@ const TeacherClassDetails = () => {
 
           {filteredStudents.length > 0 ? (
             <div className="overflow-x-auto custom-scrollbar">
-              <table className="w-full text-left border-collapse text-xs min-w-[850px]">
+              <table className="w-full text-left border-collapse text-xs">
                 <thead className="bg-gray-50 dark:bg-[#172235] text-gray-600 dark:text-slate-300 font-bold uppercase">
                   <tr>
                     <th className="p-3">#</th>
                     <th className="p-3 whitespace-nowrap">Student Info</th>
-                    <th className="p-3 whitespace-nowrap">Parent Details</th>
-                    <th className="p-3 w-1/5 min-w-[150px]">Address</th>
                     <th className="p-3 whitespace-nowrap min-w-[130px]">Fee Status</th>
                     <th className="p-3 whitespace-nowrap text-right">Actions</th>
                   </tr>
@@ -212,13 +210,6 @@ const TeacherClassDetails = () => {
                           </div>
                         </Link>
                         <div className="text-gray-400 text-[10px] mt-0.5 font-mono">ID: {student.studentId || 'N/A'}</div>
-                      </td>
-                      <td className="p-3 whitespace-nowrap">
-                        <div className="text-gray-800 dark:text-slate-200 font-medium">{student.parentName || 'Not Linked'}</div>
-                        {student.parentPhone && <div className="text-purple-600 font-medium text-[10px] mt-0.5 bg-purple-50 dark:bg-purple-950/40 inline-block px-1.5 py-0.5 rounded">📞 {student.parentPhone}</div>}
-                      </td>
-                      <td className="p-3 text-gray-600 dark:text-slate-400">
-                        <p className="line-clamp-2 text-[11px]" title={student.address}>{student.address || 'N/A'}</p>
                       </td>
                       <td className="p-3">
                         <div className="relative">

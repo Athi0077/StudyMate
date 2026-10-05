@@ -14,6 +14,7 @@ const PrincipalParents = () => {
   const [editParentId, setEditParentId] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
+    mobileNumber: '',
     email: '',
     password: '',
     childrenIds: []
@@ -57,7 +58,8 @@ const PrincipalParents = () => {
   const handleEdit = (parent) => {
     setFormData({
       name: parent.name,
-      email: parent.email,
+      mobileNumber: parent.mobileNumber || parent.phone || '',
+      email: parent.email || '',
       password: '', // Leave empty for edit
       childrenIds: parent.children ? parent.children.map(c => c._id) : []
     });
@@ -78,6 +80,24 @@ const PrincipalParents = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!formData.name.trim()) {
+      toast.error('Parent Name is required');
+      return;
+    }
+    if (!formData.mobileNumber.trim()) {
+      toast.error('Mobile Number is required');
+      return;
+    }
+    if (!editParentId && !formData.password.trim()) {
+      toast.error('Password is required');
+      return;
+    }
+    if (!formData.childrenIds || formData.childrenIds.length === 0) {
+      toast.error('Please link at least one student to this parent account');
+      return;
+    }
+
     try {
       let response;
       if (editParentId) {
@@ -88,7 +108,7 @@ const PrincipalParents = () => {
         toast.success(response.data?.message || 'Parent account created successfully');
       }
       setShowModal(false);
-      setFormData({ name: '', email: '', password: '', childrenIds: [] });
+      setFormData({ name: '', mobileNumber: '', email: '', password: '', childrenIds: [] });
       setEditParentId(null);
       setSearchQuery('');
       fetchData();
@@ -98,7 +118,7 @@ const PrincipalParents = () => {
   };
 
   const openNewModal = () => {
-    setFormData({ name: '', email: '', password: '', childrenIds: [] });
+    setFormData({ name: '', mobileNumber: '', email: '', password: '', childrenIds: [] });
     setEditParentId(null);
     setShowModal(true);
   };
@@ -125,6 +145,7 @@ const PrincipalParents = () => {
             <thead className="bg-gray-50 text-gray-600 font-medium">
               <tr>
                 <th className="p-4">Name</th>
+                <th className="p-4">Mobile No.</th>
                 <th className="p-4">Email</th>
                 <th className="p-4">Linked Students</th>
                 <th className="p-4">Status</th>
@@ -135,7 +156,8 @@ const PrincipalParents = () => {
               {parents.map((parent) => (
                 <tr key={parent._id} className="hover:bg-gray-50 transition">
                   <td className="p-4 font-bold text-gray-800">{parent.name}</td>
-                  <td className="p-4 text-gray-600">{parent.email}</td>
+                  <td className="p-4 font-medium text-gray-700">{parent.mobileNumber || parent.phone || 'N/A'}</td>
+                  <td className="p-4 text-gray-600">{parent.email || <span className="text-gray-400 italic text-xs">Optional</span>}</td>
                   <td className="p-4">
                     {parent.children && parent.children.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
@@ -160,7 +182,7 @@ const PrincipalParents = () => {
               ))}
               {parents.length === 0 && !loading && (
                 <tr>
-                  <td colSpan="5" className="p-8 text-center text-gray-500">No parent accounts found.</td>
+                  <td colSpan="6" className="p-8 text-center text-gray-500">No parent accounts found.</td>
                 </tr>
               )}
             </tbody>
@@ -179,30 +201,50 @@ const PrincipalParents = () => {
               <div className="p-6 overflow-y-auto">
                 <form id="parentForm" onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Parent Name</label>
+                    <label className="block text-sm font-medium mb-1">
+                      Parent Name <span className="text-red-500">*</span>
+                    </label>
                     <input 
                       type="text" name="name" required value={formData.name} onChange={handleInputChange}
-                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
+                      placeholder="Enter Parent Full Name"
+                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none text-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Email Address</label>
+                    <label className="block text-sm font-medium mb-1">
+                      Mobile Number <span className="text-red-500">*</span>
+                    </label>
                     <input 
-                      type="email" name="email" required value={formData.email} onChange={handleInputChange}
-                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
+                      type="tel" name="mobileNumber" required value={formData.mobileNumber} onChange={handleInputChange}
+                      placeholder="e.g. 9876543210"
+                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none text-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Temporary Password {editParentId && <span className="text-xs text-gray-400 font-normal">(Leave blank to keep current)</span>}</label>
+                    <label className="block text-sm font-medium mb-1">
+                      Email Address <span className="text-xs text-gray-400 font-normal">(Optional)</span>
+                    </label>
+                    <input 
+                      type="email" name="email" value={formData.email} onChange={handleInputChange}
+                      placeholder="e.g. parent@example.com (Optional)"
+                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Temporary Password {!editParentId && <span className="text-red-500">*</span>} {editParentId && <span className="text-xs text-gray-400 font-normal">(Leave blank to keep current)</span>}
+                    </label>
                     <input 
                       type="text" name="password" required={!editParentId} value={formData.password} onChange={handleInputChange}
-                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
+                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none text-sm"
                       placeholder="e.g. Parent@123"
                     />
                   </div>
 
                   <div className="pt-2">
-                    <label className="block text-sm font-bold mb-2 text-gray-700">Link Students (Optional)</label>
+                    <label className="block text-sm font-bold mb-2 text-gray-700">
+                      Link Students <span className="text-red-500">*</span>
+                    </label>
                     <input 
                       type="text" 
                       placeholder="Search students by name or ID..."

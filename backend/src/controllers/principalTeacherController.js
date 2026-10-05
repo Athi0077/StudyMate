@@ -37,20 +37,27 @@ const getTeachers = async (req, res) => {
 // @access  Private (Principal)
 const createTeacher = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, mobileNumber, phone, password } = req.body;
+    const mobile = (mobileNumber || phone || "").trim();
+    const cleanEmail = email ? email.trim().toLowerCase() : undefined;
 
-    if (!name || !email || !password) {
-      return res.status(400).json({ success: false, message: "Please provide all required fields" });
+    if (!name || !mobile || !password) {
+      return res.status(400).json({ success: false, message: "Name, mobile number, and password are required" });
     }
 
-    const userExists = await User.findOne({ email });
+    const query = [{ mobileNumber: mobile }, { phone: mobile }];
+    if (cleanEmail) query.push({ email: cleanEmail });
+
+    const userExists = await User.findOne({ $or: query });
     if (userExists) {
-      return res.status(400).json({ success: false, message: "User with this email already exists" });
+      return res.status(400).json({ success: false, message: "User with this mobile number or email already exists" });
     }
 
     const newTeacher = await User.create({
       name,
-      email,
+      email: cleanEmail || undefined,
+      mobileNumber: mobile,
+      phone: mobile,
       password,
       role: "teacher",
       status: "active",
@@ -93,7 +100,9 @@ const getTeacherById = async (req, res) => {
 // @access  Private (Principal)
 const updateTeacher = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, mobileNumber, phone, password } = req.body;
+    const mobile = (mobileNumber || phone || "").trim();
+    const cleanEmail = email ? email.trim().toLowerCase() : undefined;
     
     const teacher = await User.findById(req.params.id);
     if (!teacher || teacher.role !== "teacher") {
@@ -104,16 +113,29 @@ const updateTeacher = async (req, res) => {
       return res.status(403).json({ success: false, message: "Not authorized to access this teacher" });
     }
 
-    // Check email unique
-    if (email !== teacher.email) {
-      const emailExists = await User.findOne({ email });
+    if (cleanEmail && cleanEmail !== teacher.email) {
+      const emailExists = await User.findOne({ email: cleanEmail, _id: { $ne: teacher._id } });
       if (emailExists) {
         return res.status(400).json({ success: false, message: "Email already in use" });
       }
+      teacher.email = cleanEmail;
+    } else if (email === "") {
+      teacher.email = undefined;
     }
 
-    teacher.name = name || teacher.name;
-    teacher.email = email || teacher.email;
+    if (mobile && mobile !== teacher.mobileNumber && mobile !== teacher.phone) {
+      const mobileExists = await User.findOne({
+        $or: [{ mobileNumber: mobile }, { phone: mobile }],
+        _id: { $ne: teacher._id }
+      });
+      if (mobileExists) {
+        return res.status(400).json({ success: false, message: "Mobile number already in use" });
+      }
+      teacher.mobileNumber = mobile;
+      teacher.phone = mobile;
+    }
+
+    if (name) teacher.name = name;
     if (password) {
       teacher.password = password;
     }

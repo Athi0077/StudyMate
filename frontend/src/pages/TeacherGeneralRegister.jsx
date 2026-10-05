@@ -4,7 +4,7 @@ import Layout from '../components/layout/Layout';
 import { getStudents, registerStudent, updateStudent, deleteStudent } from '../utils/generalRegisterApi';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const TeacherGeneralRegister = () => {
@@ -136,9 +136,13 @@ const TeacherGeneralRegister = () => {
       <div className="p-6 max-w-6xl mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-800 text-center sm:text-left w-full sm:w-auto">
-            {classes.some(c => c.teacherId === currentUserId) 
-              ? `My Students - ${classes.find(c => c.teacherId === currentUserId)?.className}` 
-              : 'Students'}
+            {(() => {
+              const myClasses = classes.filter(c => c.teacherId === currentUserId);
+              if (myClasses.length > 0) {
+                return `My Students - ${myClasses.map(c => c.className).join(', ')}`;
+              }
+              return 'Students';
+            })()}
           </h2>
           {classes.some(c => c.teacherId === currentUserId) && (
             <button onClick={openAddModal} className="w-full sm:w-auto text-center bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition">
@@ -212,126 +216,148 @@ const TeacherGeneralRegister = () => {
           initial={{ opacity: 0 }} 
           animate={{ opacity: 1 }} 
           exit={{ opacity: 0 }} 
-          className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[100] pb-20 sm:pb-4"
         >
           <motion.div 
             initial={{ scale: 0.95, opacity: 0, y: 20 }} 
             animate={{ scale: 1, opacity: 1, y: 0 }} 
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
             transition={{ type: "spring", bounce: 0.3, duration: 0.4 }}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-100"
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[calc(100vh-140px)] sm:max-h-[85vh] flex flex-col overflow-hidden border border-gray-100"
           >
-            <div className="p-6 border-b bg-gray-50/50">
-              <h3 className="text-lg font-bold">{editingId ? 'Edit Student' : 'Register Student'}</h3>
+            <div className="p-4 sm:p-5 border-b bg-gray-50/50 flex items-center justify-between shrink-0">
+              <h3 className="text-lg font-bold text-gray-800">{editingId ? 'Edit Student' : 'Register Student'}</h3>
+              <button 
+                type="button" 
+                onClick={() => setShowModal(false)}
+                className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <form onSubmit={editingId ? handleUpdate : handleRegister} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Student ID <span className="text-red-500">*</span>
-                </label>
-                <input 
-                  required 
-                  type="text" 
-                  className={`w-full border rounded p-2 ${editingId ? 'bg-gray-50' : ''}`} 
-                  value={formData.studentId} 
-                  onChange={(e) => setFormData({ ...formData, studentId: e.target.value })} 
-                  placeholder="Enter Student ID"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  GR Number (General Register No) <span className="text-red-500">*</span>
-                </label>
-                <input 
-                  required 
-                  type="text" 
-                  className="w-full border rounded p-2" 
-                  value={formData.grNumber} 
-                  onChange={(e) => setFormData({ ...formData, grNumber: e.target.value })} 
-                  placeholder="Enter GR Number"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Name <span className="text-red-500">*</span>
-                </label>
-                <input 
-                  required 
-                  type="text" 
-                  className="w-full border rounded p-2" 
-                  value={formData.name} 
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
-                  placeholder="Enter Student Full Name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Password {!editingId && <span className="text-red-500">*</span>} {editingId && <span className="text-gray-400 text-xs">(Leave blank to keep unchanged)</span>}
-                </label>
-                <input 
-                  required={!editingId} 
-                  type="text" 
-                  className="w-full border rounded p-2" 
-                  value={formData.password} 
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })} 
-                  placeholder={editingId ? "New Password" : "Enter Password"} 
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Gender <span className="text-red-500">*</span>
-                </label>
-                <select 
-                  required
-                  className="w-full border rounded p-2" 
-                  value={formData.gender} 
-                  onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                >
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Class <span className="text-red-500">*</span>
-                </label>
-                <select 
-                  required 
-                  className="w-full border rounded p-2" 
-                  value={formData.classId} 
-                  onChange={(e) => setFormData({ ...formData, classId: e.target.value })} 
-                  disabled={classes.filter(c => c.teacherId === currentUserId).length === 1}
-                >
-                  <option value="">Select Class</option>
-                  {classes.filter(c => c.teacherId === currentUserId).map(c => (
-                    <option key={c._id} value={c._id}>{c.className}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                <input 
-                  type="checkbox" 
-                  id="isClassLeader"
-                  className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                  checked={formData.isClassLeader}
-                  onChange={(e) => setFormData({ ...formData, isClassLeader: e.target.checked })} 
-                />
+            
+            <form onSubmit={editingId ? handleUpdate : handleRegister} className="flex flex-col flex-1 min-h-0">
+              <div className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
                 <div>
-                  <label htmlFor="isClassLeader" className="block text-sm font-bold text-gray-700 cursor-pointer">Assign as a Class Leader</label>
-                  <p className="text-xs text-gray-500">Assign this student as the leader of the selected class.</p>
+                  <label className="block text-sm font-medium mb-1">
+                    Student ID <span className="text-red-500">*</span>
+                  </label>
+                  <input 
+                    required 
+                    type="text" 
+                    className={`w-full border rounded-xl p-2.5 text-sm ${editingId ? 'bg-gray-50' : ''}`} 
+                    value={formData.studentId} 
+                    onChange={(e) => setFormData({ ...formData, studentId: e.target.value })} 
+                    placeholder="Enter Student ID"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    GR Number (General Register No) <span className="text-red-500">*</span>
+                  </label>
+                  <input 
+                    required 
+                    type="text" 
+                    className="w-full border rounded-xl p-2.5 text-sm" 
+                    value={formData.grNumber} 
+                    onChange={(e) => setFormData({ ...formData, grNumber: e.target.value })} 
+                    placeholder="Enter GR Number"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Name <span className="text-red-500">*</span>
+                  </label>
+                  <input 
+                    required 
+                    type="text" 
+                    className="w-full border rounded-xl p-2.5 text-sm" 
+                    value={formData.name} 
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
+                    placeholder="Enter Student Full Name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Password {!editingId && <span className="text-red-500">*</span>} {editingId && <span className="text-gray-400 text-xs">(Leave blank to keep unchanged)</span>}
+                  </label>
+                  <input 
+                    required={!editingId} 
+                    type="text" 
+                    className="w-full border rounded-xl p-2.5 text-sm" 
+                    value={formData.password} 
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })} 
+                    placeholder={editingId ? "New Password" : "Enter Password"} 
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Gender <span className="text-red-500">*</span>
+                  </label>
+                  <select 
+                    required
+                    className="w-full border rounded-xl p-2.5 text-sm bg-white" 
+                    value={formData.gender} 
+                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                  >
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Class <span className="text-red-500">*</span>
+                  </label>
+                  <select 
+                    required 
+                    className="w-full border rounded-xl p-2.5 text-sm bg-white" 
+                    value={formData.classId} 
+                    onChange={(e) => setFormData({ ...formData, classId: e.target.value })} 
+                    disabled={classes.filter(c => c.teacherId === currentUserId).length === 1}
+                  >
+                    <option value="">Select Class</option>
+                    {classes.filter(c => c.teacherId === currentUserId).map(c => (
+                      <option key={c._id} value={c._id}>{c.className}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-3 bg-gray-50 p-3.5 rounded-xl border border-gray-100">
+                  <input 
+                    type="checkbox" 
+                    id="isClassLeader"
+                    className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                    checked={formData.isClassLeader}
+                    onChange={(e) => setFormData({ ...formData, isClassLeader: e.target.checked })} 
+                  />
+                  <div>
+                    <label htmlFor="isClassLeader" className="block text-sm font-bold text-gray-700 cursor-pointer">Assign as a Class Leader</label>
+                    <p className="text-xs text-gray-500">Assign this student as the leader of the selected class.</p>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 mt-6">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">{editingId ? 'Save Changes' : 'Register'}</button>
+              <div className="p-4 sm:p-5 border-t bg-gray-50/80 flex items-center justify-end gap-3 shrink-0 rounded-b-2xl">
+                <button 
+                  type="button" 
+                  onClick={() => setShowModal(false)} 
+                  className="px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="px-5 py-2.5 text-sm font-semibold bg-blue-600 text-white rounded-xl shadow-md hover:bg-blue-700 active:scale-95 transition-all"
+                >
+                  {editingId ? 'Save Changes' : 'Register'}
+                </button>
               </div>
             </form>
           </motion.div>

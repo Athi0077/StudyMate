@@ -468,6 +468,18 @@ exports.getStudentDetailsForPrincipal = async (req, res) => {
     timelineEvents.sort((a, b) => new Date(b.date) - new Date(a.date));
     const recentActivityTimeline = timelineEvents.slice(0, 12);
 
+    // Fetch linked parent account if exists
+    const linkedParent = await User.findOne({ role: "parent", children: student._id });
+    const rawParentName = linkedParent ? linkedParent.name : (student.contactDetails?.parentName || student.parentName);
+    const rawParentPhone = linkedParent ? (linkedParent.mobileNumber || linkedParent.phone) : (student.contactDetails?.parentPhone || student.parentPhone);
+    const rawEmergencyContact = student.contactDetails?.parentPhone || (linkedParent ? (linkedParent.mobileNumber || linkedParent.phone) : null) || student.phone;
+    const rawAddress = student.address || student.contactDetails?.address;
+
+    const resolvedParentName = rawParentName && String(rawParentName).trim() ? String(rawParentName).trim() : "N/A";
+    const resolvedParentPhone = rawParentPhone && String(rawParentPhone).trim() ? String(rawParentPhone).trim() : "N/A";
+    const resolvedEmergencyContact = rawEmergencyContact && String(rawEmergencyContact).trim() ? String(rawEmergencyContact).trim() : "N/A";
+    const resolvedAddress = rawAddress && String(rawAddress).trim() ? String(rawAddress).trim() : "N/A";
+
     // ----------------------------------------------------
     // FINAL RESPONSE PAYLOAD
     // ----------------------------------------------------
@@ -485,10 +497,10 @@ exports.getStudentDetailsForPrincipal = async (req, res) => {
           dateOfBirth: student.dateOfBirth ? student.dateOfBirth : null,
           bloodGroup: student.bloodGroup || "Not specified",
           phone: student.phone || "N/A",
-          address: student.address || "N/A",
-          parentName: student.contactDetails?.parentName || student.parentName || "Not Linked",
-          parentPhone: student.contactDetails?.parentPhone || student.parentPhone || "N/A",
-          emergencyContact: student.contactDetails?.parentPhone || student.phone || "N/A",
+          address: resolvedAddress,
+          parentName: resolvedParentName,
+          parentPhone: resolvedParentPhone,
+          emergencyContact: resolvedEmergencyContact,
           status: student.status,
           createdAt: student.createdAt,
         },
@@ -518,13 +530,13 @@ exports.getStudentDetailsForPrincipal = async (req, res) => {
           admissionNumber: student.studentId || student.grNumber || "N/A",
           grNumber: student.grNumber || "N/A",
           rollNumber: student.studentId || "N/A",
-          bloodGroup: student.bloodGroup,
+          bloodGroup: student.bloodGroup || "Not specified",
           classSection: studentClass ? studentClass.className : "Unassigned",
-          phone: student.phone,
-          address: student.address || student.contactDetails?.address,
-          parentName: student.contactDetails?.parentName || student.parentName,
-          parentPhone: student.contactDetails?.parentPhone || student.parentPhone,
-          emergencyContact: student.contactDetails?.parentPhone || student.phone,
+          phone: student.phone || "N/A",
+          address: resolvedAddress,
+          parentName: resolvedParentName,
+          parentPhone: resolvedParentPhone,
+          emergencyContact: resolvedEmergencyContact,
         },
         attendance: {
           overallPercentage: attendancePercentage,

@@ -62,22 +62,22 @@ const TeacherHomeworkDetails = () => {
         <ChatRoom entityType="homework" entityId={homework._id} />
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-4 shadow rounded text-center">
-          <p className="text-sm text-gray-500">Total Students</p>
-          <p className="text-2xl font-bold">{totalStudents}</p>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6">
+        <div className="bg-white p-4 shadow-soft rounded-2xl border border-gray-100 text-center">
+          <p className="text-xs sm:text-sm font-semibold text-gray-500">Total Students</p>
+          <p className="text-xl sm:text-2xl font-bold text-gray-800 mt-1">{totalStudents}</p>
         </div>
-        <div className="bg-white p-4 shadow rounded text-center">
-          <p className="text-sm text-gray-500">Submitted</p>
-          <p className="text-2xl font-bold text-green-600">{submittedCount}</p>
+        <div className="bg-white p-4 shadow-soft rounded-2xl border border-gray-100 text-center">
+          <p className="text-xs sm:text-sm font-semibold text-gray-500">Submitted</p>
+          <p className="text-xl sm:text-2xl font-bold text-green-600 mt-1">{submittedCount}</p>
         </div>
-        <div className="bg-white p-4 shadow rounded text-center">
-          <p className="text-sm text-gray-500">Pending</p>
-          <p className="text-2xl font-bold text-orange-500">{totalStudents - submittedCount}</p>
+        <div className="bg-white p-4 shadow-soft rounded-2xl border border-gray-100 text-center">
+          <p className="text-xs sm:text-sm font-semibold text-gray-500">Pending</p>
+          <p className="text-xl sm:text-2xl font-bold text-orange-500 mt-1">{totalStudents - submittedCount}</p>
         </div>
-        <div className="bg-white p-4 shadow rounded text-center">
-          <p className="text-sm text-gray-500">Completion</p>
-          <p className="text-2xl font-bold text-blue-600">{completionRate}%</p>
+        <div className="bg-white p-4 shadow-soft rounded-2xl border border-gray-100 text-center">
+          <p className="text-xs sm:text-sm font-semibold text-gray-500">Completion</p>
+          <p className="text-xl sm:text-2xl font-bold text-blue-600 mt-1">{completionRate}%</p>
         </div>
       </div>
       

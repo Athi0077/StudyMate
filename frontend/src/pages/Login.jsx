@@ -103,10 +103,10 @@ const Login = () => {
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             
-            {/* Email / Student ID Input */}
+            {/* Email / Mobile Number / Student ID Input */}
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider">
-                Email or Student ID
+                Email, Mobile Number, or Student ID
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
@@ -116,7 +116,7 @@ const Login = () => {
                   type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your Email or Student ID"
+                  placeholder="Enter Email, Mobile Number, or Student ID"
                   required
                   className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-slate-800/80 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition"
                 />

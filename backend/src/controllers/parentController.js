@@ -5,16 +5,30 @@ const User = require("../models/User");
 // @access  Private (Principal)
 const createParent = async (req, res) => {
   try {
-    const { name, email, password, childrenIds } = req.body;
+    const { name, email, mobileNumber, phone, password, childrenIds } = req.body;
+    const mobile = (mobileNumber || phone || "").trim();
+    const cleanEmail = email ? email.trim().toLowerCase() : undefined;
     
-    if (!name || !email || !password) {
-      return res.status(400).json({ success: false, message: "Name, email and password are required" });
+    if (!name || !mobile || !password) {
+      return res.status(400).json({ success: false, message: "Name, mobile number, and password are required" });
     }
 
-    const userExists = await User.findOne({ email });
+    if (!childrenIds || childrenIds.length === 0) {
+      return res.status(400).json({ success: false, message: "At least one linked student is required" });
+    }
+
+    const query = [
+      { mobileNumber: mobile },
+      { phone: mobile }
+    ];
+    if (cleanEmail) {
+      query.push({ email: cleanEmail });
+    }
+
+    const userExists = await User.findOne({ $or: query });
     if (userExists) {
       if (userExists.role !== 'parent') {
-        return res.status(400).json({ success: false, message: "Email already registered to a non-parent account" });
+        return res.status(400).json({ success: false, message: "Mobile number or email is already registered to a non-parent account" });
       }
       
       if (req.user.role === "teacher") {
@@ -60,7 +74,9 @@ const createParent = async (req, res) => {
 
     const parent = await User.create({
       name,
-      email,
+      email: cleanEmail || undefined,
+      mobileNumber: mobile,
+      phone: mobile,
       password,
       role: "parent",
       status: "active",
@@ -106,12 +122,26 @@ const updateParent = async (req, res) => {
       return res.status(404).json({ success: false, message: "Parent not found" });
     }
 
-    const { name, email, password, childrenIds } = req.body;
+    const { name, email, mobileNumber, phone, password, childrenIds } = req.body;
+    const mobile = (mobileNumber || phone || "").trim();
+    const cleanEmail = email ? email.trim().toLowerCase() : undefined;
     
-    if (email && email !== parent.email) {
-      const emailExists = await User.findOne({ email });
+    if (cleanEmail && cleanEmail !== parent.email) {
+      const emailExists = await User.findOne({ email: cleanEmail, _id: { $ne: parent._id } });
       if (emailExists) return res.status(400).json({ success: false, message: "Email already taken" });
-      parent.email = email;
+      parent.email = cleanEmail;
+    } else if (email === "") {
+      parent.email = undefined;
+    }
+
+    if (mobile && mobile !== parent.mobileNumber && mobile !== parent.phone) {
+      const mobileExists = await User.findOne({ 
+        $or: [{ mobileNumber: mobile }, { phone: mobile }], 
+        _id: { $ne: parent._id } 
+      });
+      if (mobileExists) return res.status(400).json({ success: false, message: "Mobile number already taken" });
+      parent.mobileNumber = mobile;
+      parent.phone = mobile;
     }
     
     if (name) parent.name = name;

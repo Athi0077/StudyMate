@@ -35,7 +35,11 @@ const TeacherSyllabus = () => {
   const fetchAssignments = async () => {
     try {
       const res = await api.get('/syllabus/my-assignments');
-      setAssignments(res.data.data);
+      const data = res.data.data || [];
+      setAssignments(data);
+      if (data.length > 0 && !activeAssignment) {
+        loadChapters(data[0]);
+      }
     } catch (err) {
       toast.error('Failed to load assignments');
     } finally {
@@ -46,7 +50,8 @@ const TeacherSyllabus = () => {
   const loadChapters = async (assignment) => {
     setActiveAssignment(assignment);
     try {
-      const res = await api.get(`/syllabus/class/${assignment.classId}/subject/${assignment.subject || 'Class Teacher'}`);
+      const subj = encodeURIComponent(assignment.subject || 'Class Teacher');
+      const res = await api.get(`/syllabus/class/${assignment.classId}/subject/${subj}`);
       setChapters(res.data.data);
     } catch (err) {
       toast.error('Failed to load chapters');

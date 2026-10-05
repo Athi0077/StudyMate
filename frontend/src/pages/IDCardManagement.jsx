@@ -101,12 +101,18 @@ const IDCardManagement = () => {
 
   const openEditModal = () => {
     setFormData({
-      name: cardData.name,
+      name: cardData.name || '',
       employeeId: cardData.employeeId || '',
       designation: cardData.designation || '',
       studentId: cardData.studentId || '',
       grNumber: cardData.grNumber || '',
-      idCardStatus: cardData.idCardStatus || 'active'
+      idCardStatus: cardData.idCardStatus || 'active',
+      dateOfBirth: cardData.dateOfBirth ? new Date(cardData.dateOfBirth).toISOString().split('T')[0] : '',
+      bloodGroup: cardData.bloodGroup || 'A+',
+      parentName: cardData.parentName || '',
+      parentPhone: cardData.parentPhone || '',
+      address: cardData.address || '',
+      phone: cardData.phone || ''
     });
     setIsEditModalOpen(true);
   };
@@ -355,29 +361,73 @@ const IDCardManagement = () => {
                 <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20" />
               </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Date of Birth</label>
+                  <input type="date" value={formData.dateOfBirth || ''} onChange={e => setFormData({...formData, dateOfBirth: e.target.value})} className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Blood Group</label>
+                  <select value={formData.bloodGroup || 'A+'} onChange={e => setFormData({...formData, bloodGroup: e.target.value})} className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm">
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                  </select>
+                </div>
+              </div>
+
               {cardData.role === 'student' ? (
                 <>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Admission No.</label>
-                    <input type="text" value={formData.studentId} onChange={e => setFormData({...formData, studentId: e.target.value})} className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Admission No.</label>
+                      <input type="text" value={formData.studentId} onChange={e => setFormData({...formData, studentId: e.target.value})} className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">GR Number</label>
+                      <input type="text" value={formData.grNumber} onChange={e => setFormData({...formData, grNumber: e.target.value})} className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm" />
+                    </div>
                   </div>
+
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">GR Number</label>
-                    <input type="text" value={formData.grNumber} onChange={e => setFormData({...formData, grNumber: e.target.value})} className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Parent Name</label>
+                    <input type="text" value={formData.parentName || ''} onChange={e => setFormData({...formData, parentName: e.target.value})} className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm" placeholder="Father / Mother name" />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Parent Contact No.</label>
+                    <input type="text" value={formData.parentPhone || ''} onChange={e => setFormData({...formData, parentPhone: e.target.value})} className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm" placeholder="+91 98765 43210" />
                   </div>
                 </>
               ) : (
                 <>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Employee ID</label>
-                    <input type="text" value={formData.employeeId} onChange={e => setFormData({...formData, employeeId: e.target.value})} className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Employee ID</label>
+                      <input type="text" value={formData.employeeId} onChange={e => setFormData({...formData, employeeId: e.target.value})} className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Designation</label>
+                      <input type="text" value={formData.designation} onChange={e => setFormData({...formData, designation: e.target.value})} className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm" />
+                    </div>
                   </div>
+
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Designation</label>
-                    <input type="text" value={formData.designation} onChange={e => setFormData({...formData, designation: e.target.value})} className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Phone</label>
+                    <input type="text" value={formData.phone || ''} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm" placeholder="+91 98765 43210" />
                   </div>
                 </>
               )}
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Address</label>
+                <input type="text" value={formData.address || ''} onChange={e => setFormData({...formData, address: e.target.value})} className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm" placeholder="Street name, City, Country" />
+              </div>
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Card Status</label>

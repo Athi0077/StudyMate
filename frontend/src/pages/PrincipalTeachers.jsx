@@ -23,8 +23,8 @@ const PrincipalTeachers = () => {
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [selectedTeacherHistory, setSelectedTeacherHistory] = useState([]);
   const [currentCalendarDate, setCurrentCalendarDate] = useState(new Date());
-  const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
-  const [editData, setEditData] = useState({ id: '', name: '', email: '', password: '' });
+  const [formData, setFormData] = useState({ name: '', mobileNumber: '', email: '', password: '', confirmPassword: '' });
+  const [editData, setEditData] = useState({ id: '', name: '', mobileNumber: '', email: '', password: '' });
   
   // Bulk selection
   const [selectedIds, setSelectedIds] = useState([]);
@@ -79,12 +79,13 @@ const PrincipalTeachers = () => {
     try {
       await api.post('/principal/teachers', {
         name: formData.name,
+        mobileNumber: formData.mobileNumber,
         email: formData.email,
         password: formData.password
       });
       toast.success("Teacher created successfully");
       setShowModal(false);
-      setFormData({ name: '', email: '', password: '', confirmPassword: '' });
+      setFormData({ name: '', mobileNumber: '', email: '', password: '', confirmPassword: '' });
       fetchTeachers();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to create teacher');
@@ -94,7 +95,7 @@ const PrincipalTeachers = () => {
   };
 
   const openEditModal = (teacher) => {
-    setEditData({ id: teacher._id, name: teacher.name, email: teacher.email, password: '' });
+    setEditData({ id: teacher._id, name: teacher.name, mobileNumber: teacher.mobileNumber || teacher.phone || '', email: teacher.email || '', password: '' });
     setShowEditModal(true);
   };
 
@@ -119,7 +120,7 @@ const PrincipalTeachers = () => {
     e.preventDefault();
     setIsEditing(true);
     try {
-      const payload = { name: editData.name, email: editData.email };
+      const payload = { name: editData.name, mobileNumber: editData.mobileNumber, email: editData.email };
       if (editData.password) {
         payload.password = editData.password;
       }
@@ -397,7 +398,8 @@ const PrincipalTeachers = () => {
                             </div>
                             <div>
                               <div className="font-bold text-gray-800">{teacher.name}</div>
-                              <div className="text-sm text-gray-500">{teacher.email}</div>
+                              <div className="text-xs font-semibold text-gray-700">{teacher.mobileNumber || teacher.phone || 'No Mobile'}</div>
+                              {teacher.email && <div className="text-xs text-gray-400">{teacher.email}</div>}
                             </div>
                           </div>
                         </td>
@@ -514,39 +516,58 @@ const PrincipalTeachers = () => {
                   <XCircle size={24} />
                 </button>
               </div>
-              <form onSubmit={handleCreateTeacher} className="p-6 space-y-4">
+              <form onSubmit={handleCreateTeacher} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Full Name</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">
+                    Full Name <span className="text-red-500">*</span>
+                  </label>
                   <input 
                     type="text" required
                     value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})}
-                    className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 transition"
+                    className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 transition text-sm"
                     placeholder="e.g. John Doe"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Email Address</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">
+                    Mobile Number <span className="text-red-500">*</span>
+                  </label>
                   <input 
-                    type="email" required
-                    value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})}
-                    className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 transition"
-                    placeholder="john@school.com"
+                    type="tel" required
+                    value={formData.mobileNumber} onChange={e => setFormData({...formData, mobileNumber: e.target.value})}
+                    className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 transition text-sm"
+                    placeholder="e.g. 9876543210"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Temporary Password</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">
+                    Email Address <span className="text-xs text-gray-400 font-normal">(Optional)</span>
+                  </label>
+                  <input 
+                    type="email"
+                    value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})}
+                    className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 transition text-sm"
+                    placeholder="john@school.com (Optional)"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">
+                    Temporary Password <span className="text-red-500">*</span>
+                  </label>
                   <input 
                     type="password" required minLength={6}
                     value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})}
-                    className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 transition"
+                    className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 transition text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Confirm Password</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">
+                    Confirm Password <span className="text-red-500">*</span>
+                  </label>
                   <input 
                     type="password" required minLength={6}
                     value={formData.confirmPassword} onChange={e => setFormData({...formData, confirmPassword: e.target.value})}
-                    className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 transition"
+                    className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 transition text-sm"
                   />
                 </div>
                 <div className="flex gap-3 pt-4">
@@ -573,21 +594,37 @@ const PrincipalTeachers = () => {
                   <XCircle size={24} />
                 </button>
               </div>
-              <form onSubmit={handleEditTeacher} className="p-6 space-y-4">
+              <form onSubmit={handleEditTeacher} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Full Name</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">
+                    Full Name <span className="text-red-500">*</span>
+                  </label>
                   <input 
                     type="text" required
                     value={editData.name} onChange={e => setEditData({...editData, name: e.target.value})}
-                    className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                    className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Email Address</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">
+                    Mobile Number <span className="text-red-500">*</span>
+                  </label>
                   <input 
-                    type="email" required
+                    type="tel" required
+                    value={editData.mobileNumber} onChange={e => setEditData({...editData, mobileNumber: e.target.value})}
+                    className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-sm"
+                    placeholder="e.g. 9876543210"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">
+                    Email Address <span className="text-xs text-gray-400 font-normal">(Optional)</span>
+                  </label>
+                  <input 
+                    type="email"
                     value={editData.email} onChange={e => setEditData({...editData, email: e.target.value})}
-                    className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                    className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-sm"
+                    placeholder="Optional email"
                   />
                 </div>
                 <div>
@@ -596,7 +633,7 @@ const PrincipalTeachers = () => {
                     type="password" minLength={6}
                     value={editData.password} onChange={e => setEditData({...editData, password: e.target.value})}
                     placeholder="Leave blank to keep current password"
-                    className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                    className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-sm"
                   />
                 </div>
                 <div className="flex gap-3 pt-4">

@@ -54,7 +54,10 @@ const createLeaveRequest = async (req, res) => {
 // @access  Private (Student only)
 const getMyLeaveRequests = async (req, res) => {
   try {
-    const requests = await LeaveRequest.find({ studentId: req.user._id }).sort({ date: -1 });
+    const requests = await LeaveRequest.find({ studentId: req.user._id })
+      .populate("reviewedBy", "name")
+      .populate("classId", "className")
+      .sort({ date: -1 });
     res.json({ success: true, data: requests });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -69,9 +72,24 @@ const getTeacherLeaveRequests = async (req, res) => {
     const teacherClasses = await Class.find({ teacherId: req.user._id }).select("_id");
     const classIds = teacherClasses.map(c => c._id);
 
-    const requests = await LeaveRequest.find({ classId: { $in: classIds }, status: "pending" })
-      .populate("studentId", "name email")
-      .populate("classId", "className");
+    const { status } = req.query;
+    const query = { classId: { $in: classIds } };
+
+    if (status === "history") {
+      query.status = { $in: ["approved", "rejected"] };
+    } else if (status === "approved" || status === "rejected") {
+      query.status = status;
+    } else if (status === "all") {
+      // no status filter
+    } else {
+      query.status = "pending";
+    }
+
+    const requests = await LeaveRequest.find(query)
+      .populate("studentId", "name studentId email profilePic")
+      .populate("classId", "className")
+      .populate("reviewedBy", "name")
+      .sort({ createdAt: -1 });
       
     res.json({ success: true, data: requests });
   } catch (error) {
@@ -93,9 +111,14 @@ const approveLeaveRequest = async (req, res) => {
       return res.status(403).json({ success: false, message: "Access denied" });
     }
 
+    const comment = (req.body.comment || req.body.teacherComment || "").trim();
+
     request.status = "approved";
     request.reviewedBy = req.user._id;
     request.reviewedAt = Date.now();
+    if (comment) {
+      request.comment = comment;
+    }
     await request.save();
 
     // Upsert attendance record to Leave
@@ -114,13 +137,14 @@ const approveLeaveRequest = async (req, res) => {
 
     res.json({ success: true, message: "Leave request approved", data: request });
 
+    const noteText = comment ? ` Note: "${comment}"` : "";
     const { createNotification } = require("../services/notificationService");
     createNotification({
       recipientId: request.studentId,
       senderId: req.user._id,
       type: "leave_approved",
       title: "Leave Approved",
-      message: `Your leave request for ${new Date(request.date).toLocaleDateString()} has been approved.`,
+      message: `Your leave request for ${new Date(request.date).toLocaleDateString()} has been approved.${noteText}`,
       relatedId: request._id,
       relatedModel: "LeaveRequest"
     });
@@ -143,20 +167,26 @@ const rejectLeaveRequest = async (req, res) => {
       return res.status(403).json({ success: false, message: "Access denied" });
     }
 
+    const comment = (req.body.comment || req.body.teacherComment || "").trim();
+
     request.status = "rejected";
     request.reviewedBy = req.user._id;
     request.reviewedAt = Date.now();
+    if (comment) {
+      request.comment = comment;
+    }
     await request.save();
 
     res.json({ success: true, message: "Leave request rejected", data: request });
 
+    const noteText = comment ? ` Note: "${comment}"` : "";
     const { createNotification } = require("../services/notificationService");
     createNotification({
       recipientId: request.studentId,
       senderId: req.user._id,
       type: "leave_rejected",
       title: "Leave Rejected",
-      message: `Your leave request for ${new Date(request.date).toLocaleDateString()} has been rejected.`,
+      message: `Your leave request for ${new Date(request.date).toLocaleDateString()} has been rejected.${noteText}`,
       relatedId: request._id,
       relatedModel: "LeaveRequest"
     });

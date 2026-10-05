@@ -401,23 +401,29 @@ const PrincipalStudentDetails = () => {
 
                 <div className="flex justify-between py-1 border-b border-gray-200 dark:border-gray-800">
                   <span className="text-gray-500 font-medium">Parent / Guardian:</span>
-                  <span className="font-bold text-gray-900 dark:text-slate-100">{personalFamilyDetails.parentName}</span>
+                  <span className="font-bold text-gray-900 dark:text-slate-100">
+                    {personalFamilyDetails?.parentName && personalFamilyDetails.parentName !== 'Not Linked' ? personalFamilyDetails.parentName : 'N/A'}
+                  </span>
                 </div>
 
                 <div className="flex justify-between py-1 border-b border-gray-200 dark:border-gray-800">
                   <span className="text-gray-500 font-medium">Parent Contact Phone:</span>
-                  <span className="font-bold text-purple-600">{personalFamilyDetails.parentPhone}</span>
+                  <span className="font-bold text-purple-600">
+                    {personalFamilyDetails?.parentPhone ? personalFamilyDetails.parentPhone : 'N/A'}
+                  </span>
                 </div>
 
                 <div className="flex justify-between py-1 border-b border-gray-200 dark:border-gray-800">
                   <span className="text-gray-500 font-medium">Emergency Contact:</span>
-                  <span className="font-bold text-emerald-600">{personalFamilyDetails.emergencyContact}</span>
+                  <span className="font-bold text-emerald-600">
+                    {personalFamilyDetails?.emergencyContact ? personalFamilyDetails.emergencyContact : 'N/A'}
+                  </span>
                 </div>
 
                 <div className="py-1">
                   <span className="text-gray-500 font-medium block mb-1">Residential Address:</span>
                   <p className="font-medium text-gray-800 dark:text-slate-200 bg-white dark:bg-[#0b1120] p-3 rounded-xl border border-gray-200 dark:border-[#334155]">
-                    {personalFamilyDetails.address || 'Address not registered'}
+                    {personalFamilyDetails?.address && personalFamilyDetails.address !== 'Address not registered' ? personalFamilyDetails.address : 'N/A'}
                   </p>
                 </div>
               </div>

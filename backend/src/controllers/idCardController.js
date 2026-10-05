@@ -17,14 +17,34 @@ const getIDCardData = async (user) => {
   const settings = await Settings.findOne();
   const schoolName = settings?.schoolName || "StudyMate School";
 
+  let parentName = user.contactDetails?.parentName;
+  let parentPhone = user.contactDetails?.parentPhone;
+  let address = user.address || user.contactDetails?.address;
+
+  if (user.role === "student" && (!parentName || !parentPhone)) {
+    const parent = await User.findOne({ children: user._id, role: { $in: ["parent", "parents"] } });
+    if (parent) {
+      if (!parentName) parentName = parent.name;
+      if (!parentPhone) parentPhone = parent.phone;
+      if (!address && parent.address) address = parent.address;
+    }
+  }
+
   const baseData = {
     _id: user._id,
     name: user.name,
     role: user.role,
+    email: user.email,
     profilePic: user.profilePic,
     schoolName: schoolName,
     idCardStatus: user.idCardStatus || "active",
     verificationId: user.verificationId,
+    dateOfBirth: user.dateOfBirth,
+    bloodGroup: user.bloodGroup && user.bloodGroup !== "Unknown / Not specified" ? user.bloodGroup : undefined,
+    phone: user.phone,
+    address: address,
+    parentName: parentName,
+    parentPhone: parentPhone,
   };
 
   if (user.role === "student") {
@@ -155,11 +175,26 @@ const updateIDCard = async (req, res) => {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
-    const { employeeId, designation, joiningDate, idCardStatus, studentId, grNumber, name } = req.body;
+    const { 
+      employeeId, designation, joiningDate, idCardStatus, 
+      studentId, grNumber, name, dateOfBirth, bloodGroup, 
+      parentName, parentPhone, address, phone 
+    } = req.body;
 
     if (name) user.name = name;
     if (idCardStatus) user.idCardStatus = idCardStatus;
-    
+    if (dateOfBirth !== undefined) user.dateOfBirth = dateOfBirth;
+    if (bloodGroup !== undefined) user.bloodGroup = bloodGroup;
+    if (phone !== undefined) user.phone = phone;
+    if (address !== undefined) user.address = address;
+
+    if (parentName !== undefined || parentPhone !== undefined || address !== undefined) {
+      if (!user.contactDetails) user.contactDetails = {};
+      if (parentName !== undefined) user.contactDetails.parentName = parentName;
+      if (parentPhone !== undefined) user.contactDetails.parentPhone = parentPhone;
+      if (address !== undefined) user.contactDetails.address = address;
+    }
+
     if (user.role === "teacher" || user.role === "principal") {
       if (employeeId !== undefined) user.employeeId = employeeId;
       if (designation !== undefined) user.designation = designation;

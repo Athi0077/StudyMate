@@ -111,6 +111,18 @@ const TeacherDashboard = () => {
               Good Morning,<br/>
               <span className="text-red-600 dark:text-red-400">{currentUser?.name}! 👋</span>
             </h2>
+            {(() => {
+              const classTeacherClasses = classes.filter(c => c.isClassTeacher);
+              const classTeacherNames = Array.from(new Set(classTeacherClasses.map(c => `${c.standardId?.name || ''} - ${c.sectionId?.name || ''}`).filter(b => b.trim() !== '-'))).join(', ');
+              if (classTeacherNames) {
+                return (
+                  <div className="inline-flex items-center gap-2 bg-red-500/10 dark:bg-red-950/50 text-red-700 dark:text-red-300 border border-red-200/80 dark:border-red-900/50 px-3.5 py-1.5 rounded-full text-xs font-bold my-2 shadow-2xs">
+                    <span className="text-base">👑</span> Class Teacher: <span className="font-black text-red-600 dark:text-red-400">{classTeacherNames}</span>
+                  </div>
+                );
+              }
+              return null;
+            })()}
             <p className="text-gray-700 dark:text-red-200/80 text-lg">
               A great teacher can inspire hope, ignite imagination, and instill a love for learning.
             </p>
@@ -137,8 +149,14 @@ const TeacherDashboard = () => {
               <span className="text-gray-400">→</span>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-800">{classes?.length || 0}</p>
-              <p className="text-sm font-semibold text-gray-500">My Classes</p>
+              <p className="text-2xl font-bold text-gray-800">
+                {classes.some(c => c.isClassTeacher) 
+                  ? classes.filter(c => c.isClassTeacher).length 
+                  : (classes?.length || 0)}
+              </p>
+              <p className="text-sm font-semibold text-gray-500">
+                {classes.some(c => c.isClassTeacher) ? 'My Class' : 'My Classes'}
+              </p>
             </div>
           </div>
           
@@ -238,48 +256,80 @@ const TeacherDashboard = () => {
               {/* My Classes Grid */}
               <div className="glass-card premium-card p-6 rounded-3xl">
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg font-bold text-gray-900">My Classes</h3>
+                  <div>
+                    <h3 className="text-lg font-extrabold text-gray-900">
+                      {classes.some(c => c.isClassTeacher) ? 'My Class (Class Teacher)' : 'My Classes'}
+                    </h3>
+                    {classes.some(c => c.isClassTeacher) && (
+                      <p className="text-xs text-emerald-600 font-bold">Assigned Class Teacher</p>
+                    )}
+                  </div>
                   <Link to="/teacher/classes" className="text-primary text-sm font-semibold hover:underline">View All →</Link>
                 </div>
                 <div className="flex flex-col gap-3 max-h-[260px] overflow-y-auto pr-1">
-                  {classes.length > 0 ? classes.map((assignment, idx) => {
-                    const colors = [
-                      { bg: 'bg-red-100', text: 'text-red-500' },
-                      { bg: 'bg-blue-100', text: 'text-blue-500' },
-                      { bg: 'bg-green-100', text: 'text-green-500' },
-                      { bg: 'bg-purple-100', text: 'text-purple-500' }
-                    ];
-                    const color = colors[idx % colors.length];
-                    const classNameStr = `${assignment.standardId?.name || ''} - ${assignment.sectionId?.name || ''}`;
-                    const shortName = (assignment.standardId?.name?.substring(0,1) || '') + (assignment.sectionId?.name?.substring(0,1) || '');
+                  {(() => {
+                    const classTeacherAssignments = classes.filter(c => c.isClassTeacher);
+                    const targetAssignments = classTeacherAssignments.length > 0 ? classTeacherAssignments : classes;
                     
-                    return (
-                      <div key={assignment._id} className="border border-gray-100 rounded-xl p-3 hover:shadow-md transition bg-gray-50/50 flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className={`w-10 h-10 ${color.bg} ${color.text} rounded-full flex items-center justify-center font-bold shrink-0`}>
-                            {shortName.toUpperCase() || 'C'}
+                    const displayClasses = [];
+                    const seenClasses = new Set();
+                    targetAssignments.forEach(a => {
+                      const key = `${a.standardId?.name || ''}-${a.sectionId?.name || ''}`;
+                      if (!seenClasses.has(key)) {
+                        seenClasses.add(key);
+                        displayClasses.push(a);
+                      }
+                    });
+
+                    if (displayClasses.length === 0) {
+                      return (
+                        <div className="flex flex-col items-center justify-center p-8 text-center bg-gray-50/50 dark:bg-slate-800/50 rounded-2xl border border-dashed border-gray-200 dark:border-slate-700">
+                          <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 text-blue-500 rounded-full flex items-center justify-center mb-4">
+                            <GraduationCap className="w-8 h-8" />
                           </div>
-                          <div className="min-w-0">
-                            <h4 className="font-bold text-gray-800 text-sm truncate">{classNameStr}</h4>
-                            <p className="text-xs text-gray-500 truncate">{assignment.subject || 'General'}</p>
+                          <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100">No Class Assigned</h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">You haven't been assigned to any classes yet.</p>
+                        </div>
+                      );
+                    }
+
+                    return displayClasses.map((assignment, idx) => {
+                      const colors = [
+                        { bg: 'bg-red-100 text-red-600 border-red-200' },
+                        { bg: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+                        { bg: 'bg-blue-100 text-blue-600 border-blue-200' },
+                        { bg: 'bg-purple-100 text-purple-600 border-purple-200' }
+                      ];
+                      const color = colors[idx % colors.length];
+                      const classNameStr = `${assignment.standardId?.name || ''} - ${assignment.sectionId?.name || ''}`;
+                      const shortName = (assignment.standardId?.name?.substring(0,1) || '') + (assignment.sectionId?.name?.substring(0,1) || '');
+                      
+                      return (
+                        <div key={assignment._id} className="border border-gray-100 rounded-2xl p-3.5 hover:shadow-md transition bg-gray-50/50 flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className={`w-11 h-11 ${color.bg} border rounded-2xl flex items-center justify-center font-black shrink-0 text-base shadow-xs`}>
+                              {shortName.toUpperCase() || 'C'}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-extrabold text-gray-900 text-base truncate">{classNameStr}</h4>
+                                {assignment.isClassTeacher && (
+                                  <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border border-emerald-200 shrink-0">
+                                    Class Teacher
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-gray-500 font-semibold truncate">{assignment.isClassTeacher ? 'Class Teacher' : (assignment.subject || 'General')}</p>
+                            </div>
+                          </div>
+                          <div className="flex gap-2 shrink-0 text-xs font-semibold">
+                            <Link to="/teacher/classes" className="bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition">View</Link>
+                            <Link to="/teacher/homework/create" className="bg-primary-light text-primary px-3 py-1.5 rounded-lg hover:bg-red-200 transition">+ HW</Link>
                           </div>
                         </div>
-                        <div className="flex gap-2 shrink-0 text-xs font-semibold">
-                          <Link to="/teacher/classes" className="bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition">View</Link>
-                          <Link to="/teacher/homework/create" className="bg-primary-light text-primary px-3 py-1.5 rounded-lg hover:bg-red-200 transition">+ HW</Link>
-                        </div>
-                      </div>
-                    );
-                  }) : (
-                    <div className="flex flex-col items-center justify-center p-8 text-center bg-gray-50/50 dark:bg-slate-800/50 rounded-2xl border border-dashed border-gray-200 dark:border-slate-700">
-                      <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 text-blue-500 rounded-full flex items-center justify-center mb-4">
-                        <GraduationCap className="w-8 h-8" />
-                      </div>
-                      <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100">No Classes Assigned</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">You haven't been assigned to any classes yet.</p>
-                      <button className="btn-primary px-4 py-2 rounded-xl text-sm font-semibold">Contact Admin</button>
-                    </div>
-                  )}
+                      );
+                    });
+                  })()}
                 </div>
                 <div className="mt-4">
                   <Link to="/teacher/homework/create" className="btn-primary block w-full text-center font-semibold py-3 rounded-xl">

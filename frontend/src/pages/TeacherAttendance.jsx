@@ -153,33 +153,80 @@ const TeacherAttendance = () => {
           </div>
         )}
 
-        <div className="border rounded overflow-hidden">
+        <div className="border rounded-2xl overflow-hidden shadow-xs">
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-gray-100 border-b">
-                <th className="p-3 text-sm md:text-base">Student Name</th>
-                <th className="p-3 w-32 md:w-48 text-sm md:text-base">Status</th>
+              <tr className="bg-gray-100/80 border-b">
+                <th className="p-3 text-sm md:text-base font-bold text-gray-700">Student Name</th>
+                <th className="p-3 text-sm md:text-base font-bold text-gray-700 text-right sm:text-left">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody className="divide-y divide-gray-100">
               {attendance.map(student => (
-                <tr key={student.studentId} className="hover:bg-gray-50">
-                  <td className="p-3 font-semibold text-gray-800 text-sm md:text-base">{student.name}</td>
+                <tr key={student.studentId} className="hover:bg-gray-50/80 transition">
+                  <td className="p-3 font-bold text-gray-900 text-sm md:text-base">{student.name}</td>
                   <td className="p-3">
-                    <select 
-                      className={`w-full p-2 border rounded font-semibold focus:outline-none text-sm md:text-base
-                        ${student.status === 'present' ? 'bg-green-50 text-green-700 border-green-300' : 
-                          student.status === 'absent' ? 'bg-red-50 text-red-700 border-red-300' : 
-                          'bg-orange-50 text-orange-700 border-orange-300'}
-                        ${sessionRecord ? 'opacity-70 cursor-not-allowed' : ''}`}
-                      value={student.status}
-                      onChange={(e) => handleStatusChange(student.studentId, e.target.value)}
-                      disabled={!!sessionRecord}
-                    >
-                      <option value="present">Present 🟢</option>
-                      <option value="absent">Absent 🔴</option>
-                      <option value="leave">Leave 🟡</option>
-                    </select>
+                    <div className="flex items-center justify-end sm:justify-start gap-1 sm:gap-2">
+                      <label
+                        className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-bold cursor-pointer transition select-none ${
+                          student.status === 'present'
+                            ? 'bg-green-600 text-white border-green-600 shadow-xs'
+                            : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-green-50 hover:text-green-700'
+                        } ${sessionRecord ? 'opacity-60 cursor-not-allowed' : ''}`}
+                      >
+                        <input
+                          type="radio"
+                          name={`status-${student.studentId}`}
+                          value="present"
+                          checked={student.status === 'present'}
+                          onChange={() => !sessionRecord && handleStatusChange(student.studentId, 'present')}
+                          disabled={!!sessionRecord}
+                          className="sr-only"
+                        />
+                        <span className="w-2 h-2 rounded-full bg-current shrink-0"></span>
+                        <span>Present</span>
+                      </label>
+
+                      <label
+                        className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-bold cursor-pointer transition select-none ${
+                          student.status === 'absent'
+                            ? 'bg-red-600 text-white border-red-600 shadow-xs'
+                            : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-red-50 hover:text-red-700'
+                        } ${sessionRecord ? 'opacity-60 cursor-not-allowed' : ''}`}
+                      >
+                        <input
+                          type="radio"
+                          name={`status-${student.studentId}`}
+                          value="absent"
+                          checked={student.status === 'absent'}
+                          onChange={() => !sessionRecord && handleStatusChange(student.studentId, 'absent')}
+                          disabled={!!sessionRecord}
+                          className="sr-only"
+                        />
+                        <span className="w-2 h-2 rounded-full bg-current shrink-0"></span>
+                        <span>Absent</span>
+                      </label>
+
+                      <label
+                        className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-bold cursor-pointer transition select-none ${
+                          student.status === 'leave'
+                            ? 'bg-amber-500 text-white border-amber-500 shadow-xs'
+                            : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-amber-50 hover:text-amber-700'
+                        } ${sessionRecord ? 'opacity-60 cursor-not-allowed' : ''}`}
+                      >
+                        <input
+                          type="radio"
+                          name={`status-${student.studentId}`}
+                          value="leave"
+                          checked={student.status === 'leave'}
+                          onChange={() => !sessionRecord && handleStatusChange(student.studentId, 'leave')}
+                          disabled={!!sessionRecord}
+                          className="sr-only"
+                        />
+                        <span className="w-2 h-2 rounded-full bg-current shrink-0"></span>
+                        <span>Leave</span>
+                      </label>
+                    </div>
                   </td>
                 </tr>
               ))}

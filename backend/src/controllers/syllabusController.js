@@ -23,20 +23,24 @@ exports.getTeacherSyllabus = async (req, res) => {
     const result = [];
 
     for (let assignment of assignments) {
-      // Find the class document
+      if (!assignment.standardId || !assignment.sectionId) continue;
+
       const className = `${assignment.standardId.name} - ${assignment.sectionId.name}`;
-      const classDoc = await Class.findOne({ className });
+      let classDoc = await Class.findOne({ className });
+      if (!classDoc) {
+        classDoc = await Class.findOne({ standard: assignment.standardId.name, section: assignment.sectionId.name });
+      }
       if (!classDoc) continue;
+
+      const subj = assignment.subject || (assignment.isClassTeacher ? "Class Teacher" : null);
+      if (!subj) continue;
 
       const filter = {
         classId: classDoc._id,
-        subject: assignment.subject || "Class Teacher", // if class teacher, they might teach all or specific. Usually assignments have a specific subject.
-        academicYearId: activeYear?._id
+        subject: subj
       };
-
-      if (!assignment.subject && assignment.isClassTeacher) {
-         // Some assignments might not have a subject. Let's just group by whatever subject is defined.
-         if (!assignment.subject) continue; 
+      if (activeYear) {
+        filter.academicYearId = activeYear._id;
       }
 
       const chapters = await SyllabusChapter.find(filter);
@@ -47,7 +51,7 @@ exports.getTeacherSyllabus = async (req, res) => {
         assignmentId: assignment._id,
         classId: classDoc._id,
         className: classDoc.className,
-        subject: assignment.subject,
+        subject: subj,
         progress: {
           total,
           completed,
@@ -65,7 +69,7 @@ exports.getTeacherSyllabus = async (req, res) => {
 
 exports.getSyllabusChapters = async (req, res) => {
   try {
-    const { classId, subjectId: subject } = req.params; // Using subject string as subjectId param for now
+    const { classId, subjectId: subject } = req.params; // Using subject string as subjectId param
     const activeYear = await getActiveAcademicYear();
     
     // Auth check: if teacher, verify assignment
@@ -73,20 +77,19 @@ exports.getSyllabusChapters = async (req, res) => {
       const classDoc = await Class.findById(classId);
       if (!classDoc) return res.status(404).json({ success: false, message: 'Class not found' });
       
-      const [standardName, sectionName] = classDoc.className.split(' - ');
-      
-      // Need standard/section IDs to check TeacherAssignment
-      const Standard = require('../models/Standard');
-      const Section = require('../models/Section');
-      const std = await Standard.findOne({ name: standardName });
-      let sec = null;
-      if (std) sec = await Section.findOne({ name: sectionName, standardId: std._id });
-      
-      const isAssigned = await TeacherAssignment.findOne({
-        teacherId: req.user._id,
-        standardId: std?._id,
-        sectionId: sec?._id,
-        subject: subject
+      const teacherAssignments = await TeacherAssignment.find({ teacherId: req.user._id })
+        .populate('standardId', 'name')
+        .populate('sectionId', 'name');
+
+      const isAssigned = teacherAssignments.some(a => {
+        if (!a.standardId || !a.sectionId) return false;
+        const matchClass = (a.standardId.name === classDoc.standard && a.sectionId.name === classDoc.section) ||
+                           (`${a.standardId.name} - ${a.sectionId.name}` === classDoc.className);
+        if (!matchClass) return false;
+        if (a.isClassTeacher) return true;
+        if (a.subject === subject) return true;
+        if (!a.subject && subject === 'Class Teacher') return true;
+        return false;
       });
 
       if (!isAssigned) {
@@ -94,11 +97,17 @@ exports.getSyllabusChapters = async (req, res) => {
       }
     }
 
-    const chapters = await SyllabusChapter.find({
+    const filter = {
       classId,
-      subject,
-      academicYearId: activeYear?._id
-    }).sort({ chapterNumber: 1 }).populate('completedBy', 'name');
+      subject
+    };
+    if (activeYear) {
+      filter.academicYearId = activeYear._id;
+    }
+
+    const chapters = await SyllabusChapter.find(filter)
+      .sort({ chapterNumber: 1 })
+      .populate('completedBy', 'name');
 
     res.json({ success: true, data: chapters });
   } catch (error) {
@@ -113,22 +122,22 @@ exports.createChapter = async (req, res) => {
     const { classId, subject, chapterNumber, chapterTitle, description, learningObjectives, estimatedCompletionDate, referenceMaterials } = req.body;
     const activeYear = await getActiveAcademicYear();
     
-    // Auth check assignment
-    const classDoc = await Class.findById(classId);
-    if (!classDoc) return res.status(404).json({ success: false, message: 'Class not found' });
-    const [standardName, sectionName] = classDoc.className.split(' - ');
-    const Standard = require('../models/Standard');
-    const Section = require('../models/Section');
-    const std = await Standard.findOne({ name: standardName });
-    let sec = null;
-    if (std) sec = await Section.findOne({ name: sectionName, standardId: std._id });
-    const isAssigned = await TeacherAssignment.findOne({
-      teacherId: req.user._id,
-      standardId: std?._id,
-      sectionId: sec?._id,
-      subject: subject
+    const teacherAssignments = await TeacherAssignment.find({ teacherId: req.user._id })
+      .populate('standardId', 'name')
+      .populate('sectionId', 'name');
+
+    const isAssigned = teacherAssignments.some(a => {
+      if (!a.standardId || !a.sectionId) return false;
+      const matchClass = (a.standardId.name === classDoc.standard && a.sectionId.name === classDoc.section) ||
+                         (`${a.standardId.name} - ${a.sectionId.name}` === classDoc.className);
+      if (!matchClass) return false;
+      if (a.isClassTeacher) return true;
+      if (a.subject === subject) return true;
+      if (!a.subject && subject === 'Class Teacher') return true;
+      return false;
     });
-    if (!isAssigned && subject !== 'Class Teacher') return res.status(403).json({ success: false, message: 'Unauthorized for this class and subject.' });
+
+    if (!isAssigned) return res.status(403).json({ success: false, message: 'Unauthorized for this class and subject.' });
 
     const newChapter = await SyllabusChapter.create({
       schoolId: req.user.schoolId,

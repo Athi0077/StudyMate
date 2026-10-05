@@ -101,17 +101,20 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
+    const identifier = email ? email.trim() : "";
     const SecurityEvent = require("../models/SecurityEvent");
 
     const user = await User.findOne({ 
       $or: [
-        { email: email },
-        { studentId: email }
+        { email: identifier.toLowerCase() },
+        { mobileNumber: identifier },
+        { phone: identifier },
+        { studentId: identifier }
       ] 
     });
 
     if (!user) {
-      return res.status(401).json({ success: false, message: "Invalid email or password" });
+      return res.status(401).json({ success: false, message: "Invalid credentials (email, mobile number, or password)" });
     }
 
     // Check rate limit lock
