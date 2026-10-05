@@ -14,7 +14,6 @@ exports.createDriver = async (req, res) => {
     const user = await User.create({
       name,
       mobileNumber: phone,
-      email: `driver_${Date.now()}@studymate.com`,
       password: password || "driver123", // Default if not provided
       role: "driver"
     });
@@ -87,7 +86,6 @@ exports.createAttendant = async (req, res) => {
     const user = await User.create({
       name,
       mobileNumber: phone,
-      email: `attendant_${Date.now()}@studymate.com`,
       password: password || "attendant123",
       role: "attendant"
     });

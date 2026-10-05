@@ -106,6 +106,16 @@ if (process.env.NODE_ENV !== 'test') {
       await Attendance.syncIndexes();
       await AttendanceSession.syncIndexes();
       console.log("Indexes synced for Attendance and AttendanceSession");
+      
+      // Drop the email index on User collection that causes duplicate key error on null values
+      const User = require("./src/models/User");
+      try {
+        await User.collection.dropIndex("email_1");
+        console.log("Dropped faulty email_1 index from users collection");
+      } catch (e) {
+        // Ignored if it doesn't exist
+      }
+      await User.syncIndexes();
     } catch (err) {
       console.error("Index sync error:", err);
     }
