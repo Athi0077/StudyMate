@@ -166,12 +166,13 @@ const TeacherAttendance = () => {
                 <tr key={student.studentId} className="hover:bg-gray-50/80 transition">
                   <td className="p-3 font-bold text-gray-900 text-sm md:text-base">{student.name}</td>
                   <td className="p-3">
-                    <div className="flex items-center justify-end sm:justify-start gap-1 sm:gap-2">
+                    <div className="flex items-center justify-end sm:justify-start gap-1.5 sm:gap-2">
                       <label
-                        className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-bold cursor-pointer transition select-none ${
+                        title="Present"
+                        className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl border text-xs sm:text-sm font-black flex items-center justify-center cursor-pointer transition select-none ${
                           student.status === 'present'
                             ? 'bg-green-600 text-white border-green-600 shadow-xs'
-                            : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-green-50 hover:text-green-700'
+                            : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-green-50 hover:text-green-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300'
                         } ${sessionRecord ? 'opacity-60 cursor-not-allowed' : ''}`}
                       >
                         <input
@@ -183,15 +184,15 @@ const TeacherAttendance = () => {
                           disabled={!!sessionRecord}
                           className="sr-only"
                         />
-                        <span className="w-2 h-2 rounded-full bg-current shrink-0"></span>
-                        <span>Present</span>
+                        P
                       </label>
 
                       <label
-                        className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-bold cursor-pointer transition select-none ${
+                        title="Absent"
+                        className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl border text-xs sm:text-sm font-black flex items-center justify-center cursor-pointer transition select-none ${
                           student.status === 'absent'
                             ? 'bg-red-600 text-white border-red-600 shadow-xs'
-                            : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-red-50 hover:text-red-700'
+                            : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-red-50 hover:text-red-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300'
                         } ${sessionRecord ? 'opacity-60 cursor-not-allowed' : ''}`}
                       >
                         <input
@@ -203,15 +204,15 @@ const TeacherAttendance = () => {
                           disabled={!!sessionRecord}
                           className="sr-only"
                         />
-                        <span className="w-2 h-2 rounded-full bg-current shrink-0"></span>
-                        <span>Absent</span>
+                        A
                       </label>
 
                       <label
-                        className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-bold cursor-pointer transition select-none ${
+                        title="Leave"
+                        className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl border text-xs sm:text-sm font-black flex items-center justify-center cursor-pointer transition select-none ${
                           student.status === 'leave'
                             ? 'bg-amber-500 text-white border-amber-500 shadow-xs'
-                            : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-amber-50 hover:text-amber-700'
+                            : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-amber-50 hover:text-amber-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300'
                         } ${sessionRecord ? 'opacity-60 cursor-not-allowed' : ''}`}
                       >
                         <input
@@ -223,8 +224,7 @@ const TeacherAttendance = () => {
                           disabled={!!sessionRecord}
                           className="sr-only"
                         />
-                        <span className="w-2 h-2 rounded-full bg-current shrink-0"></span>
-                        <span>Leave</span>
+                        L
                       </label>
                     </div>
                   </td>

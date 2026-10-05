@@ -177,10 +177,10 @@ const TeacherClassDetails = () => {
               <table className="w-full text-left border-collapse text-xs">
                 <thead className="bg-gray-50 dark:bg-[#172235] text-gray-600 dark:text-slate-300 font-bold uppercase">
                   <tr>
-                    <th className="p-3">#</th>
-                    <th className="p-3 whitespace-nowrap">Student Info</th>
-                    <th className="p-3 whitespace-nowrap min-w-[130px]">Fee Status</th>
-                    <th className="p-3 whitespace-nowrap text-right">Actions</th>
+                    <th className="p-3 w-10 text-center">#</th>
+                    <th className="p-3 whitespace-nowrap min-w-[200px]">Student Info</th>
+                    <th className="p-3 whitespace-nowrap w-44">Fee Status</th>
+                    <th className="p-3 whitespace-nowrap text-right w-full">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-[#1E293B]">
@@ -189,7 +189,7 @@ const TeacherClassDetails = () => {
                     const isUpdating = feeLoading[student._id];
                     return (
                     <tr key={student._id} className="hover:bg-red-50/30 dark:hover:bg-slate-800/50 transition">
-                      <td className="p-3 text-gray-500 font-medium">{index + 1}</td>
+                      <td className="p-3 text-gray-500 font-medium text-center">{index + 1}</td>
                       <td className="p-3 whitespace-nowrap">
                         <Link 
                           to={`/teacher/students/details/${student._id}`}
@@ -212,7 +212,7 @@ const TeacherClassDetails = () => {
                         <div className="text-gray-400 text-[10px] mt-0.5 font-mono">ID: {student.studentId || 'N/A'}</div>
                       </td>
                       <td className="p-3">
-                        <div className="relative">
+                        <div className="relative w-36">
                           <select
                             id={`fee-status-${student._id}`}
                             value={status}
