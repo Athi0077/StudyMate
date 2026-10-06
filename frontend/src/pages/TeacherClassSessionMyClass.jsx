@@ -80,7 +80,8 @@ const TeacherClassSessionMyClass = () => {
   const handleStartSession = async (periodData) => {
     try {
       // Prevent unauthorized access
-      if (periodData.period.subjectTeacherId?._id !== currentUser._id) {
+      const teacherId = periodData.period.subjectTeacherId?._id || periodData.period.subjectTeacherId;
+      if (String(teacherId) !== String(currentUser._id)) {
         toast.error("You are not authorized to start this session.");
         return;
       }
