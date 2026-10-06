@@ -79,38 +79,14 @@ const TeacherClassSessionMyClass = () => {
 
   const handleStartSession = async (periodData) => {
     try {
-      console.log("========== START SESSION DEBUG ==========");
-console.log("Current User:", currentUser);
-console.log("Current User ID:", currentUser?._id);
-
-console.log("Period Data:", periodData);
-console.log("Period:", periodData?.period);
-
-console.log(
-  "Subject Teacher:",
-  periodData?.period?.subjectTeacherId
-);
-
-console.log(
-  "Subject Teacher ID:",
-  periodData?.period?.subjectTeacherId?._id
-);
-
-console.log(
-  "IDs:",
-  periodData?.period?.subjectTeacherId?._id,
-  currentUser?._id
-);
-
-console.log(
-  "Authorized:",
-  periodData?.period?.subjectTeacherId?._id === currentUser?._id
-);
-
-console.log("==========================================");
       // Prevent unauthorized access
-      const teacherId = periodData.period.subjectTeacherId?._id || periodData.period.subjectTeacherId;
-      if (String(teacherId) !== String(currentUser._id)) {
+      const currentUserId = currentUser?._id || currentUser?.id;
+      const subjectTeacherId =
+        typeof periodData?.period?.subjectTeacherId === "object"
+          ? periodData.period.subjectTeacherId?._id || periodData.period.subjectTeacherId?.id
+          : periodData?.period?.subjectTeacherId;
+
+      if (!currentUserId || !subjectTeacherId || String(subjectTeacherId) !== String(currentUserId)) {
         toast.error("You are not authorized to start this session.");
         return;
       }
