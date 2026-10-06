@@ -9,6 +9,13 @@ const createTimetable = async (req, res) => {
   try {
     const { classId, academicYearId, workingDays, periods } = req.body;
 
+    if (periods && Array.isArray(periods)) {
+      periods.forEach(p => {
+        if (p.subjectId === "") p.subjectId = null;
+        if (p.subjectTeacherId === "") p.subjectTeacherId = null;
+      });
+    }
+
     // Verify teacher is the class teacher
     const cls = await Class.findById(classId);
     if (!cls) {
@@ -112,6 +119,13 @@ const getClassTimetable = async (req, res) => {
 const updateTimetable = async (req, res) => {
   try {
     const { workingDays, periods } = req.body;
+    
+    if (periods && Array.isArray(periods)) {
+      periods.forEach(p => {
+        if (p.subjectId === "") p.subjectId = null;
+        if (p.subjectTeacherId === "") p.subjectTeacherId = null;
+      });
+    }
     
     const timetable = await Timetable.findById(req.params.id);
     if (!timetable) {
