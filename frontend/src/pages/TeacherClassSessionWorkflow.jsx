@@ -40,7 +40,7 @@ const TeacherClassSessionWorkflow = () => {
         setSession(data);
         
         // Init students list from class
-        if (data.classId?.students) {
+        if (data.classId) {
           // If we need student details, we might need to fetch them if not populated
           // Let's fetch class details to get full student list
           const classRes = await api.get(`/classes/${classId}`);
