@@ -114,6 +114,8 @@ const TeacherTimetable = () => {
       fetchClassAssignments(selectedClass);
     }
   }, [selectedClass]);
+
+  const fetchTimetable = async () => {
     try {
       setLoading(true);
       const res = await api.get(`/timetable/class/${selectedClass}`);

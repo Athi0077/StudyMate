@@ -162,11 +162,12 @@ const PrincipalAssignments = () => {
             </div>
 
             <div>
-              <label className="block mb-2 font-semibold text-gray-700 text-sm">Subject (Optional)</label>
+              <label className="block mb-2 font-semibold text-gray-700 text-sm">Subject</label>
               <select 
                 className="w-full p-3 border border-gray-100 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm" 
                 value={subjectId}
                 onChange={e => setSubjectId(e.target.value)}
+                required={!isClassTeacher}
               >
                 <option value="">Select Subject</option>
                 {subjects.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
