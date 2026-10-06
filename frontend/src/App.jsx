@@ -39,6 +39,7 @@ import PrincipalAIClassAnalytics from './pages/PrincipalAIClassAnalytics';
 import PrincipalAIAssistant from './pages/PrincipalAIAssistant';
 import PrincipalAIReports from './pages/PrincipalAIReports';
 import PrincipalAIProgress from './pages/PrincipalAIProgress';
+import PrincipalClassSessionMonitoring from './pages/PrincipalClassSessionMonitoring';
 
 import PrincipalTransportBuses from './pages/PrincipalTransportBuses';
 import PrincipalTransportDrivers from './pages/PrincipalTransportDrivers';
@@ -74,6 +75,9 @@ import TeacherGeneralRegister from './pages/TeacherGeneralRegister';
 import TeacherSyllabus from './pages/TeacherSyllabus';
 import TeacherExams from './pages/TeacherExams';
 import TeacherAnnouncements from './pages/TeacherAnnouncements';
+import TeacherClassSessions from './pages/TeacherClassSessions';
+import TeacherClassSessionMyClass from './pages/TeacherClassSessionMyClass';
+import TeacherClassSessionWorkflow from './pages/TeacherClassSessionWorkflow';
 
 import StudentDashboard from './pages/StudentDashboard';
 import StudentClass from './pages/StudentClass';
@@ -232,6 +236,7 @@ function App() {
             <Route path="/principal/my-id-card" element={<ProtectedRoute allowedRoles={['principal']}><DigitalIDCard /></ProtectedRoute>} />
             <Route path="/principal/temporary-access" element={<ProtectedRoute allowedRoles={['main_principal']}><PrincipalTemporaryAccess /></ProtectedRoute>} />
             <Route path="/principal/attendance" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalAttendance /></ProtectedRoute>} />
+            <Route path="/principal/attendance/period-monitoring" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalClassSessionMonitoring /></ProtectedRoute>} />
             <Route path="/principal/attendance/:classId" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalClassAttendance /></ProtectedRoute>} />
             <Route path="/principal/standards" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalStandards /></ProtectedRoute>} />
             <Route path="/principal/assignments" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalAssignments /></ProtectedRoute>} />
@@ -283,6 +288,9 @@ function App() {
             <Route path="/teacher/student-details/:studentId" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherStudentDetails /></ProtectedRoute>} />
             <Route path="/teacher/classes/:classId" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherClassDetails /></ProtectedRoute>} />
             <Route path="/teacher/class-requests" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherJoinRequests /></ProtectedRoute>} />
+            <Route path="/teacher/class-sessions" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherClassSessions /></ProtectedRoute>} />
+            <Route path="/teacher/class-sessions/:classId" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherClassSessionMyClass /></ProtectedRoute>} />
+            <Route path="/teacher/class-sessions/:classId/session/:sessionId?" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherClassSessionWorkflow /></ProtectedRoute>} />
             <Route path="/teacher/homework" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherHomeworkList /></ProtectedRoute>} />
             <Route path="/teacher/homework-approvals" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherHomeworkApprovals /></ProtectedRoute>} />
             <Route path="/teacher/homework/create" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherHomeworkCreate /></ProtectedRoute>} />

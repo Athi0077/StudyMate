@@ -45,7 +45,15 @@ const PrincipalAttendance = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        <h2 className="text-2xl font-bold text-gray-800">Daily Attendance Overview</h2>
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-gray-800">Daily Attendance Overview</h2>
+          <Link 
+            to="/principal/attendance/period-monitoring"
+            className="bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-xl font-bold transition shadow-sm"
+          >
+            Monitor Period Sessions
+          </Link>
+        </div>
 
         <div className="bg-white p-8 rounded-2xl shadow-soft">
           <h3 className="text-lg font-bold text-gray-800 mb-6 border-b border-gray-100 pb-4">Today's Statistics</h3>
