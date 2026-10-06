@@ -10,8 +10,8 @@ const {
 const { protect, requireRole } = require("../middleware/authMiddleware");
 
 router.post("/", protect, requireRole("principal"), assignTeacher);
-router.get("/", protect, requireRole("principal"), getAssignments);
-router.get("/teacher/:teacherId", protect, getTeacherAssignments); // Both principal and the specific teacher can access, though usually accessed by teacher via their token
+router.get("/", protect, requireRole("principal", "teacher"), getAssignments);
+router.get("/teacher/:teacherId", protect, getTeacherAssignments);
 router.delete("/:id", protect, requireRole("principal"), removeAssignment);
 router.put("/:id", protect, requireRole("principal"), updateAssignment);
 
