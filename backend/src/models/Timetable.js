@@ -22,6 +22,11 @@ const periodSchema = new mongoose.Schema({
     type: String,
     required: false
   },
+  subjectId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Subject",
+    required: false
+  },
   subjectTeacherId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",

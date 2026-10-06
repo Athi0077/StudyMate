@@ -20,6 +20,10 @@ const teacherAssignmentSchema = new mongoose.Schema(
     subject: {
       type: String,
     },
+    subjectId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Subject",
+    },
     isClassTeacher: {
       type: Boolean,
       default: false,

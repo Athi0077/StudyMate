@@ -38,7 +38,7 @@ const getTeacherClasses = async (req, res) => {
     const standardSectionMap = {};
     assignments.forEach(a => {
       if (a.standardId && a.sectionId) {
-        standardSectionMap[`${a.standardId.name}-${a.sectionId.name}`] = true;
+        standardSectionMap[`${a.standardId._id.toString()}-${a.sectionId._id.toString()}`] = true;
       }
     });
 
@@ -47,7 +47,12 @@ const getTeacherClasses = async (req, res) => {
     const accessibleClasses = [];
     allActiveClasses.forEach(c => {
       const isClassTeacher = c.teacherId?.toString() === teacherId.toString();
-      const isSubjectTeacher = standardSectionMap[`${c.standard}-${c.section}`] === true;
+      let isSubjectTeacher = false;
+      if (c.standardId && c.sectionId) {
+        isSubjectTeacher = standardSectionMap[`${c.standardId.toString()}-${c.sectionId.toString()}`] === true;
+      } else {
+        isSubjectTeacher = standardSectionMap[`${c.standard}-${c.section}`] === true; // legacy fallback
+      }
       
       if (isClassTeacher || isSubjectTeacher) {
         accessibleClasses.push(c);
@@ -125,8 +130,11 @@ const getTimetableForSession = async (req, res) => {
           if (a.standardId && a.sectionId) {
             const aClassName = `${a.standardId.name} - ${a.sectionId.name}`;
             if (aClassName === classDoc.className) {
-              // If teacher is assigned to this specific subject OR is the class teacher
-              if ((a.subject && a.subject.toLowerCase() === p.subject?.toLowerCase()) || a.isClassTeacher) {
+              if (
+                (a.subjectId && p.subjectId && a.subjectId.toString() === p.subjectId.toString()) ||
+                (a.subject && p.subject && a.subject.toLowerCase() === p.subject.toLowerCase()) || 
+                a.isClassTeacher
+              ) {
                 isMyPeriod = true;
                 break;
               }
@@ -178,7 +186,11 @@ const initializeSession = async (req, res) => {
           if (a.standardId && a.sectionId) {
             const aClassName = `${a.standardId.name} - ${a.sectionId.name}`;
             if (aClassName === classDoc.className) {
-              if ((a.subject && a.subject.toLowerCase() === period.subject?.toLowerCase()) || a.isClassTeacher) {
+              if (
+                (a.subjectId && period.subjectId && a.subjectId.toString() === period.subjectId.toString()) ||
+                (a.subject && period.subject && a.subject.toLowerCase() === period.subject.toLowerCase()) || 
+                a.isClassTeacher
+              ) {
                 isAuthorized = true;
                 break;
               }

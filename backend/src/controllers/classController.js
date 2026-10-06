@@ -49,11 +49,13 @@ const getMyClasses = async (req, res) => {
       .populate("standardId")
       .populate("sectionId");
 
-    // Build an array of class name conditions to match against the Class model
-    const classConditions = assignments.map(a => ({
-      standard: a.standardId?.name,
-      section: a.sectionId?.name
-    })).filter(c => c.standard && c.section);
+    // Build an array of class conditions to match against the Class model
+    const classConditions = assignments.map(a => {
+      return [
+        { standardId: a.standardId?._id, sectionId: a.sectionId?._id },
+        { standard: a.standardId?.name, section: a.sectionId?.name } // legacy fallback
+      ];
+    }).flat().filter(c => (c.standardId && c.sectionId) || (c.standard && c.section));
 
     // Query Class model: either they are the Class Teacher OR they have a subject assignment
     let query = { teacherId: req.user._id };
@@ -190,8 +192,10 @@ const getClassById = async (req, res) => {
           .populate("sectionId", "name");
         
         hasAccess = assignments.some(a => 
-          a.standardId?.name === classData.standard && 
-          a.sectionId?.name === classData.section
+          (a.standardId?._id?.toString() === classData.standardId?.toString() && 
+           a.sectionId?._id?.toString() === classData.sectionId?.toString()) ||
+          (a.standardId?.name === classData.standard && 
+           a.sectionId?.name === classData.section)
         );
       }
 

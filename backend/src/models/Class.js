@@ -6,9 +6,17 @@ const classSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    standardId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Standard",
+    },
     section: {
       type: String,
       required: true,
+    },
+    sectionId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Section",
     },
     className: {
       type: String,

@@ -9,6 +9,8 @@ const TeacherTimetable = () => {
   const [selectedClass, setSelectedClass] = useState(null);
   const [activeYear, setActiveYear] = useState(null);
   const [timetable, setTimetable] = useState(null);
+  const [subjects, setSubjects] = useState([]);
+  const [assignments, setAssignments] = useState([]);
   
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -64,8 +66,11 @@ const TeacherTimetable = () => {
       }) || [];
       setClasses(classTeacherOf);
       
+      
       if (classTeacherOf.length > 0) {
         setSelectedClass(classTeacherOf[0]._id);
+        fetchClassSubjects(classTeacherOf[0]._id);
+        fetchClassAssignments(classTeacherOf[0]._id);
       }
     } catch (err) {
       toast.error('Failed to load initial data');
@@ -74,7 +79,41 @@ const TeacherTimetable = () => {
     }
   };
 
-  const fetchTimetable = async () => {
+  const fetchClassSubjects = async (classId) => {
+    try {
+      const res = await api.get(`/subjects`);
+      setSubjects(res.data.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchClassAssignments = async (classId) => {
+    try {
+      // Find the class details to get standard and section
+      const classRes = await api.get(`/classes/${classId}`);
+      if (classRes.data.success) {
+         const cls = classRes.data.data;
+         const standardId = cls.standardId || cls.standard; // standard might be string, need to handle this
+         const allAssignments = await api.get(`/teacher-assignments`);
+         // Filter assignments for this class
+         const filtered = allAssignments.data.data.filter(a => 
+           `${a.standardId?.name} - ${a.sectionId?.name}` === cls.className
+         );
+         setAssignments(filtered);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedClass) {
+      fetchTimetable();
+      fetchClassSubjects(selectedClass);
+      fetchClassAssignments(selectedClass);
+    }
+  }, [selectedClass]);
     try {
       setLoading(true);
       const res = await api.get(`/timetable/class/${selectedClass}`);
@@ -150,7 +189,20 @@ const TeacherTimetable = () => {
   const handlePeriodChange = (day, periodNumber, field, value) => {
     const updatedPeriods = formData.periods.map(p => {
       if (p.day === day && p.periodNumber === periodNumber) {
-        return { ...p, [field]: value };
+        let updated = { ...p, [field]: value };
+        if (field === 'subjectId') {
+          const subDoc = subjects.find(s => s._id === value);
+          updated.subject = subDoc ? subDoc.name : '';
+          
+          // Auto-assign teacher
+          const possibleAssignments = assignments.filter(a => a.subjectId?._id === value || a.subject === updated.subject);
+          if (possibleAssignments.length === 1) {
+            updated.subjectTeacherId = possibleAssignments[0].teacherId?._id || possibleAssignments[0].teacherId;
+          } else {
+            updated.subjectTeacherId = '';
+          }
+        }
+        return updated;
       }
       return p;
     });
@@ -350,16 +402,41 @@ const TeacherTimetable = () => {
                         return (
                           <td key={day} className="p-2 border border-gray-200 align-top">
                             {isEditing ? (
-                              <input 
-                                type="text"
-                                value={p.subject || ''}
-                                onChange={(e) => handlePeriodChange(day, p.periodNumber, 'subject', e.target.value)}
-                                placeholder="Subject"
-                                className="w-full p-2 text-center border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm font-medium"
-                              />
+                              <div className="flex flex-col gap-2">
+                                <select
+                                  value={p.subjectId || ''}
+                                  onChange={(e) => handlePeriodChange(day, p.periodNumber, 'subjectId', e.target.value)}
+                                  className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm font-medium"
+                                >
+                                  <option value="">Select Subject</option>
+                                  {subjects.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
+                                </select>
+                                {p.subjectId && (
+                                  <select
+                                    value={p.subjectTeacherId || ''}
+                                    onChange={(e) => handlePeriodChange(day, p.periodNumber, 'subjectTeacherId', e.target.value)}
+                                    className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-xs font-medium"
+                                  >
+                                    <option value="">Select Teacher</option>
+                                    {assignments
+                                      .filter(a => a.subjectId?._id === p.subjectId || a.subject === p.subject)
+                                      .map(a => (
+                                        <option key={a.teacherId?._id} value={a.teacherId?._id}>
+                                          {a.teacherId?.name}
+                                        </option>
+                                      ))
+                                    }
+                                  </select>
+                                )}
+                              </div>
                             ) : (
                               <div className="flex flex-col items-center justify-center h-full p-2 rounded-lg bg-blue-50/50 min-h-[60px]">
                                 <span className="font-bold text-blue-800 text-center">{p.subject || '-'}</span>
+                                {p.subjectTeacherId && (
+                                  <span className="text-xs text-gray-500 mt-1">
+                                    {p.subjectTeacherId?.name || (assignments.find(a => a.teacherId?._id === p.subjectTeacherId)?.teacherId?.name)}
+                                  </span>
+                                )}
                               </div>
                             )}
                           </td>

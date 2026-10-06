@@ -10,7 +10,8 @@ const PrincipalAssignments = () => {
   const [selectedTeacher, setSelectedTeacher] = useState('');
   const [selectedStandard, setSelectedStandard] = useState('');
   const [selectedSection, setSelectedSection] = useState('');
-  const [subject, setSubject] = useState('');
+  const [subjectId, setSubjectId] = useState('');
+  const [subjects, setSubjects] = useState([]);
   const [isClassTeacher, setIsClassTeacher] = useState(false);
   const [editingId, setEditingId] = useState(null);
   
@@ -24,12 +25,14 @@ const PrincipalAssignments = () => {
 
   const fetchData = async () => {
     try {
-      const [assignmentsRes, standardsRes] = await Promise.all([
+      const [assignmentsRes, standardsRes, subjectsRes] = await Promise.all([
         api.get('/teacher-assignments'),
-        api.get('/standards')
+        api.get('/standards'),
+        api.get('/subjects')
       ]);
       setAssignments(assignmentsRes.data.data);
       setStandards(standardsRes.data.data);
+      setSubjects(subjectsRes.data.data);
 
       try {
         const usersRes = await api.get('/users/active-teachers');
@@ -53,7 +56,7 @@ const PrincipalAssignments = () => {
           teacherId: selectedTeacher,
           standardId: selectedStandard,
           sectionId: selectedSection,
-          subject,
+          subjectId,
           isClassTeacher
         });
         setSuccess('Teacher assignment updated successfully');
@@ -62,7 +65,7 @@ const PrincipalAssignments = () => {
           teacherId: selectedTeacher,
           standardId: selectedStandard,
           sectionId: selectedSection,
-          subject,
+          subjectId,
           isClassTeacher
         });
         setSuccess('Teacher assigned successfully');
@@ -79,7 +82,7 @@ const PrincipalAssignments = () => {
     setSelectedTeacher('');
     setSelectedStandard('');
     setSelectedSection('');
-    setSubject('');
+    setSubjectId('');
     setIsClassTeacher(false);
     setError('');
   };
@@ -89,7 +92,7 @@ const PrincipalAssignments = () => {
     setSelectedTeacher(assignment.teacherId ? (assignment.teacherId._id || assignment.teacherId) : '');
     setSelectedStandard(assignment.standardId ? (assignment.standardId._id || assignment.standardId) : '');
     setSelectedSection(assignment.sectionId ? (assignment.sectionId._id || assignment.sectionId) : '');
-    setSubject(assignment.subject || '');
+    setSubjectId(assignment.subjectId ? (assignment.subjectId._id || assignment.subjectId) : '');
     setIsClassTeacher(assignment.isClassTeacher || false);
     window.scrollTo(0, 0);
   };
@@ -160,13 +163,14 @@ const PrincipalAssignments = () => {
 
             <div>
               <label className="block mb-2 font-semibold text-gray-700 text-sm">Subject (Optional)</label>
-              <input 
-                type="text" 
+              <select 
                 className="w-full p-3 border border-gray-100 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm" 
-                placeholder="e.g. Mathematics"
-                value={subject}
-                onChange={e => setSubject(e.target.value)}
-              />
+                value={subjectId}
+                onChange={e => setSubjectId(e.target.value)}
+              >
+                <option value="">Select Subject</option>
+                {subjects.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
+              </select>
             </div>
             
             <div className="md:col-span-2 pt-2 flex items-center">
@@ -217,7 +221,7 @@ const PrincipalAssignments = () => {
                     )}
                   </div>
                   <p className="text-gray-500 text-sm mb-3"><strong>Class:</strong> {a.standardId?.name} - {a.sectionId?.name}</p>
-                  <p className="text-gray-500 text-sm mb-6"><strong>Subject:</strong> {a.subject || 'General'}</p>
+                  <p className="text-gray-500 text-sm mb-6"><strong>Subject:</strong> {a.subjectId?.name || a.subject || 'General'}</p>
                 </div>
                 <div className="flex gap-2">
                   <button 

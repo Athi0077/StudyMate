@@ -24,6 +24,10 @@ const classSessionSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    subjectId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Subject",
+    },
     teacherId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
