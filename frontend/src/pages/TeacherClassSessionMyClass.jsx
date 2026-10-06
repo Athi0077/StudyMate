@@ -158,8 +158,7 @@ const TeacherClassSessionMyClass = () => {
           ) : periods.length > 0 ? (
             <div className="space-y-4">
               {periods.sort((a,b) => a.period.periodNumber - b.period.periodNumber).map((item, index) => {
-                const { period, sessionStatus, sessionId } = item;
-                const isMyPeriod = period.subjectTeacherId?._id === currentUser._id;
+                const { period, sessionStatus, sessionId, isMyPeriod } = item;
                 
                 let statusBadge = null;
                 let actionButton = null;

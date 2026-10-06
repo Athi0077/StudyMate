@@ -105,14 +105,42 @@ const getTimetableForSession = async (req, res) => {
       sessionMap[s.periodNumber] = s;
     });
 
+    // Get teacher assignments for fallback authorization
+    const teacherId = req.user._id;
+    const assignments = await TeacherAssignment.find({ teacherId }).populate('standardId sectionId');
+    const classDoc = await Class.findById(classId);
+
     // Merge status
     const result = dayPeriods.map(p => {
       const session = sessionMap[p.periodNumber];
+      
+      let isMyPeriod = false;
+      if (p.subjectTeacherId && p.subjectTeacherId._id && p.subjectTeacherId._id.toString() === teacherId.toString()) {
+        isMyPeriod = true;
+      }
+
+      // Fallback: Check TeacherAssignment
+      if (!isMyPeriod && classDoc) {
+        for (let a of assignments) {
+          if (a.standardId && a.sectionId) {
+            const aClassName = `${a.standardId.name} - ${a.sectionId.name}`;
+            if (aClassName === classDoc.className) {
+              // If teacher is assigned to this specific subject OR is the class teacher
+              if ((a.subject && a.subject.toLowerCase() === p.subject?.toLowerCase()) || a.isClassTeacher) {
+                isMyPeriod = true;
+                break;
+              }
+            }
+          }
+        }
+      }
+
       return {
         timetableId: timetable._id,
         period: p,
         sessionStatus: session ? session.sessionStatus : "NOT_STARTED",
-        sessionId: session ? session._id : null
+        sessionId: session ? session._id : null,
+        isMyPeriod
       };
     });
 
@@ -137,7 +165,30 @@ const initializeSession = async (req, res) => {
     const period = timetable.periods.find(p => p.periodNumber === periodNumber && p.type === 'regular');
     if (!period) return res.status(404).json({ success: false, message: "Period not found" });
 
-    if (period.subjectTeacherId?.toString() !== teacherId.toString()) {
+    let isAuthorized = false;
+    if (period.subjectTeacherId && period.subjectTeacherId.toString() === teacherId.toString()) {
+      isAuthorized = true;
+    }
+
+    if (!isAuthorized) {
+      const assignments = await TeacherAssignment.find({ teacherId }).populate('standardId sectionId');
+      const classDoc = await Class.findById(classId);
+      if (classDoc) {
+        for (let a of assignments) {
+          if (a.standardId && a.sectionId) {
+            const aClassName = `${a.standardId.name} - ${a.sectionId.name}`;
+            if (aClassName === classDoc.className) {
+              if ((a.subject && a.subject.toLowerCase() === period.subject?.toLowerCase()) || a.isClassTeacher) {
+                isAuthorized = true;
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (!isAuthorized) {
       return res.status(403).json({ success: false, message: "You are not authorized to start a session for this period" });
     }
 
