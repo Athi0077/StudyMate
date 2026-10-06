@@ -75,6 +75,27 @@ app.use("/api/id-card", require("./src/routes/idCardRoutes"));
 app.use("/api/fee-status", require("./src/routes/feeStatusRoutes"));
 app.use("/api/events", require("./src/routes/eventRoutes"));
 app.use("/api/weather", require("./src/routes/weatherRoutes"));
+
+app.get("/api/seed-subjects", async (req, res) => {
+  try {
+    const Subject = require("./src/models/Subject");
+    await Subject.deleteMany({});
+    const subjects = [
+      { name: "English", code: "ENG" },
+      { name: "Tamil", code: "TAM" },
+      { name: "Maths", code: "MAT" },
+      { name: "Science", code: "SCI" },
+      { name: "Social science", code: "SOC" },
+      { name: "PT", code: "PT" },
+      { name: "Free Period", code: "FREE" }
+    ];
+    await Subject.insertMany(subjects);
+    res.json({ success: true, message: "Seeded 7 subjects" });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.use("/api/special-classes", require("./src/routes/specialClassRoutes"));
 app.use("/api/birthdays", require("./src/routes/birthdayRoutes"));
 app.use("/api/fun-activities", require("./src/routes/quizRoutes"));
