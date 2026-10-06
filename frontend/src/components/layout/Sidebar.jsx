@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
-import { Home, ClipboardList, BookOpen, Calendar, Bell, Users, FileText, CheckSquare, Layers, LogOut, CalendarDays, User, Contact, MessageSquare, Megaphone, Shield, Cake, CloudSun, ClipboardCheck, GraduationCap, Gamepad2, Zap, PartyPopper, Bus, Map, MapPin, Navigation2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Home, ClipboardList, BookOpen, Calendar, Bell, Users, FileText, CheckSquare, Layers, LogOut, CalendarDays, User, Contact, MessageSquare, Megaphone, Shield, Cake, CloudSun, ClipboardCheck, GraduationCap, Gamepad2, Zap, PartyPopper, Bus, Map, MapPin, Navigation2, ChevronDown, ChevronUp, Clock } from 'lucide-react';
 
 export const navConfig = {
   student: [
