@@ -52,7 +52,13 @@ const Login = () => {
         else navigate('/student/dashboard');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to login. Please check your credentials.');
+      if (!err.response) {
+        setError('Network Error: The server might be waking up or is currently unreachable. Please try again in a minute.');
+      } else if (err.response.status === 504 || err.response.status === 502) {
+        setError('Server is waking up or busy. Please try again in a few moments.');
+      } else {
+        setError(err.response?.data?.message || 'Failed to login. Please check your credentials.');
+      }
     } finally {
       setLoading(false);
     }
