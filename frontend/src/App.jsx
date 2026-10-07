@@ -319,8 +319,8 @@ function App() {
             
             <Route path="/teacher/attendance" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherAttendanceList /></ProtectedRoute>} />
             <Route path="/teacher/attendance/:classId" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherAttendance /></ProtectedRoute>} />
-            <Route path="/teacher/leave-requests" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherLeaveRequests /></ProtectedRoute>} />
-            <Route path="/teacher/my-leave-requests" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherMyLeaveRequests /></ProtectedRoute>} />
+            <Route path="/teacher/student-leaves" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherLeaveRequests /></ProtectedRoute>} />
+            <Route path="/teacher/leave-requests" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherMyLeaveRequests /></ProtectedRoute>} />
             <Route path="/teacher/general-register" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherGeneralRegister /></ProtectedRoute>} />
             <Route path="/teacher/syllabus" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherSyllabus /></ProtectedRoute>} />
             <Route path="/teacher/exams" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherExams /></ProtectedRoute>} />

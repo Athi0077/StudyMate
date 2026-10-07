@@ -490,7 +490,7 @@ const TeacherDashboard = () => {
             <div className="bg-white p-6 rounded-3xl shadow-soft">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-bold text-gray-900">Pending Requests</h3>
-                <Link to="/teacher/leave-requests" className="text-primary text-sm font-semibold hover:underline">View All →</Link>
+                <Link to="/teacher/student-leaves" className="text-primary text-sm font-semibold hover:underline">View All →</Link>
               </div>
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-orange-200 transition">

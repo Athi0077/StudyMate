@@ -26,8 +26,8 @@ const TeacherAttendanceList = () => {
       <div className="p-6 max-w-5xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Attendance</h2>
-        <Link to="/teacher/leave-requests" className="bg-orange-500 text-white px-4 py-2 rounded font-bold hover:bg-orange-600">
-          Leave Requests
+        <Link to="/teacher/student-leaves" className="bg-orange-500 text-white px-4 py-2 rounded font-bold hover:bg-orange-600">
+          Student Leaves
         </Link>
       </div>
 
