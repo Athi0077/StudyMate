@@ -102,6 +102,7 @@ import ParentDashboard from './pages/ParentDashboard';
 import ParentActivities from './pages/ParentActivities';
 import ParentClassSessions from './pages/ParentClassSessions';
 import ParentTransportTracking from './pages/ParentTransportTracking';
+import HandRaisesPage from './pages/HandRaisesPage';
 
 import PrincipalReports from './pages/PrincipalReports';
 import TeacherReports from './pages/TeacherReports';
@@ -256,6 +257,7 @@ function App() {
             <Route path="/principal/exams/create" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalCreateExam /></ProtectedRoute>} />
             <Route path="/principal/exams/edit/:id" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalEditExam /></ProtectedRoute>} />
             <Route path="/principal/todos" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalTodos /></ProtectedRoute>} />
+            <Route path="/principal/hand-raises" element={<ProtectedRoute allowedRoles={['principal']}><HandRaisesPage /></ProtectedRoute>} />
             <Route path="/principal/reports" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalReports /></ProtectedRoute>} />
             <Route path="/principal/profile" element={<ProtectedRoute allowedRoles={['principal']}><Profile /></ProtectedRoute>} />
             <Route path="/principal/ai-dashboard" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalAIDashboard /></ProtectedRoute>} />
@@ -318,6 +320,7 @@ function App() {
             <Route path="/teacher/exams" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherExams /></ProtectedRoute>} />
             <Route path="/teacher/reports" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherReports /></ProtectedRoute>} />
             <Route path="/teacher/timetable" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherTimetable /></ProtectedRoute>} />
+            <Route path="/teacher/hand-raises" element={<ProtectedRoute allowedRoles={['teacher']}><HandRaisesPage /></ProtectedRoute>} />
             <Route path="/teacher/todos" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherTodos /></ProtectedRoute>} />
             <Route path="/teacher/profile" element={<ProtectedRoute allowedRoles={['teacher']}><Profile /></ProtectedRoute>} />
             <Route path="/teacher/my-id-card" element={<ProtectedRoute allowedRoles={['teacher']}><DigitalIDCard /></ProtectedRoute>} />
@@ -351,6 +354,7 @@ function App() {
             <Route path="/student/reports" element={<ProtectedRoute allowedRoles={['student']}><StudentReports /></ProtectedRoute>} />
             <Route path="/student/timetable" element={<ProtectedRoute allowedRoles={['student', 'parent']}><StudentTimetable /></ProtectedRoute>} />
             <Route path="/student/todos" element={<ProtectedRoute allowedRoles={['student']}><StudentTodos /></ProtectedRoute>} />
+            <Route path="/student/hand-raises" element={<ProtectedRoute allowedRoles={['student']}><HandRaisesPage /></ProtectedRoute>} />
             <Route path="/student/profile" element={<ProtectedRoute allowedRoles={['student']}><Profile /></ProtectedRoute>} />
             <Route path="/student/my-id-card" element={<ProtectedRoute allowedRoles={['student']}><DigitalIDCard /></ProtectedRoute>} />
 
@@ -359,6 +363,7 @@ function App() {
             <Route path="/parent/class-sessions" element={<ProtectedRoute allowedRoles={['parent']}><ParentClassSessions /></ProtectedRoute>} />
             <Route path="/parent/transport/tracking/:busId" element={<ProtectedRoute allowedRoles={['parent']}><ParentTransportTracking /></ProtectedRoute>} />
             <Route path="/parent/special-classes" element={<ProtectedRoute allowedRoles={['parent']}><StudentSpecialClasses /></ProtectedRoute>} />
+            <Route path="/parent/hand-raises" element={<ProtectedRoute allowedRoles={['parent']}><HandRaisesPage /></ProtectedRoute>} />
             <Route path="/parent/reports" element={<ProtectedRoute allowedRoles={['parent']}><ParentReports /></ProtectedRoute>} />
             <Route path="/parent/profile" element={<ProtectedRoute allowedRoles={['parent']}><Profile /></ProtectedRoute>} />
 

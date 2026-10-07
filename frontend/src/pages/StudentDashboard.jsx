@@ -20,16 +20,20 @@ const StudentDashboard = () => {
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const [dashRes, syllabusRes, quoteRes, feeRes] = await Promise.all([
+        const [dashRes, syllabusRes, quoteRes, feeRes, hrRes] = await Promise.all([
           api.get('/dashboard/student'),
           api.get('/syllabus/student/progress').catch(() => ({ data: { data: null } })),
           api.get('/quotes/current').catch(() => ({ data: { data: null } })),
-          api.get('/fee-status/my-status').catch(() => ({ data: { data: null } }))
+          api.get('/fee-status/my-status').catch(() => ({ data: { data: null } })),
+          api.get('/hand-raises/stats').catch(() => ({ data: { data: null } }))
         ]);
         
         const dashboard = dashRes.data.data;
         if (syllabusRes.data.data) {
           dashboard.syllabusProgress = syllabusRes.data.data;
+        }
+        if (hrRes.data?.data) {
+          dashboard.handRaises = hrRes.data.data;
         }
         
         setDashboardData(dashboard);
@@ -309,6 +313,31 @@ const StudentDashboard = () => {
 
             {/* Transport Card */}
             <StudentMyTransportCard />
+
+            {/* Hand Raises Widget */}
+            <div className="bg-white p-6 rounded-3xl shadow-soft border-t-4 border-t-purple-500">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <span className="text-xl text-purple-600">🙋</span> My Hand Raises
+                </h3>
+                <Link to="/student/hand-raises" className="text-sm font-semibold text-purple-600 hover:underline">View All →</Link>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="bg-purple-50 p-4 rounded-2xl flex flex-col items-center justify-center">
+                  <span className="text-xs font-bold text-purple-600 uppercase mb-1">Scheduled</span>
+                  <span className="text-2xl font-black text-purple-700">{dashboardData?.handRaises?.SCHEDULED || 0}</span>
+                </div>
+                <div className="bg-yellow-50 p-4 rounded-2xl flex flex-col items-center justify-center">
+                  <span className="text-xs font-bold text-yellow-600 uppercase mb-1">Pending</span>
+                  <span className="text-2xl font-black text-yellow-700">{dashboardData?.handRaises?.PENDING || 0}</span>
+                </div>
+              </div>
+              
+              <Link to="/student/hand-raises" className="w-full block text-center py-3 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 transition shadow-sm">
+                Raise Hand to Teacher
+              </Link>
+            </div>
           </div>
 
           {/* Column 2 */}

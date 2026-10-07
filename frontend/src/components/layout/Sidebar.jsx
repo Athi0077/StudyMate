@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
-import { Home, ClipboardList, BookOpen, Calendar, Bell, Users, FileText, CheckSquare, Layers, LogOut, CalendarDays, User, Contact, MessageSquare, Megaphone, Shield, Cake, CloudSun, ClipboardCheck, GraduationCap, Gamepad2, Zap, PartyPopper, Bus, Map, MapPin, Navigation2, ChevronDown, ChevronUp, Clock } from 'lucide-react';
+import { Home, ClipboardList, BookOpen, Calendar, Bell, Users, FileText, CheckSquare, Layers, LogOut, CalendarDays, User, Contact, MessageSquare, Megaphone, Shield, Cake, CloudSun, ClipboardCheck, GraduationCap, Gamepad2, Zap, PartyPopper, Bus, Map, MapPin, Navigation2, ChevronDown, ChevronUp, Clock, Hand } from 'lucide-react';
 
 export const navConfig = {
   student: [
@@ -11,6 +11,7 @@ export const navConfig = {
     { name: 'Projects', path: '/student/projects', icon: FileText },
     { name: 'Tests', path: '/student/tests', icon: ClipboardCheck },
     { name: 'Exams', path: '/student/exams', icon: GraduationCap },
+    { name: 'Hand Raises', path: '/student/hand-raises', icon: Hand },
     { name: 'My Todos', path: '/student/todos', icon: CheckSquare },
     { name: 'Report Card', path: '/student/report-card', icon: FileText },
     { name: 'Attendance', path: '/student/attendance', icon: Calendar },
@@ -43,6 +44,7 @@ export const navConfig = {
     { name: 'Fun Activities', path: '/teacher/fun-activities', icon: Gamepad2 },
     { name: 'Announcements', path: '/teacher/announcements', icon: Megaphone },
     { name: 'Leave Requests', path: '/teacher/leave-requests', icon: FileText },
+    { name: 'Hand Raises', path: '/teacher/hand-raises', icon: Hand },
     { name: 'Todos & Tasks', path: '/teacher/todos', icon: CheckSquare },
     { name: 'Special Classes', path: '/teacher/special-classes', icon: Zap },
     { name: "Today's Birthdays", path: '/teacher/birthdays', icon: Cake },
@@ -71,6 +73,7 @@ export const navConfig = {
     { name: 'Special Classes', path: '/principal/special-classes', icon: Zap },
     { name: 'Announcements', path: '/principal/announcements', icon: Megaphone },
     { name: 'Motivational Quotes', path: '/principal/quotes', icon: MessageSquare },
+    { name: 'Hand Raises', path: '/principal/hand-raises', icon: Hand },
     { name: 'Work Assignments', path: '/principal/todos', icon: CheckSquare },
     { name: 'Weather', path: '/weather', icon: CloudSun },
     { name: "Today's Birthdays", path: '/principal/birthdays', icon: Cake },
@@ -87,6 +90,7 @@ export const navConfig = {
     { name: 'Class Sessions', path: '/parent/class-sessions', icon: Clock },
     { name: 'Activities', path: '/parent/activities', icon: ClipboardList },
     { name: 'Special Classes', path: '/parent/special-classes', icon: Zap },
+    { name: 'Hand Raises', path: '/parent/hand-raises', icon: Hand },
     { name: 'Weather', path: '/weather', icon: CloudSun },
     { name: 'Timetable', path: '/student/timetable', icon: CalendarDays },
     { name: 'Help Center', path: '/parent/reports', icon: MessageSquare },
