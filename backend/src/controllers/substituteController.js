@@ -24,28 +24,37 @@ const getUncoveredPeriods = async (req, res) => {
     targetDate.setHours(0, 0, 0, 0);
     const dayName = getDayName(date);
 
+    console.log("Selected Date:", date);
+    console.log("Calculated Weekday:", dayName);
+
     // 1. Find teachers on leave for this date
-    // (Assuming TeacherAttendance with status "leave" represents approved leave)
     const teachersOnLeave = await TeacherAttendance.find({
       date: targetDate,
       status: { $in: ["leave", "absent"] },
     }).select("teacherId");
 
-    const leaveTeacherIds = teachersOnLeave.map((t) => t.teacherId);
+    const leaveTeacherIds = teachersOnLeave.map((t) => t.teacherId.toString());
 
     if (leaveTeacherIds.length === 0) {
+      console.log("No teachers on leave for this date.");
       return res.json({ success: true, data: [] });
     }
 
+    console.log("Teachers on leave:", leaveTeacherIds);
+
     // 2. Find timetable periods for these teachers on this day of the week
     const timetables = await Timetable.find({
-      teacherId: { $in: leaveTeacherIds },
-      day: dayName,
+      "periods": {
+        $elemMatch: {
+          subjectTeacherId: { $in: leaveTeacherIds },
+          day: dayName
+        }
+      }
     })
-      .populate("teacherId", "name profilePic")
       .populate("classId", "className standard section")
-      .populate("sectionId", "name")
-      .populate("subjectId", "name");
+      .populate("periods.subjectTeacherId", "name profilePic");
+
+    console.log("Timetables found:", timetables.length);
 
     // 3. Find existing substitute assignments for this date
     const existingAssignments = await SubstituteAssignment.find({ date })
@@ -57,26 +66,36 @@ const getUncoveredPeriods = async (req, res) => {
     });
 
     // 4. Combine into result array
-    const uncoveredPeriods = timetables.map((tt) => {
-      const assignment = assignmentsMap[`${tt._id.toString()}-${tt.periodNumber}`];
-      
-      return {
-        timetableId: tt._id,
-        originalTeacher: tt.teacherId,
-        class: tt.classId,
-        section: tt.sectionId,
-        subject: tt.subjectId,
-        periodNumber: tt.periodNumber,
-        startTime: tt.startTime,
-        endTime: tt.endTime,
-        date: date,
-        status: assignment ? (assignment.status === "COMPLETED" ? "COMPLETED" : "ASSIGNED") : "REQUIRED",
-        substituteAssignment: assignment || null,
-      };
+    const uncoveredPeriods = [];
+
+    timetables.forEach((tt) => {
+      tt.periods.forEach((p) => {
+        if (p.day === dayName && p.subjectTeacherId && leaveTeacherIds.includes(p.subjectTeacherId._id.toString())) {
+          const assignmentKey = `${tt._id.toString()}-${p.periodNumber}`;
+          const assignment = assignmentsMap[assignmentKey];
+          
+          uncoveredPeriods.push({
+            timetableId: tt._id,
+            originalTeacher: p.subjectTeacherId,
+            class: tt.classId,
+            section: tt.classId ? tt.classId.sectionId : null,
+            subject: p.subjectId,
+            periodNumber: p.periodNumber,
+            startTime: p.startTime,
+            endTime: p.endTime,
+            date: date,
+            status: assignment ? (assignment.status === "COMPLETED" ? "COMPLETED" : "ASSIGNED") : "REQUIRED",
+            substituteAssignment: assignment || null,
+          });
+        }
+      });
     });
+
+    console.log("Uncovered periods returned:", uncoveredPeriods.length);
 
     res.json({ success: true, data: uncoveredPeriods });
   } catch (error) {
+    console.error("Error in getUncoveredPeriods:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -109,9 +128,13 @@ const assignSubstitute = async (req, res) => {
     // Check if substitute is already assigned to a regular timetable at this time/day
     const dayName = getDayName(date);
     const existingTimetable = await Timetable.findOne({
-      teacherId: substituteTeacherId,
-      day: dayName,
-      periodNumber: periodNumber,
+      "periods": {
+        $elemMatch: {
+          subjectTeacherId: substituteTeacherId,
+          day: dayName,
+          periodNumber: periodNumber
+        }
+      }
     });
 
     if (existingTimetable) {
@@ -193,9 +216,13 @@ const updateSubstitute = async (req, res) => {
       // Reassign validation
       const dayName = getDayName(assignment.date);
       const existingTimetable = await Timetable.findOne({
-        teacherId: substituteTeacherId,
-        day: dayName,
-        periodNumber: assignment.periodNumber,
+        "periods": {
+          $elemMatch: {
+            subjectTeacherId: substituteTeacherId,
+            day: dayName,
+            periodNumber: assignment.periodNumber
+          }
+        }
       });
 
       if (existingTimetable) {
