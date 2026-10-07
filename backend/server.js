@@ -84,6 +84,7 @@ app.use("/api/transport", require("./src/routes/transportRoutes"));
 app.use("/api/class-sessions", require("./src/routes/classSessionRoutes"));
 app.use("/api/hand-raises", require("./src/routes/handRaiseRoutes"));
 app.use("/api/substitutes", require("./src/routes/substituteRoutes"));
+app.use("/api/staff-leave", require("./src/routes/staffLeaveRoutes"));
 app.use("/api", dashboardRoutes);
 
 // Root route

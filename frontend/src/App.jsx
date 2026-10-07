@@ -42,6 +42,7 @@ import PrincipalAIProgress from './pages/PrincipalAIProgress';
 import PrincipalClassSessionMonitoring from './pages/PrincipalClassSessionMonitoring';
 import PrincipalClassPeriodSessions from './pages/PrincipalClassPeriodSessions';
 import PrincipalSubstituteManagement from './pages/PrincipalSubstituteManagement';
+import PrincipalStaffLeave from './pages/PrincipalStaffLeave';
 
 import PrincipalTransportBuses from './pages/PrincipalTransportBuses';
 import PrincipalTransportDrivers from './pages/PrincipalTransportDrivers';
@@ -80,6 +81,7 @@ import TeacherAnnouncements from './pages/TeacherAnnouncements';
 import TeacherClassSessions from './pages/TeacherClassSessions';
 import TeacherClassSessionMyClass from './pages/TeacherClassSessionMyClass';
 import TeacherClassSessionWorkflow from './pages/TeacherClassSessionWorkflow';
+import TeacherMyLeaveRequests from './pages/TeacherMyLeaveRequests';
 
 import StudentDashboard from './pages/StudentDashboard';
 import StudentClass from './pages/StudentClass';
@@ -251,6 +253,7 @@ function App() {
             <Route path="/principal/academic-years/:id/admissions" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalAdmissions /></ProtectedRoute>} />
             <Route path="/principal/students" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalStudents /></ProtectedRoute>} />
             <Route path="/principal/substitutes" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalSubstituteManagement /></ProtectedRoute>} />
+            <Route path="/principal/staff-leave" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalStaffLeave /></ProtectedRoute>} />
             <Route path="/principal/students/details/:studentId" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalStudentDetails /></ProtectedRoute>} />
             <Route path="/principal/student-details/:studentId" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalStudentDetails /></ProtectedRoute>} />
             <Route path="/principal/students/:classId" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalClassStudents /></ProtectedRoute>} />
@@ -317,6 +320,7 @@ function App() {
             <Route path="/teacher/attendance" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherAttendanceList /></ProtectedRoute>} />
             <Route path="/teacher/attendance/:classId" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherAttendance /></ProtectedRoute>} />
             <Route path="/teacher/leave-requests" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherLeaveRequests /></ProtectedRoute>} />
+            <Route path="/teacher/my-leave-requests" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherMyLeaveRequests /></ProtectedRoute>} />
             <Route path="/teacher/general-register" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherGeneralRegister /></ProtectedRoute>} />
             <Route path="/teacher/syllabus" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherSyllabus /></ProtectedRoute>} />
             <Route path="/teacher/exams" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherExams /></ProtectedRoute>} />
