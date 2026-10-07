@@ -476,6 +476,68 @@ const getMonitoringData = async (req, res) => {
   }
 };
 
+// @desc    Get class sessions for a specific child
+// @route   GET /api/class-sessions/parent/children/:childId
+// @access  Private (Parent)
+const getParentChildClassSessions = async (req, res) => {
+  try {
+    const { childId } = req.params;
+    const { date } = req.query;
+
+    if (!date) {
+      return res.status(400).json({ success: false, message: "Date is required" });
+    }
+
+    // Verify this child belongs to the parent
+    const parent = await require("../models/User").findById(req.user._id);
+    if (!parent || !parent.children || !parent.children.includes(childId)) {
+      return res.status(403).json({ success: false, message: "Unauthorized to access this child's data" });
+    }
+
+    const child = await require("../models/User").findById(childId);
+    if (!child || !child.classId) {
+      return res.status(404).json({ success: false, message: "Child or class not found" });
+    }
+
+    const sessions = await ClassSession.find({ classId: child.classId, date })
+      .populate("teacherId", "name profilePic")
+      .populate("subjectId", "name")
+      .populate("homeworkId", "title")
+      .sort({ periodNumber: 1 });
+
+    // Map sessions to include only this child's attendance status
+    const result = sessions.map(session => {
+      let studentStatus = "Not Taken";
+      if (session.attendance && session.attendance.length > 0) {
+        const studentRecord = session.attendance.find(a => a.studentId.toString() === childId);
+        if (studentRecord) {
+          studentStatus = studentRecord.status;
+        } else {
+          studentStatus = "absent"; // Or some default
+        }
+      }
+
+      return {
+        _id: session._id,
+        periodNumber: session.periodNumber,
+        subject: session.subject,
+        teacher: session.teacherId ? session.teacherId.name : "Unknown",
+        sessionStatus: session.sessionStatus,
+        chapter: session.chapter,
+        topic: session.topic,
+        lessonLog: session.lessonLog,
+        homeworkAssigned: !!session.homeworkId,
+        homeworkTitle: session.homeworkId ? session.homeworkId.title : null,
+        studentStatus
+      };
+    });
+
+    res.json({ success: true, data: result });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   getTeacherClasses,
   getTimetableForSession,
@@ -486,5 +548,6 @@ module.exports = {
   saveLessonLog,
   saveHomework,
   completeSession,
-  getMonitoringData
+  getMonitoringData,
+  getParentChildClassSessions
 };

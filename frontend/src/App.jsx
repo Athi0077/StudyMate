@@ -100,6 +100,7 @@ import StudentAnalytics from './pages/StudentAnalytics';
 import Profile from './pages/Profile';
 import ParentDashboard from './pages/ParentDashboard';
 import ParentActivities from './pages/ParentActivities';
+import ParentClassSessions from './pages/ParentClassSessions';
 import ParentTransportTracking from './pages/ParentTransportTracking';
 
 import PrincipalReports from './pages/PrincipalReports';
@@ -353,9 +354,9 @@ function App() {
             <Route path="/student/profile" element={<ProtectedRoute allowedRoles={['student']}><Profile /></ProtectedRoute>} />
             <Route path="/student/my-id-card" element={<ProtectedRoute allowedRoles={['student']}><DigitalIDCard /></ProtectedRoute>} />
 
-            {/* Parent Routes */}
             <Route path="/parent/dashboard" element={<ProtectedRoute allowedRoles={['parent']}><ParentDashboard /></ProtectedRoute>} />
             <Route path="/parent/activities" element={<ProtectedRoute allowedRoles={['parent']}><ParentActivities /></ProtectedRoute>} />
+            <Route path="/parent/class-sessions" element={<ProtectedRoute allowedRoles={['parent']}><ParentClassSessions /></ProtectedRoute>} />
             <Route path="/parent/transport/tracking/:busId" element={<ProtectedRoute allowedRoles={['parent']}><ParentTransportTracking /></ProtectedRoute>} />
             <Route path="/parent/special-classes" element={<ProtectedRoute allowedRoles={['parent']}><StudentSpecialClasses /></ProtectedRoute>} />
             <Route path="/parent/reports" element={<ProtectedRoute allowedRoles={['parent']}><ParentReports /></ProtectedRoute>} />

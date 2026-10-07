@@ -29,4 +29,7 @@ router.put("/:sessionId/complete", protect, requireRole("teacher"), completeSess
 // Principal Routes
 router.get("/monitoring", protect, requireRole("principal"), getMonitoringData);
 
+// Parent Routes
+router.get("/parent/children/:childId", protect, requireRole("parent", "parents"), require("../controllers/classSessionController").getParentChildClassSessions);
+
 module.exports = router;

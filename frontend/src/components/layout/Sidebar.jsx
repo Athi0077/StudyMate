@@ -84,6 +84,7 @@ export const navConfig = {
   ],
   parent: [
     { name: 'Dashboard', path: '/parent/dashboard', icon: Home },
+    { name: 'Class Sessions', path: '/parent/class-sessions', icon: Clock },
     { name: 'Activities', path: '/parent/activities', icon: ClipboardList },
     { name: 'Special Classes', path: '/parent/special-classes', icon: Zap },
     { name: 'Weather', path: '/weather', icon: CloudSun },
