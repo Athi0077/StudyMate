@@ -495,11 +495,17 @@ const getParentChildClassSessions = async (req, res) => {
     }
 
     const child = await require("../models/User").findById(childId);
-    if (!child || !child.classId) {
-      return res.status(404).json({ success: false, message: "Child or class not found" });
+    if (!child) {
+      return res.status(404).json({ success: false, message: "Child not found" });
     }
 
-    const sessions = await ClassSession.find({ classId: child.classId, date })
+    const Class = require("../models/Class");
+    const childClass = await Class.findOne({ students: childId });
+    if (!childClass) {
+      return res.status(404).json({ success: false, message: "Child class not found" });
+    }
+
+    const sessions = await ClassSession.find({ classId: childClass._id, date })
       .populate("teacherId", "name profilePic")
       .populate("subjectId", "name")
       .populate("homeworkId", "title")
