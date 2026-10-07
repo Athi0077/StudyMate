@@ -166,10 +166,32 @@ const getHomeworkById = async (req, res) => {
 // @access  Private (Principal only)
 const getAdminOverview = async (req, res) => {
   try {
-    const homework = await Homework.find()
+    const { classId, date } = req.query;
+    
+    let filter = {};
+    if (classId) {
+      filter.classId = classId;
+    }
+    
+    if (date) {
+      // Filter by the date homework was created
+      const startDate = new Date(date);
+      startDate.setHours(0, 0, 0, 0);
+      const endDate = new Date(date);
+      endDate.setHours(23, 59, 59, 999);
+      
+      filter.createdAt = {
+        $gte: startDate,
+        $lte: endDate
+      };
+    }
+
+    const homework = await Homework.find(filter)
       .populate("classId", "className standard section")
       .populate("subjectId", "name")
-      .populate("teacherId", "name");
+      .populate("teacherId", "name")
+      .sort({ createdAt: -1 });
+      
     res.json({ success: true, data: homework });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
