@@ -59,6 +59,7 @@ export const navConfig = {
     { name: 'Dashboard', path: '/principal/dashboard', icon: Home },
     { name: 'Attendance', path: '/principal/attendance', icon: Calendar },
     { name: 'Teachers', path: '/principal/teachers', icon: Users },
+    { name: 'Substitute Mgmt', path: '/principal/substitutes', icon: Users },
     { name: 'Standards & Sections', path: '/principal/standards', icon: BookOpen },
     { name: 'Teacher Assignments', path: '/principal/assignments', icon: Users },
     { name: 'Students', path: '/principal/students', icon: Users },

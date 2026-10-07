@@ -109,7 +109,17 @@ const PrincipalClassPeriodSessions = () => {
                   <div className="grid grid-cols-2 gap-4 text-sm bg-gray-50 p-4 rounded-2xl border border-gray-100">
                     <div>
                       <p className="text-gray-500 font-medium text-xs uppercase tracking-wider mb-1">Teacher</p>
-                      <p className="font-bold text-gray-800">{session.teacherId?.name || 'Unknown'}</p>
+                      {session.isSubstitute ? (
+                        <>
+                          <p className="font-bold text-purple-700 dark:text-purple-400 flex items-center gap-1">
+                            <span className="text-[10px] uppercase bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-black">Sub</span>
+                            {session.actualTeacherId?.name || 'Unknown'}
+                          </p>
+                          <p className="text-xs text-gray-400 line-through mt-0.5">{session.teacherId?.name}</p>
+                        </>
+                      ) : (
+                        <p className="font-bold text-gray-800">{session.teacherId?.name || 'Unknown'}</p>
+                      )}
                     </div>
                     <div>
                       <p className="text-gray-500 font-medium text-xs uppercase tracking-wider mb-1">Attendance</p>

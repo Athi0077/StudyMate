@@ -33,6 +33,18 @@ const classSessionSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    actualTeacherId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    substituteAssignmentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "SubstituteAssignment",
+    },
+    isSubstitute: {
+      type: Boolean,
+      default: false,
+    },
     // The attendance array for this specific period
     attendance: [
       {

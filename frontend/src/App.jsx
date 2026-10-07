@@ -41,6 +41,7 @@ import PrincipalAIReports from './pages/PrincipalAIReports';
 import PrincipalAIProgress from './pages/PrincipalAIProgress';
 import PrincipalClassSessionMonitoring from './pages/PrincipalClassSessionMonitoring';
 import PrincipalClassPeriodSessions from './pages/PrincipalClassPeriodSessions';
+import PrincipalSubstituteManagement from './pages/PrincipalSubstituteManagement';
 
 import PrincipalTransportBuses from './pages/PrincipalTransportBuses';
 import PrincipalTransportDrivers from './pages/PrincipalTransportDrivers';
@@ -249,6 +250,7 @@ function App() {
             <Route path="/principal/academic-years/:id/promotion/preview" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalPromotionPreview /></ProtectedRoute>} />
             <Route path="/principal/academic-years/:id/admissions" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalAdmissions /></ProtectedRoute>} />
             <Route path="/principal/students" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalStudents /></ProtectedRoute>} />
+            <Route path="/principal/substitutes" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalSubstituteManagement /></ProtectedRoute>} />
             <Route path="/principal/students/details/:studentId" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalStudentDetails /></ProtectedRoute>} />
             <Route path="/principal/student-details/:studentId" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalStudentDetails /></ProtectedRoute>} />
             <Route path="/principal/students/:classId" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalClassStudents /></ProtectedRoute>} />

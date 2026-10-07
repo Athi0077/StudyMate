@@ -164,12 +164,19 @@ const TeacherClassSessionMyClass = () => {
           ) : periods.length > 0 ? (
             <div className="space-y-4">
               {periods.sort((a,b) => a.period.periodNumber - b.period.periodNumber).map((item, index) => {
-                const { period, sessionStatus, sessionId, isMyPeriod } = item;
+                const { period, sessionStatus, sessionId, isMyPeriod, isOnLeave, isSubstitute, substituteAssignment } = item;
                 
                 let statusBadge = null;
                 let actionButton = null;
 
-                if (!isMyPeriod) {
+                if (isOnLeave) {
+                  statusBadge = <span className="flex items-center gap-1 text-sm font-bold text-red-700 bg-red-100 px-3 py-1 rounded-full"><Lock className="w-3 h-3" /> On Leave</span>;
+                  actionButton = (
+                    <button disabled className="bg-red-50 text-red-400 font-bold px-4 py-2 rounded-xl flex items-center gap-2 cursor-not-allowed">
+                      {substituteAssignment ? `Covered by ${substituteAssignment.substituteTeacherId.name}` : 'Leave Approved'}
+                    </button>
+                  );
+                } else if (!isMyPeriod) {
                   statusBadge = <span className="flex items-center gap-1 text-sm font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-full"><Lock className="w-3 h-3" /> Locked</span>;
                   actionButton = (
                     <button disabled className="bg-gray-100 text-gray-400 font-bold px-4 py-2 rounded-xl flex items-center gap-2 cursor-not-allowed">
@@ -184,14 +191,18 @@ const TeacherClassSessionMyClass = () => {
                     </button>
                   );
                 } else if (sessionStatus === 'NOT_STARTED') {
-                  statusBadge = <span className="flex items-center gap-1 text-sm font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full"><PlayCircle className="w-3 h-3" /> Upcoming</span>;
+                  statusBadge = isSubstitute 
+                    ? <span className="flex items-center gap-1 text-sm font-bold text-purple-700 bg-purple-100 px-3 py-1 rounded-full">🔄 Substitute</span>
+                    : <span className="flex items-center gap-1 text-sm font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full"><PlayCircle className="w-3 h-3" /> Upcoming</span>;
                   actionButton = (
-                    <button onClick={() => handleStartSession(item)} className="bg-primary hover:bg-red-700 text-white font-bold px-6 py-2 rounded-xl shadow-md transition flex items-center gap-2">
+                    <button onClick={() => handleStartSession(item)} className={`${isSubstitute ? 'bg-purple-600 hover:bg-purple-700' : 'bg-primary hover:bg-red-700'} text-white font-bold px-6 py-2 rounded-xl shadow-md transition flex items-center gap-2`}>
                       Start Session
                     </button>
                   );
                 } else {
-                  statusBadge = <span className="flex items-center gap-1 text-sm font-bold text-yellow-700 bg-yellow-100 px-3 py-1 rounded-full"><ArrowRightCircle className="w-3 h-3" /> In Progress</span>;
+                  statusBadge = isSubstitute
+                    ? <span className="flex items-center gap-1 text-sm font-bold text-purple-700 bg-purple-100 px-3 py-1 rounded-full">🔄 Substitute In Progress</span>
+                    : <span className="flex items-center gap-1 text-sm font-bold text-yellow-700 bg-yellow-100 px-3 py-1 rounded-full"><ArrowRightCircle className="w-3 h-3" /> In Progress</span>;
                   actionButton = (
                     <button onClick={() => navigate(`/teacher/class-sessions/${classId}/session/${sessionId}`)} className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold px-6 py-2 rounded-xl shadow-md transition flex items-center gap-2">
                       Continue Session
@@ -200,7 +211,7 @@ const TeacherClassSessionMyClass = () => {
                 }
 
                 return (
-                  <div key={index} className={`bg-white p-5 rounded-2xl shadow-sm border-l-4 flex flex-col md:flex-row md:items-center justify-between gap-4 transition hover:shadow-md ${isMyPeriod ? 'border-primary' : 'border-gray-300 opacity-75'}`}>
+                  <div key={index} className={`bg-white p-5 rounded-2xl shadow-sm border-l-4 flex flex-col md:flex-row md:items-center justify-between gap-4 transition hover:shadow-md ${isMyPeriod ? (isSubstitute ? 'border-purple-500' : 'border-primary') : 'border-gray-300 opacity-75'}`}>
                     <div className="flex items-start gap-4">
                       <div className="w-14 h-14 bg-gray-50 rounded-xl flex flex-col items-center justify-center shrink-0 border border-gray-100">
                         <span className="text-xs font-bold text-gray-400">Period</span>
@@ -213,7 +224,8 @@ const TeacherClassSessionMyClass = () => {
                         </div>
                         <div className="flex items-center gap-4 text-sm font-medium text-gray-500">
                           <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {period.startTime} - {period.endTime}</span>
-                          {!isMyPeriod && <span>👨‍🏫 {period.subjectTeacherId?.name}</span>}
+                          {!isMyPeriod && !isOnLeave && <span>👨‍🏫 {period.subjectTeacherId?.name}</span>}
+                          {isSubstitute && <span className="text-purple-600">👤 Covering for: {period.subjectTeacherId?.name}</span>}
                         </div>
                       </div>
                     </div>

@@ -115,11 +115,40 @@ const getTimetableForSession = async (req, res) => {
     const assignments = await TeacherAssignment.find({ teacherId }).populate('standardId sectionId');
     const classDoc = await Class.findById(classId);
 
+    // Get substitute assignments for this date
+    const SubstituteAssignment = require("../models/SubstituteAssignment");
+    const subAssignments = await SubstituteAssignment.find({
+      timetableId: timetable._id,
+      date,
+      status: { $in: ["ASSIGNED", "COMPLETED"] }
+    });
+    const subMap = {};
+    subAssignments.forEach(s => {
+      subMap[s.periodNumber] = s;
+    });
+
+    // Check if the current user is on leave for this date
+    const TeacherAttendance = require("../models/TeacherAttendance");
+    const todayStr = new Date(date);
+    todayStr.setHours(0,0,0,0);
+    const myLeave = await TeacherAttendance.findOne({
+      teacherId,
+      date: todayStr,
+      status: { $in: ["leave", "absent"] }
+    });
+    const iAmOnLeave = !!myLeave;
+
     // Merge status
     const result = dayPeriods.map(p => {
       const session = sessionMap[p.periodNumber];
+      const subAssignment = subMap[p.periodNumber];
       
       let isMyPeriod = false;
+      let isOnLeave = false;
+      let isSubstitute = false;
+      let originalTeacher = p.subjectTeacherId;
+      
+      // Original logic
       if (p.subjectTeacherId && p.subjectTeacherId._id && p.subjectTeacherId._id.toString() === teacherId.toString()) {
         isMyPeriod = true;
       }
@@ -143,12 +172,36 @@ const getTimetableForSession = async (req, res) => {
         }
       }
 
+      // Substitute Overrides
+      if (subAssignment) {
+        if (subAssignment.originalTeacherId.toString() === teacherId.toString()) {
+          // I am the original teacher, but a substitute is assigned (or I am on leave)
+          isOnLeave = true;
+          isMyPeriod = false; // Cannot start session
+        } else if (subAssignment.substituteTeacherId.toString() === teacherId.toString()) {
+          // I am the substitute teacher
+          isMyPeriod = true;
+          isSubstitute = true;
+        } else {
+          // Someone else's period, and someone else is substitute
+          isMyPeriod = false;
+        }
+      } else if (isMyPeriod && iAmOnLeave) {
+        // I am the original teacher, on leave, but no substitute assigned yet
+        isOnLeave = true;
+        isMyPeriod = false;
+      }
+
       return {
         timetableId: timetable._id,
         period: p,
         sessionStatus: session ? session.sessionStatus : "NOT_STARTED",
         sessionId: session ? session._id : null,
-        isMyPeriod
+        isMyPeriod,
+        isOnLeave,
+        isSubstitute,
+        substituteAssignment: subAssignment || null,
+        actualTeacherId: session ? session.actualTeacherId : null,
       };
     });
 
@@ -200,11 +253,48 @@ const initializeSession = async (req, res) => {
       }
     }
 
+    // Substitute logic
+    let isSubstitute = false;
+    let actualTeacherId = req.user._id;
+    let originalTeacherId = period.subjectTeacherId || teacherId;
+
+    const SubstituteAssignment = require("../models/SubstituteAssignment");
+    const subAssignment = await SubstituteAssignment.findOne({
+      timetableId,
+      date,
+      periodNumber,
+      status: { $in: ["ASSIGNED", "COMPLETED"] }
+    });
+
+    if (subAssignment) {
+      if (subAssignment.substituteTeacherId.toString() === teacherId.toString()) {
+        isAuthorized = true;
+        isSubstitute = true;
+        originalTeacherId = subAssignment.originalTeacherId;
+      } else if (subAssignment.originalTeacherId.toString() === teacherId.toString()) {
+        isAuthorized = false; // Blocked because a substitute is assigned
+      }
+    } else if (isAuthorized) {
+      // Check if original teacher is on leave without a substitute
+      const TeacherAttendance = require("../models/TeacherAttendance");
+      const todayStr = new Date(date);
+      todayStr.setHours(0,0,0,0);
+      const myLeave = await TeacherAttendance.findOne({
+        teacherId,
+        date: todayStr,
+        status: { $in: ["leave", "absent"] }
+      });
+      if (myLeave) {
+        return res.status(403).json({ success: false, message: "You are on approved leave for this date and cannot start a session." });
+      }
+    }
+
     if (!isAuthorized) {
       return res.status(403).json({ success: false, message: "You are not authorized to start a session for this period" });
     }
 
-    let session = await ClassSession.findOne({ classId, date, periodNumber, teacherId });
+    // Notice we find the session using originalTeacherId to maintain timetable consistency
+    let session = await ClassSession.findOne({ classId, date, periodNumber, teacherId: originalTeacherId });
     if (!session) {
       session = await ClassSession.create({
         date,
@@ -212,7 +302,10 @@ const initializeSession = async (req, res) => {
         timetableId,
         periodNumber,
         subject: period.subject,
-        teacherId,
+        teacherId: originalTeacherId,
+        actualTeacherId,
+        isSubstitute,
+        substituteAssignmentId: isSubstitute ? subAssignment._id : null,
         sessionStatus: "NOT_STARTED"
       });
     }
@@ -256,7 +349,9 @@ const saveSessionAttendance = async (req, res) => {
     const session = await ClassSession.findById(req.params.sessionId).populate("timetableId");
 
     if (!session) return res.status(404).json({ success: false, message: "Session not found" });
-    if (session.teacherId.toString() !== req.user._id.toString()) return res.status(403).json({ success: false, message: "Unauthorized" });
+    const isAuthorized = session.teacherId.toString() === req.user._id.toString() || 
+                         (session.isSubstitute && session.actualTeacherId?.toString() === req.user._id.toString());
+    if (!isAuthorized) return res.status(403).json({ success: false, message: "Unauthorized" });
 
     session.attendance = attendance;
     
@@ -324,7 +419,9 @@ const saveClassRecord = async (req, res) => {
     const session = await ClassSession.findById(req.params.sessionId);
 
     if (!session) return res.status(404).json({ success: false, message: "Session not found" });
-    if (session.teacherId.toString() !== req.user._id.toString()) return res.status(403).json({ success: false, message: "Unauthorized" });
+    const isAuthorized = session.teacherId.toString() === req.user._id.toString() || 
+                         (session.isSubstitute && session.actualTeacherId?.toString() === req.user._id.toString());
+    if (!isAuthorized) return res.status(403).json({ success: false, message: "Unauthorized" });
 
     session.chapterId = chapterId || session.chapterId;
     session.chapter = chapter !== undefined ? chapter : session.chapter;
@@ -353,7 +450,9 @@ const saveLessonLog = async (req, res) => {
     const session = await ClassSession.findById(req.params.sessionId);
 
     if (!session) return res.status(404).json({ success: false, message: "Session not found" });
-    if (session.teacherId.toString() !== req.user._id.toString()) return res.status(403).json({ success: false, message: "Unauthorized" });
+    const isAuthorized = session.teacherId.toString() === req.user._id.toString() || 
+                         (session.isSubstitute && session.actualTeacherId?.toString() === req.user._id.toString());
+    if (!isAuthorized) return res.status(403).json({ success: false, message: "Unauthorized" });
 
     session.lessonLog = lessonLog !== undefined ? lessonLog : session.lessonLog;
     session.pagesCovered = pagesCovered !== undefined ? pagesCovered : session.pagesCovered;
@@ -381,7 +480,10 @@ const saveHomework = async (req, res) => {
     const session = await ClassSession.findById(req.params.sessionId);
 
     if (!session) return res.status(404).json({ success: false, message: "Session not found" });
-    if (session.teacherId.toString() !== req.user._id.toString()) return res.status(403).json({ success: false, message: "Unauthorized" });
+    
+    const isAuthorized = session.teacherId.toString() === req.user._id.toString() || 
+                         (session.isSubstitute && session.actualTeacherId?.toString() === req.user._id.toString());
+    if (!isAuthorized) return res.status(403).json({ success: false, message: "Unauthorized" });
 
     // Integrate with existing Homework model
     const subjectRecord = await Timetable.findById(session.timetableId);
@@ -440,12 +542,20 @@ const completeSession = async (req, res) => {
     const session = await ClassSession.findById(req.params.sessionId);
 
     if (!session) return res.status(404).json({ success: false, message: "Session not found" });
-    if (session.teacherId.toString() !== req.user._id.toString()) return res.status(403).json({ success: false, message: "Unauthorized" });
+    
+    const isAuthorized = session.teacherId.toString() === req.user._id.toString() || 
+                         (session.isSubstitute && session.actualTeacherId?.toString() === req.user._id.toString());
+    if (!isAuthorized) return res.status(403).json({ success: false, message: "Unauthorized" });
 
     session.sessionStatus = "COMPLETED";
     session.completedAt = Date.now();
 
     await session.save();
+
+    if (session.isSubstitute && session.substituteAssignmentId) {
+      const SubstituteAssignment = require("../models/SubstituteAssignment");
+      await SubstituteAssignment.findByIdAndUpdate(session.substituteAssignmentId, { status: "COMPLETED" });
+    }
 
     res.json({ success: true, message: "Session completed", data: session });
   } catch (error) {
@@ -468,6 +578,8 @@ const getMonitoringData = async (req, res) => {
     const sessions = await ClassSession.find(filter)
       .populate("classId", "className standard section")
       .populate("teacherId", "name email")
+      .populate("actualTeacherId", "name email")
+      .populate("substituteAssignmentId")
       .sort({ periodNumber: 1 });
 
     res.json({ success: true, data: sessions });
