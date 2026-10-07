@@ -33,7 +33,7 @@ export const navConfig = {
     { name: 'Class Sessions', path: '/teacher/class-sessions', icon: Clock },
     { name: 'My Classes', path: '/teacher/classes', icon: Layers },
     { name: 'Add Students', path: '/teacher/general-register', icon: Contact },
-    { name: 'Attendance', path: '/teacher/attendance', icon: Calendar },
+    // { name: 'Attendance', path: '/teacher/attendance', icon: Calendar },
     { name: 'Timetable', path: '/teacher/timetable', icon: CalendarDays },
     { name: 'Syllabus', path: '/teacher/syllabus', icon: BookOpen },
     { name: 'Parents', path: '/teacher/parents', icon: Contact },
@@ -58,7 +58,7 @@ export const navConfig = {
   ],
   principal: [
     { name: 'Dashboard', path: '/principal/dashboard', icon: Home },
-    { name: 'Attendance', path: '/principal/attendance', icon: Calendar },
+    // { name: 'Attendance', path: '/principal/attendance', icon: Calendar },
     { name: 'Teachers', path: '/principal/teachers', icon: Users },
     { name: 'Staff Leave', path: '/principal/staff-leave', icon: Users },
     { name: 'Substitute Mgmt', path: '/principal/substitutes', icon: Users },
