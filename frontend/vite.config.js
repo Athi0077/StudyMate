@@ -38,7 +38,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
+        maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
         globIgnores: ['**/*.glb'],
         globPatterns: ['**/*.{js,css,html,ico,png,svg,glb,woff,woff2,ttf,eot}'],
         navigateFallback: '/index.html',
