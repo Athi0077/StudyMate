@@ -40,6 +40,7 @@ import PrincipalAIAssistant from './pages/PrincipalAIAssistant';
 import PrincipalAIReports from './pages/PrincipalAIReports';
 import PrincipalAIProgress from './pages/PrincipalAIProgress';
 import PrincipalClassSessionMonitoring from './pages/PrincipalClassSessionMonitoring';
+import PrincipalClassPeriodSessions from './pages/PrincipalClassPeriodSessions';
 
 import PrincipalTransportBuses from './pages/PrincipalTransportBuses';
 import PrincipalTransportDrivers from './pages/PrincipalTransportDrivers';
@@ -237,6 +238,7 @@ function App() {
             <Route path="/principal/temporary-access" element={<ProtectedRoute allowedRoles={['main_principal']}><PrincipalTemporaryAccess /></ProtectedRoute>} />
             <Route path="/principal/attendance" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalAttendance /></ProtectedRoute>} />
             <Route path="/principal/attendance/period-monitoring" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalClassSessionMonitoring /></ProtectedRoute>} />
+            <Route path="/principal/attendance/period-monitoring/:classId" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalClassPeriodSessions /></ProtectedRoute>} />
             <Route path="/principal/attendance/:classId" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalClassAttendance /></ProtectedRoute>} />
             <Route path="/principal/standards" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalStandards /></ProtectedRoute>} />
             <Route path="/principal/assignments" element={<ProtectedRoute allowedRoles={['principal']}><PrincipalAssignments /></ProtectedRoute>} />
