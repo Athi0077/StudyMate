@@ -2,6 +2,9 @@ import React, { useContext, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { Home, ClipboardList, BookOpen, Calendar, Bell, Users, FileText, CheckSquare, Layers, LogOut, CalendarDays, User, Contact, MessageSquare, Megaphone, Shield, Cake, CloudSun, ClipboardCheck, GraduationCap, Gamepad2, Zap, PartyPopper, Bus, Map, MapPin, Navigation2, ChevronDown, ChevronUp, Clock, Hand } from 'lucide-react';
+import { requestForToken } from '../../firebaseInit';
+import api from '../../utils/api';
+import toast from 'react-hot-toast';
 
 export const navConfig = {
   student: [
@@ -124,9 +127,27 @@ const Sidebar = ({ role }) => {
   const normRole = (role || 'student').toLowerCase();
   const navItems = navConfig[normRole] || navConfig.student;
   const [expandedMenus, setExpandedMenus] = useState({});
+  const [fcmPermission, setFcmPermission] = useState(Notification.permission);
 
   const toggleMenu = (name) => {
     setExpandedMenus(prev => ({ ...prev, [name]: !prev[name] }));
+  };
+
+  const enableNotifications = async () => {
+    try {
+      const fcmToken = await requestForToken();
+      if (fcmToken) {
+        await api.post('/users/fcm-token', { token: fcmToken });
+        setFcmPermission('granted');
+        toast.success("Notifications enabled successfully!");
+      } else {
+        setFcmPermission('denied');
+        toast.error("Please allow notifications in browser settings.");
+      }
+    } catch (err) {
+      console.log('Error getting token', err);
+      toast.error("Failed to enable notifications.");
+    }
   };
 
   // Light mode: role-specific tints. Dark mode: unified navy sidebar with precise colors.
@@ -268,6 +289,11 @@ const Sidebar = ({ role }) => {
         })}
       </nav>
       <div className="p-4 border-t border-gray-200/50 dark:border-[#1E293B]">
+        {fcmPermission !== 'granted' && (
+          <button onClick={enableNotifications} className="w-full mb-3 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-400 transition font-medium text-sm">
+             <Bell className="w-4 h-4" /> Enable Notifications
+          </button>
+        )}
         <button onClick={logout} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-white/60 text-gray-700 hover:bg-red-50 hover:text-red-600 dark:bg-[#0B1120] dark:border dark:border-[#334155] dark:text-[#E2E8F0] dark:hover:bg-[#172235] dark:hover:text-[#E2E8F0] transition shadow-xs">
           <LogOut className="w-5 h-5" /> Logout
         </button>
