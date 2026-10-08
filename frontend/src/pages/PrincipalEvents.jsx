@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../utils/api';
 import Layout from '../components/layout/Layout';
-import { Plus, Edit2, CheckCircle, XCircle, Eye, Calendar, MapPin, Users, Award } from 'lucide-react';
+import { Plus, Edit2, CheckCircle, XCircle, Eye, Calendar, MapPin, Users, Award, Image as ImageIcon, Trash2, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const CATEGORIES = ["Sports", "Arts", "Literary", "Science & Technology", "Cultural", "Other"];
@@ -13,6 +13,11 @@ const PrincipalEvents = () => {
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+
+  // Gallery States
+  const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
+  const [galleryPhotos, setGalleryPhotos] = useState([]);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   // Modal States
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
@@ -147,17 +152,78 @@ const PrincipalEvents = () => {
     }
   };
 
+  const fetchGalleryPhotos = async () => {
+    try {
+      const res = await api.get('/events/gallery');
+      setGalleryPhotos(res.data.data || []);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to fetch gallery photos');
+    }
+  };
+
+  const handleOpenGallery = () => {
+    fetchGalleryPhotos();
+    setIsGalleryModalOpen(true);
+  };
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File size must be 10MB or less");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('photo', file);
+
+    try {
+      setIsUploadingPhoto(true);
+      await api.post('/events/gallery', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      toast.success('Photo added to gallery');
+      fetchGalleryPhotos();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to upload photo');
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
+  const handleDeletePhoto = async (photoId) => {
+    if (!window.confirm('Are you sure you want to delete this photo?')) return;
+    
+    try {
+      await api.delete(`/events/gallery/${photoId}`);
+      toast.success('Photo deleted');
+      fetchGalleryPhotos();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete photo');
+    }
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h2 className="text-2xl font-bold text-gray-800">Event Management</h2>
-          <button 
-            onClick={openCreateModal}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition font-semibold shadow-sm"
-          >
-            <Plus size={18} /> Create Event
-          </button>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={handleOpenGallery}
+              className="flex items-center gap-2 px-4 py-2 bg-white text-primary border border-primary rounded-lg hover:bg-primary/5 transition font-semibold shadow-sm"
+            >
+              <ImageIcon size={18} /> Manage Event Photos
+            </button>
+            <button 
+              onClick={openCreateModal}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition font-semibold shadow-sm"
+            >
+              <Plus size={18} /> Create Event
+            </button>
+          </div>
         </div>
         
         {/* Filters */}
@@ -443,6 +509,75 @@ const PrincipalEvents = () => {
                   Publish Results
                 </button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Event Gallery Modal */}
+      {isGalleryModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-fade-in">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                <ImageIcon className="text-primary" /> Event Gallery Photos
+              </h3>
+              <button onClick={() => setIsGalleryModalOpen(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto custom-scrollbar flex-1 bg-gray-50/30">
+              <div className="mb-6 bg-white p-6 rounded-2xl border border-dashed border-gray-300 text-center hover:bg-gray-50 transition cursor-pointer relative">
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  onChange={handlePhotoUpload}
+                  disabled={isUploadingPhoto}
+                />
+                <div className="flex flex-col items-center justify-center pointer-events-none">
+                  {isUploadingPhoto ? (
+                    <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-2"></div>
+                  ) : (
+                    <Upload className="w-10 h-10 text-gray-400 mb-2" />
+                  )}
+                  <p className="font-semibold text-gray-700">{isUploadingPhoto ? 'Uploading...' : 'Click or drag to upload a new event photo'}</p>
+                  <p className="text-sm text-gray-500 mt-1">Recommended size: 1080x720px. Max 10MB.</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {galleryPhotos.length > 0 ? (
+                  galleryPhotos.map(photo => (
+                    <div key={photo._id} className="relative group rounded-xl overflow-hidden shadow-sm aspect-video bg-gray-100">
+                      <img 
+                        src={photo.imageUrl} 
+                        alt="Event" 
+                        className="w-full h-full object-cover transition duration-300 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <button 
+                          onClick={() => handleDeletePhoto(photo._id)}
+                          className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition transform hover:scale-110 shadow-lg"
+                          title="Delete Photo"
+                        >
+                          <Trash2 size={20} />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="col-span-full py-12 text-center">
+                    <ImageIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500">No photos in the gallery yet.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="p-6 border-t border-gray-100 flex justify-end gap-3 bg-white">
+              <button onClick={() => setIsGalleryModalOpen(false)} className="px-6 py-2 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition">
+                Close
+              </button>
             </div>
           </div>
         </div>

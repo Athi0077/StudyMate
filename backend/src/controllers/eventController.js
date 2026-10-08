@@ -3,6 +3,8 @@ const EventRegistration = require("../models/EventRegistration");
 const EventResult = require("../models/EventResult");
 const Class = require("../models/Class");
 const User = require("../models/User");
+const EventGallery = require("../models/EventGallery");
+const { cloudinary } = require("../middleware/uploadMiddleware");
 
 // ═══════════════════════════════════════════
 // PRINCIPAL ENDPOINTS
@@ -504,8 +506,79 @@ const getPendingResults = async (req, res) => {
   }
 };
 
+// ═══════════════════════════════════════════
+// EVENT GALLERY
+// ═══════════════════════════════════════════
+
+// @desc    Upload event photo
+// @route   POST /api/events/gallery
+// @access  Private (Principal)
+const uploadEventPhoto = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "Please upload an image" });
+    }
+    
+    const photo = await EventGallery.create({
+      imageUrl: req.file.path,
+      description: req.body.description || "",
+      createdBy: req.user._id,
+    });
+    
+    res.status(201).json({ success: true, message: "Photo added to gallery", data: photo });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Delete event photo
+// @route   DELETE /api/events/gallery/:id
+// @access  Private (Principal)
+const deleteEventPhoto = async (req, res) => {
+  try {
+    const photo = await EventGallery.findById(req.params.id);
+    if (!photo) {
+      return res.status(404).json({ success: false, message: "Photo not found" });
+    }
+    
+    // Extract public id from Cloudinary URL and delete it
+    // Example url: https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg
+    const urlParts = photo.imageUrl.split('/');
+    const publicIdWithExtension = urlParts[urlParts.length - 1];
+    const publicId = publicIdWithExtension.split('.')[0];
+    const folder = urlParts[urlParts.length - 2];
+    
+    // delete from cloudinary
+    if (folder && publicId) {
+      try {
+        await cloudinary.uploader.destroy(`${folder}/${publicId}`);
+      } catch (err) {
+        console.error("Cloudinary delete error:", err);
+      }
+    }
+    
+    await EventGallery.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: "Photo deleted" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Get all event photos
+// @route   GET /api/events/gallery
+// @access  Private
+const getAllEventPhotos = async (req, res) => {
+  try {
+    const photos = await EventGallery.find().sort({ createdAt: -1 });
+    res.json({ success: true, data: photos });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   createEvent, updateEvent, updateEventStatus, getAllEvents, getEventById,
   getPublishedEvents, joinEvent, getEventParticipants,
   submitResults, getResults, reviewResults, getPendingResults,
+  uploadEventPhoto, deleteEventPhoto, getAllEventPhotos,
 };

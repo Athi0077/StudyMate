@@ -12,9 +12,10 @@ const ParentDashboard = () => {
   const { currentUser } = useContext(AuthContext);
   const [childrenData, setChildrenData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDates, setSelectedDates] = useState({});
   const [activeTab, setActiveTab] = useState(0);
   const [childFeeStatuses, setChildFeeStatuses] = useState({});
+  const [galleryPhotos, setGalleryPhotos] = useState([]);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -51,6 +52,15 @@ const ParentDashboard = () => {
         } catch (feeErr) {
           console.error('Failed to fetch fee statuses:', feeErr);
         }
+
+        try {
+          const galleryRes = await api.get('/events/gallery');
+          if (galleryRes.data?.data) {
+            setGalleryPhotos(galleryRes.data.data);
+          }
+        } catch (err) {
+          console.error('Failed to fetch gallery:', err);
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -71,6 +81,16 @@ const ParentDashboard = () => {
     }
   }, []);
 
+  // Auto-scrolling logic for gallery
+  useEffect(() => {
+    if (galleryPhotos.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentPhotoIndex((prev) => (prev + 1) % galleryPhotos.length);
+      }, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [galleryPhotos]);
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -84,6 +104,48 @@ const ParentDashboard = () => {
           </div>
           <WeatherWidget />
         </div>
+
+        {/* Event Photos Carousel */}
+        {galleryPhotos && galleryPhotos.length > 0 && (
+          <div className="bg-white rounded-3xl p-6 shadow-soft mb-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <span className="text-primary">📸</span> School Events Gallery
+              </h3>
+            </div>
+            <div className="relative w-full h-[250px] md:h-[350px] rounded-2xl overflow-hidden group bg-gray-100">
+              {galleryPhotos.map((photo, index) => (
+                <div 
+                  key={photo._id}
+                  className={`absolute inset-0 transition-opacity duration-1000 ${index === currentPhotoIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+                >
+                  <img 
+                    src={photo.imageUrl} 
+                    alt={`Event Photo ${index + 1}`} 
+                    className="w-full h-full object-cover"
+                  />
+                  {photo.description && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 pt-12">
+                      <p className="text-white font-medium">{photo.description}</p>
+                    </div>
+                  )}
+                </div>
+              ))}
+              
+              {galleryPhotos.length > 1 && (
+                <div className="absolute bottom-4 left-0 right-0 z-20 flex justify-center gap-2">
+                  {galleryPhotos.map((_, index) => (
+                    <button 
+                      key={index}
+                      onClick={() => setCurrentPhotoIndex(index)}
+                      className={`w-2.5 h-2.5 rounded-full transition-all ${index === currentPhotoIndex ? 'bg-white w-6' : 'bg-white/50 hover:bg-white/80'}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {loading ? (
           <p className="text-gray-500">Loading children data...</p>
