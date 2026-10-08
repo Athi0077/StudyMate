@@ -186,6 +186,11 @@ const getTeacherTimetable = async (req, res) => {
       .populate('classId', 'className standard section')
       .populate('periods.subjectTeacherId', 'name');
 
+    console.log('[TEACHER TIMETABLE] authenticated user:', req.user._id, req.user.email);
+    console.log('[TEACHER TIMETABLE] teacher ID:', req.user._id);
+    console.log('[TEACHER TIMETABLE] query:', query);
+    console.log('[TEACHER TIMETABLE] records found:', timetables.length);
+
     let teacherPeriods = [];
     let seenMap = new Set();
     
