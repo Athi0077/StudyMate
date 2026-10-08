@@ -8,4 +8,6 @@ load-tests/data/
 
 .env
 .env.*
-!.env.examplefirebase-admin.json
+!.env.example
+firebase-admin.json
+backend/src/config/firebase-admin.json
