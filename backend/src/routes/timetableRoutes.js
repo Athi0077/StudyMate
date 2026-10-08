@@ -5,13 +5,15 @@ const {
   getMyTimetables,
   getClassTimetable,
   updateTimetable,
-  deleteTimetable
+  deleteTimetable,
+  getTeacherTimetable
 } = require("../controllers/timetableController");
 const { protect, requireRole } = require("../middleware/authMiddleware");
 
 router.use(protect);
 
 router.get("/my-classes", requireRole("teacher"), getMyTimetables);
+router.get("/teacher", requireRole("teacher"), getTeacherTimetable);
 router.get("/class/:classId", getClassTimetable);
 
 router.post("/", requireRole("teacher"), createTimetable);

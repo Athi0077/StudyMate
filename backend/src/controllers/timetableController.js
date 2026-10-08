@@ -170,10 +170,61 @@ const deleteTimetable = async (req, res) => {
   }
 };
 
+// @desc    Get logged-in teacher's timetable
+// @route   GET /api/timetable/teacher
+// @access  Private (Teacher)
+const getTeacherTimetable = async (req, res) => {
+  try {
+    const activeYear = await AcademicYear.findOne({ status: 'active' });
+    let query = { "periods.subjectTeacherId": req.user._id };
+    if (activeYear) {
+      query.academicYearId = activeYear._id;
+    }
+
+    const timetables = await Timetable.find(query)
+      .populate('academicYearId', 'year name isActive')
+      .populate('classId', 'className standard section')
+      .populate('periods.subjectTeacherId', 'name');
+
+    let teacherPeriods = [];
+    let seenMap = new Set();
+    
+    timetables.forEach(timetable => {
+      timetable.periods.forEach(period => {
+        const isMyPeriod = period.subjectTeacherId && period.subjectTeacherId._id.toString() === req.user._id.toString();
+        const isBreakOrLunch = period.type === 'break' || period.type === 'lunch';
+        
+        if (isMyPeriod || isBreakOrLunch) {
+          const uniqueKey = `${period.day}-${period.startTime}-${period.endTime}-${period.type}-${isMyPeriod ? timetable.classId._id : ''}`;
+          if (!seenMap.has(uniqueKey)) {
+            seenMap.add(uniqueKey);
+            teacherPeriods.push({
+              _id: period._id,
+              day: period.day,
+              periodNumber: period.periodNumber,
+              startTime: period.startTime,
+              endTime: period.endTime,
+              type: period.type,
+              subject: period.subject,
+              subjectId: period.subjectId,
+              classInfo: isMyPeriod ? timetable.classId : null,
+            });
+          }
+        }
+      });
+    });
+
+    res.json({ success: true, data: teacherPeriods });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   createTimetable,
   getMyTimetables,
   getClassTimetable,
   updateTimetable,
-  deleteTimetable
+  deleteTimetable,
+  getTeacherTimetable
 };

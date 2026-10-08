@@ -113,6 +113,7 @@ import TeacherReports from './pages/TeacherReports';
 import StudentReports from './pages/StudentReports';
 import ParentReports from './pages/ParentReports';
 import TeacherTimetable from './pages/TeacherTimetable';
+import TeacherPersonalTimetable from './pages/TeacherPersonalTimetable';
 import StudentTimetable from './pages/StudentTimetable';
 
 import PrincipalTodos from './pages/PrincipalTodos';
@@ -360,6 +361,7 @@ function App() {
             <Route path="/teacher/exams" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherExams /></ProtectedRoute>} />
             <Route path="/teacher/reports" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherReports /></ProtectedRoute>} />
             <Route path="/teacher/timetable" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherTimetable /></ProtectedRoute>} />
+            <Route path="/teacher/my-timetable" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherPersonalTimetable /></ProtectedRoute>} />
             <Route path="/teacher/hand-raises" element={<ProtectedRoute allowedRoles={['teacher']}><HandRaisesPage /></ProtectedRoute>} />
             <Route path="/teacher/todos" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherTodos /></ProtectedRoute>} />
             <Route path="/teacher/profile" element={<ProtectedRoute allowedRoles={['teacher']}><Profile /></ProtectedRoute>} />
