@@ -1,9 +1,11 @@
 const admin = require('firebase-admin');
 const serviceAccount = require('./firebase-admin.json');
 
-if (!admin.apps.length) {
+const apps = admin.getApps ? admin.getApps() : (admin.apps || []);
+
+if (!apps.length) {
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
+    credential: admin.cert(serviceAccount)
   });
 }
 

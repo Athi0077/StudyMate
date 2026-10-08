@@ -29,7 +29,9 @@ const createNotification = async ({
     // Send FCM Web Push Notification
     const user = await User.findById(recipientId).select("fcmTokens");
     if (user && user.fcmTokens && user.fcmTokens.length > 0) {
-      const payload = {
+      const { getMessaging } = require('firebase-admin/messaging');
+      
+      const messageObj = {
         notification: {
           title: title || "New Notification",
           body: message || "You have a new message",
@@ -37,12 +39,13 @@ const createNotification = async ({
         data: {
           type: type || "general",
           relatedId: String(relatedId || ""),
-          url: "/" // You can dynamically change this based on the notification type
-        }
+          url: "/"
+        },
+        tokens: user.fcmTokens
       };
       
       try {
-        await admin.messaging().sendToDevice(user.fcmTokens, payload);
+        await getMessaging().sendEachForMulticast(messageObj);
       } catch (fcmError) {
         console.error("FCM Push Error:", fcmError);
       }
