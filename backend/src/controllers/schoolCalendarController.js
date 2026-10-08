@@ -77,8 +77,9 @@ exports.createCalendarEvent = async (req, res) => {
       const announcement = new Announcement({
         title: title,
         message: announcementMessage,
-        type: 'general',
-        targetRole: 'all',
+        role: req.user.role === 'main_principal' ? 'principal' : req.user.role,
+        targetAudience: ['student', 'teacher', 'parent'],
+        isImportant: true,
         createdBy: req.user.id
       });
       await announcement.save();
