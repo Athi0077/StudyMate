@@ -210,9 +210,15 @@ function App() {
             }
           });
           
-          onMessageListener().then(payload => {
-            console.log('Received foreground message', payload);
-          }).catch(err => console.log('failed to receive foreground message', err));
+          import('react-hot-toast').then(({ toast }) => {
+            onMessageListener((payload) => {
+              console.log('Received foreground message', payload);
+              toast.success(`${payload.notification.title}: ${payload.notification.body}`, {
+                duration: 5000,
+                position: 'top-right',
+              });
+            });
+          });
         }).catch(err => console.log('Firebase not initialized yet', err));
       }
     }, [currentUser, token]);
