@@ -1,6 +1,19 @@
 const StaffLeave = require("../models/StaffLeave");
 const TeacherAttendance = require("../models/TeacherAttendance");
+const SchoolCalendar = require("../models/SchoolCalendar");
 const { createNotification } = require("../services/notificationService");
+
+// Helper to check if a date is Sunday or a holiday
+const isHolidayDate = async (dateString) => {
+  const reqDate = new Date(dateString);
+  // Sunday check
+  if (reqDate.getDay() === 0) return true;
+  
+  // Check SchoolCalendar
+  const dateObj = new Date(Date.UTC(reqDate.getFullYear(), reqDate.getMonth(), reqDate.getDate()));
+  const holiday = await SchoolCalendar.findOne({ date: dateObj, isHoliday: true });
+  return !!holiday;
+};
 
 // @desc    Create a new staff leave request
 // @route   POST /api/staff-leave
@@ -12,6 +25,12 @@ const createLeaveRequest = async (req, res) => {
 
     if (!startDate || !endDate || !reason) {
       return res.status(400).json({ success: false, message: "Please provide startDate, endDate, and reason" });
+    }
+
+    if (new Date(startDate).getTime() === new Date(endDate).getTime()) {
+      if (await isHolidayDate(startDate)) {
+        return res.status(400).json({ success: false, message: "Leave request is not required because this is a holiday." });
+      }
     }
 
     const leaveRequest = await StaffLeave.create({
@@ -112,9 +131,9 @@ const updateLeaveStatus = async (req, res) => {
       const dates = [];
       let current = new Date(start);
       while (current <= end) {
-        // Skip Sundays if needed, but for simplicity just create it. 
-        // If there's no timetable on Sunday, it won't affect anything.
-        dates.push(new Date(current));
+        if (!(await isHolidayDate(current))) {
+          dates.push(new Date(current));
+        }
         current.setDate(current.getDate() + 1);
       }
 

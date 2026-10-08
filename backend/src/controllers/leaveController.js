@@ -1,6 +1,19 @@
 const LeaveRequest = require("../models/LeaveRequest");
 const Attendance = require("../models/Attendance");
 const Class = require("../models/Class");
+const SchoolCalendar = require("../models/SchoolCalendar");
+
+// Helper to check if a date is Sunday or a holiday
+const isHolidayDate = async (dateString) => {
+  const reqDate = new Date(dateString);
+  // Sunday check
+  if (reqDate.getDay() === 0) return true;
+  
+  // Check SchoolCalendar
+  const dateObj = new Date(Date.UTC(reqDate.getFullYear(), reqDate.getMonth(), reqDate.getDate()));
+  const holiday = await SchoolCalendar.findOne({ date: dateObj, isHoliday: true });
+  return !!holiday;
+};
 
 // @desc    Student creates leave request
 // @route   POST /api/leave-requests
@@ -21,6 +34,10 @@ const createLeaveRequest = async (req, res) => {
 
     const reqDate = new Date(date);
     reqDate.setHours(0,0,0,0);
+
+    if (await isHolidayDate(date)) {
+      return res.status(400).json({ success: false, message: "Leave request is not required because this is a holiday." });
+    }
 
     const newRequest = await LeaveRequest.create({
       studentId,

@@ -10,6 +10,7 @@ import { initSocket } from '../services/socket';
 import WeatherWidget from '../components/common/WeatherWidget';
 import WeatherBannerEffect from '../components/common/WeatherBannerEffect';
 import StudentMyTransportCard from '../components/transport/StudentMyTransportCard';
+import DashboardCalendarPreview from '../components/common/DashboardCalendarPreview';
 
 const StudentDashboard = () => {
   const { currentUser } = useContext(AuthContext);
@@ -538,32 +539,7 @@ const StudentDashboard = () => {
             </div>
 
             {/* School Calendar */}
-            <div className="bg-white p-6 rounded-3xl shadow-soft">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-bold text-gray-900">School Calendar</h3>
-                <div className="flex items-center gap-3">
-                  <span className="text-gray-400 font-bold cursor-pointer">‹</span>
-                  <span className="text-sm font-bold text-gray-800">September 2026</span>
-                  <span className="text-gray-400 font-bold cursor-pointer">›</span>
-                </div>
-              </div>
-              <div className="grid grid-cols-7 gap-2 text-center mb-2">
-                {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => (
-                  <div key={d} className="text-[10px] font-bold text-gray-400 uppercase">{d}</div>
-                ))}
-              </div>
-              <div className="grid grid-cols-7 gap-y-3 gap-x-2 text-center text-sm font-semibold text-gray-700">
-                <div className="text-gray-300">31</div>
-                <div>1</div><div>2</div><div>3</div><div>4</div><div className="text-red-400">5</div><div className="text-red-400">6</div>
-                <div>7</div><div>8</div><div>9</div><div>10</div><div>11</div><div className="text-red-400">12</div><div className="text-red-400">13</div>
-                <div>14</div><div>15</div><div>16</div><div>17</div><div>18</div><div className="text-red-400">19</div><div className="text-red-400">20</div>
-                <div className="bg-blue-600 text-white rounded-full w-7 h-7 flex items-center justify-center mx-auto">21</div>
-                <div>22</div><div>23</div><div>24</div>
-                <div className="relative mx-auto w-7 h-7 flex items-center justify-center">25<div className="absolute bottom-0 w-1 h-1 bg-red-500 rounded-full"></div></div>
-                <div className="text-red-400">26</div><div className="text-red-400">27</div>
-                <div>28</div><div>29</div><div>30</div><div className="text-gray-300">1</div><div className="text-gray-300">2</div><div className="text-gray-300">3</div><div className="text-gray-300">4</div>
-              </div>
-            </div>
+            <DashboardCalendarPreview role="student" />
 
             {/* Announcements */}
             <div className="bg-white p-6 rounded-3xl shadow-soft">

@@ -5,6 +5,54 @@ const Class = require("../models/Class");
 const TeacherAttendance = require("../models/TeacherAttendance");
 const User = require("../models/User");
 const Notification = require("../models/Notification");
+const SchoolCalendar = require("../models/SchoolCalendar");
+
+// Helper to check if a date is Sunday or a holiday
+const isHolidayDate = async (dateString) => {
+  const reqDate = new Date(dateString);
+  // Sunday check
+  if (reqDate.getDay() === 0) return true;
+  
+  // Check SchoolCalendar
+  const dateObj = new Date(Date.UTC(reqDate.getFullYear(), reqDate.getMonth(), reqDate.getDate()));
+  const holiday = await SchoolCalendar.findOne({ date: dateObj, isHoliday: true });
+  return !!holiday;
+};
+
+// Helper to get total number of holidays between two dates (inclusive)
+const getHolidayCount = async (startDate, endDate) => {
+  const start = new Date(startDate);
+  start.setHours(0,0,0,0);
+  const end = new Date(endDate);
+  end.setHours(23,59,59,999);
+  
+  let holidayCount = 0;
+  
+  // Count Sundays
+  const current = new Date(start);
+  while (current <= end) {
+    if (current.getDay() === 0) holidayCount++;
+    current.setDate(current.getDate() + 1);
+  }
+  
+  // Count holidays in SchoolCalendar (excluding Sundays to avoid double counting)
+  const startUTC = new Date(Date.UTC(start.getFullYear(), start.getMonth(), start.getDate()));
+  const endUTC = new Date(Date.UTC(end.getFullYear(), end.getMonth(), end.getDate()));
+  
+  const holidays = await SchoolCalendar.find({
+    date: { $gte: startUTC, $lte: endUTC },
+    isHoliday: true
+  });
+  
+  holidays.forEach(h => {
+    if (new Date(h.date).getDay() !== 0) {
+      holidayCount++;
+    }
+  });
+  
+  return holidayCount;
+};
+
 
 // Helper to notify parents if child is absent
 const notifyParentsIfAbsent = async (studentId, date, session = null, teacherId) => {
@@ -58,6 +106,10 @@ const saveAttendance = async (req, res) => {
 
     if (!isValidAttendanceDate(date)) {
       return res.status(400).json({ success: false, message: "Cannot mark attendance for a future date" });
+    }
+    
+    if (await isHolidayDate(date)) {
+      return res.status(400).json({ success: false, message: "Attendance cannot be marked on a holiday." });
     }
 
     const classData = await Class.findById(classId);
@@ -115,6 +167,10 @@ const saveSessionAttendance = async (req, res) => {
 
     if (!isValidAttendanceDate(date)) {
       return res.status(400).json({ success: false, message: "Cannot mark attendance for a future date" });
+    }
+    
+    if (await isHolidayDate(date)) {
+      return res.status(400).json({ success: false, message: "Attendance cannot be marked on a holiday." });
     }
 
     if (!["MORNING", "AFTERNOON"].includes(session)) {
@@ -271,6 +327,14 @@ const getStudentAttendance = async (req, res) => {
     });
 
     const totalCalculated = present + absent;
+    
+    // Calculate total working days based on actual records, skipping holiday records if any exist mistakenly
+    // But since percentages are based on marked records (present + absent), totalCalculated acts as denominator.
+    // If we want to strictly use working days as denominator: total working days = marked (present + absent + leave).
+    // The requirement says: "Holiday dates must NOT be included in attendance calculations. 17/20"
+    // present+absent is effectively the marked working days for that student, provided they aren't marked on holidays.
+    // We already prevent marking on holidays. But let's assure calculation.
+    
     const percentage = totalCalculated === 0 ? 0 : Math.round((present / totalCalculated) * 100);
 
     res.json({ 
@@ -486,6 +550,10 @@ const markTeacherAttendance = async (req, res) => {
   try {
     const today = new Date();
     today.setHours(0,0,0,0);
+    
+    if (await isHolidayDate(today)) {
+      return res.status(400).json({ success: false, message: "Attendance cannot be marked on a holiday." });
+    }
     
     // Check if already marked
     const existing = await TeacherAttendance.findOne({ teacherId: req.user._id, date: today });
