@@ -26,6 +26,63 @@ exports.createAnnouncement = async (req, res) => {
       isImportant: isImportant || false
     });
 
+    // -- FCM Bulk Push Notification Logic --
+    try {
+      const User = require('../models/User');
+      const admin = require('../config/firebaseInit');
+
+      let userQuery = { status: 'active', fcmTokens: { $exists: true, $not: { $size: 0 } } };
+      
+      if (targetAudience === 'student') {
+        userQuery.role = 'student';
+        if (announcement.classId) {
+           const cls = await Class.findById(announcement.classId);
+           if (cls) userQuery._id = { $in: cls.students };
+        }
+      } else if (targetAudience === 'teacher') {
+        userQuery.role = 'teacher';
+      } else if (targetAudience === 'parent') {
+        userQuery.role = 'parent';
+        if (announcement.classId) {
+           const cls = await Class.findById(announcement.classId);
+           if (cls) userQuery.children = { $in: cls.students };
+        }
+      } else {
+         userQuery.role = { $in: ['student', 'teacher', 'parent'] };
+      }
+
+      const usersToNotify = await User.find(userQuery).select('fcmTokens');
+      let allTokens = [];
+      usersToNotify.forEach(u => {
+        if (u.fcmTokens) {
+          allTokens.push(...u.fcmTokens);
+        }
+      });
+
+      if (allTokens.length > 0) {
+        const payload = {
+          notification: {
+            title: `📣 ${title}`,
+            body: message,
+          },
+          data: {
+            type: 'announcement',
+            url: '/'
+          }
+        };
+        
+        // FCM supports max 1000 tokens per request, so chunk it
+        const chunkSize = 1000;
+        for (let i = 0; i < allTokens.length; i += chunkSize) {
+          const chunk = allTokens.slice(i, i + chunkSize);
+          await admin.messaging().sendToDevice(chunk, payload);
+        }
+      }
+    } catch (pushErr) {
+      console.error("Announcement Push Error:", pushErr);
+    }
+    // -- End Push Notification Logic --
+
     res.status(201).json({ success: true, data: announcement });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

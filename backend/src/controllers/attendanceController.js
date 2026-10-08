@@ -54,6 +54,8 @@ const getHolidayCount = async (startDate, endDate) => {
 };
 
 
+const { createNotification } = require("../services/notificationService");
+
 // Helper to notify parents if child is absent
 const notifyParentsIfAbsent = async (studentId, date, session = null, teacherId) => {
   try {
@@ -66,18 +68,16 @@ const notifyParentsIfAbsent = async (studentId, date, session = null, teacherId)
     const dateStr = new Date(date).toLocaleDateString();
     const sessionText = session ? ` for the ${session.toLowerCase()} session` : '';
 
-    const notifications = parents.map(parent => ({
-      recipientId: parent._id,
-      senderId: teacherId,
-      type: 'attendance',
-      title: 'Absentee Alert',
-      message: `${student.name} has been marked ABSENT on ${dateStr}${sessionText}.`,
-      relatedId: student._id,
-      relatedModel: 'User'
-    }));
-
-    if (notifications.length > 0) {
-      await Notification.insertMany(notifications);
+    for (const parent of parents) {
+      await createNotification({
+        recipientId: parent._id,
+        senderId: teacherId,
+        type: 'attendance',
+        title: 'Absentee Alert',
+        message: `${student.name} has been marked ABSENT on ${dateStr}${sessionText}.`,
+        relatedId: student._id,
+        relatedModel: 'User'
+      });
     }
   } catch (err) {
     console.error("Error notifying parents:", err);
