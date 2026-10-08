@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../utils/api';
 import Layout from '../components/layout/Layout';
-import { Calendar, Clock, BookOpen, MapPin, ChevronRight, AlertCircle, Coffee } from 'lucide-react';
+import { Calendar, Clock, BookOpen, MapPin, ChevronRight, AlertCircle, Coffee, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const TeacherPersonalTimetable = () => {
