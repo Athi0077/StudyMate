@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { protect, requireRole } = require('../middleware/auth');
+const { protect, requireRole } = require('../middleware/authMiddleware');
 const {
   getCalendarEvents,
   getCalendarEventById,
