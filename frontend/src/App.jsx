@@ -4,6 +4,7 @@ import { AuthProvider, AuthContext } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import ProtectedRoute from './routes/ProtectedRoute';
 import { Toaster } from 'react-hot-toast';
+import api from './utils/api';
 
 import Login from './pages/Login';
 import ChangePassword from './pages/ChangePassword';
@@ -196,9 +197,33 @@ function App() {
     return null;
   };
 
+  const FCMUpdater = () => {
+    const { currentUser, token } = useContext(AuthContext);
+    
+    useEffect(() => {
+      if (currentUser && token) {
+        import('./firebaseInit').then(({ requestForToken, onMessageListener }) => {
+          requestForToken().then((fcmToken) => {
+            if (fcmToken) {
+              api.post('/users/fcm-token', { token: fcmToken })
+                .catch(err => console.error('Failed to save FCM token', err));
+            }
+          });
+          
+          onMessageListener().then(payload => {
+            console.log('Received foreground message', payload);
+          }).catch(err => console.log('failed to receive foreground message', err));
+        }).catch(err => console.log('Firebase not initialized yet', err));
+      }
+    }, [currentUser, token]);
+
+    return null;
+  };
+
   return (
     <AuthProvider>
       <ThemeUpdater />
+      <FCMUpdater />
       <NotificationProvider>
         <Router>
           <Toaster position="top-right" />

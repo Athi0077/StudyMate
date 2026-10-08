@@ -21,8 +21,10 @@ router.patch("/:id/reject", protect, requireRole("principal"), rejectTeacher);
 
 router.put("/profile", protect, updateProfile);
 
-const { uploadProfilePic: uploadProfilePicController, deleteProfilePic } = require("../controllers/userController");
+const { uploadProfilePic: uploadProfilePicController, deleteProfilePic, saveFCMToken, testNotification } = require("../controllers/userController");
 router.post("/profile/upload", protect, uploadProfilePic, uploadProfilePicController);
 router.delete("/profile/upload", protect, deleteProfilePic);
+router.post("/fcm-token", protect, saveFCMToken);
+router.post("/test-notification", protect, testNotification);
 
 module.exports = router;

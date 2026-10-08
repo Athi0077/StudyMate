@@ -270,6 +270,64 @@ const resetStudentPassword = async (req, res) => {
   }
 };
 
+// @desc    Save FCM Token
+// @route   POST /api/users/fcm-token
+// @access  Private
+const saveFCMToken = async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token) return res.status(400).json({ success: false, message: "Token is required" });
+
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    if (!user.fcmTokens) {
+      user.fcmTokens = [];
+    }
+    
+    if (!user.fcmTokens.includes(token)) {
+      user.fcmTokens.push(token);
+      await user.save();
+    }
+
+    res.json({ success: true, message: "Token saved successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Test Push Notification
+// @route   POST /api/users/test-notification
+// @access  Private
+const testNotification = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user || !user.fcmTokens || user.fcmTokens.length === 0) {
+      return res.status(400).json({ success: false, message: "No FCM tokens found for user. Please allow notifications first." });
+    }
+
+    const admin = require("../config/firebaseInit");
+    
+    const payload = {
+      notification: {
+        title: "Test Notification 🚀",
+        body: "Hello! Web Push Notifications are working perfectly!",
+      }
+    };
+
+    const response = await admin.messaging().sendToDevice(user.fcmTokens, payload);
+    
+    res.json({ 
+      success: true, 
+      message: "Test notification sent!",
+      response: response
+    });
+  } catch (error) {
+    console.error("FCM Error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   getPendingTeachers,
   approveTeacher,
@@ -279,5 +337,7 @@ module.exports = {
   getStudents,
   uploadProfilePic,
   deleteProfilePic,
-  resetStudentPassword
+  resetStudentPassword,
+  saveFCMToken,
+  testNotification
 };
