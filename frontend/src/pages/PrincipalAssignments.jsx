@@ -18,6 +18,7 @@ const PrincipalAssignments = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(true);
+  const [expandedClass, setExpandedClass] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -209,35 +210,65 @@ const PrincipalAssignments = () => {
         {loading ? <p className="text-gray-500">Loading assignments...</p> : assignments.length === 0 ? (
           <p className="text-gray-500 bg-white p-8 rounded-2xl shadow-soft text-center">No teachers assigned to any classes yet.</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {assignments.map(a => (
-              <div key={a._id} className="bg-white p-6 rounded-2xl shadow-soft flex flex-col justify-between">
-                <div>
-                  <div className="flex justify-between items-start mb-1">
-                    <h3 className="text-lg font-bold text-gray-800">{a.teacherId?.name}</h3>
-                    {a.isClassTeacher ? (
-                      <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">Class Teacher</span>
-                    ) : (
-                      <span className="bg-gray-100 text-gray-800 text-xs font-semibold px-2.5 py-0.5 rounded">Subject Teacher</span>
-                    )}
+          <div className="space-y-4">
+            {Object.entries(
+              assignments.reduce((acc, curr) => {
+                const className = `${curr.standardId?.name || 'Unknown'} - ${curr.sectionId?.name || 'Unknown'}`;
+                if (!acc[className]) acc[className] = [];
+                acc[className].push(curr);
+                return acc;
+              }, {})
+            ).map(([className, classAssignments]) => (
+              <div key={className} className="bg-white rounded-2xl shadow-soft overflow-hidden">
+                <div 
+                  className="p-6 cursor-pointer flex justify-between items-center bg-gray-50 hover:bg-gray-100 transition"
+                  onClick={() => setExpandedClass(expandedClass === className ? null : className)}
+                >
+                  <h3 className="text-xl font-bold text-gray-800">{className}</h3>
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm font-semibold text-gray-500 bg-white px-3 py-1 rounded-full shadow-sm">
+                      {classAssignments.length} Teachers
+                    </span>
+                    <svg className={`w-6 h-6 text-gray-400 transform transition-transform ${expandedClass === className ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
                   </div>
-                  <p className="text-gray-500 text-sm mb-3"><strong>Class:</strong> {a.standardId?.name} - {a.sectionId?.name}</p>
-                  <p className="text-gray-500 text-sm mb-6"><strong>Subject:</strong> {a.subjectId?.name || a.subject || 'General'}</p>
                 </div>
-                <div className="flex gap-2">
-                  <button 
-                    onClick={() => handleEdit(a)}
-                    className="flex-1 bg-blue-50 text-blue-600 font-semibold px-4 py-2 rounded-lg hover:bg-blue-100 text-sm transition"
-                  >
-                    Edit
-                  </button>
-                  <button 
-                    onClick={() => handleRemove(a._id)}
-                    className="flex-1 bg-red-50 text-red-600 font-semibold px-4 py-2 rounded-lg hover:bg-red-100 text-sm transition"
-                  >
-                    Remove
-                  </button>
-                </div>
+                {expandedClass === className && (
+                  <div className="p-6 border-t border-gray-100">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {classAssignments.map(a => (
+                        <div key={a._id} className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-between">
+                          <div>
+                            <div className="flex justify-between items-start mb-1">
+                              <h4 className="text-lg font-bold text-gray-800">{a.teacherId?.name}</h4>
+                              {a.isClassTeacher ? (
+                                <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">Class Teacher</span>
+                              ) : (
+                                <span className="bg-gray-100 text-gray-800 text-xs font-semibold px-2.5 py-0.5 rounded">Subject Teacher</span>
+                              )}
+                            </div>
+                            <p className="text-gray-500 text-sm mb-6"><strong>Subject:</strong> {a.subjectId?.name || a.subject || 'General'}</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={() => handleEdit(a)}
+                              className="flex-1 bg-blue-50 text-blue-600 font-semibold px-4 py-2 rounded-lg hover:bg-blue-100 text-sm transition"
+                            >
+                              Edit
+                            </button>
+                            <button 
+                              onClick={() => handleRemove(a._id)}
+                              className="flex-1 bg-red-50 text-red-600 font-semibold px-4 py-2 rounded-lg hover:bg-red-100 text-sm transition"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
