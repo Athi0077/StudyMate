@@ -86,6 +86,12 @@ app.use("/api/class-sessions", require("./src/routes/classSessionRoutes"));
 app.use("/api/hand-raises", require("./src/routes/handRaiseRoutes"));
 app.use("/api/substitutes", require("./src/routes/substituteRoutes"));
 app.use("/api/staff-leave", require("./src/routes/staffLeaveRoutes"));
+
+// Health check endpoint
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ status: "ok" });
+});
+
 app.use("/api", dashboardRoutes);
 
 // Root route
