@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import api from '../../utils/api';
 import { AuthContext } from '../../context/AuthContext';
-import { io } from 'socket.io-client';
+import { getSocket } from '../../services/socket';
 
 const ChatRoom = ({ entityType, entityId }) => {
   const { currentUser, token } = useContext(AuthContext);
@@ -24,26 +24,37 @@ const ChatRoom = ({ entityType, entityId }) => {
     };
     fetchHistory();
 
-    // 2. Initialize Socket Connection
-    const newSocket = io(import.meta.env.VITE_API_URL || 'https://studymate-wbb6.onrender.com', {
-      auth: { token }
-    });
+    // 2. Use Global Socket Connection
+    const currentSocket = getSocket();
+    if (!currentSocket) return;
 
-    newSocket.on('connect', () => {
-      newSocket.emit('join_room', roomId);
-    });
+    setSocket(currentSocket);
 
-    newSocket.on('receive_message', (message) => {
-      setMessages((prev) => [...prev, message]);
-    });
+    const handleConnect = () => {
+      currentSocket.emit('join_room', roomId);
+    };
 
-    setSocket(newSocket);
+    if (currentSocket.connected) {
+      currentSocket.emit('join_room', roomId);
+    }
+
+    currentSocket.on('connect', handleConnect);
+
+    const handleReceiveMessage = (message) => {
+      setMessages((prev) => {
+        if (prev.some(m => m._id === message._id)) return prev;
+        return [...prev, message];
+      });
+    };
+
+    currentSocket.on('receive_message', handleReceiveMessage);
 
     // Cleanup on unmount
     return () => {
-      newSocket.disconnect();
+      currentSocket.off('connect', handleConnect);
+      currentSocket.off('receive_message', handleReceiveMessage);
     };
-  }, [roomId, token]);
+  }, [roomId]);
 
   useEffect(() => {
     // Scroll to bottom when messages change
