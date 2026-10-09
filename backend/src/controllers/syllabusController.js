@@ -122,6 +122,9 @@ exports.createChapter = async (req, res) => {
     const { classId, subject, chapterNumber, chapterTitle, description, learningObjectives, estimatedCompletionDate, referenceMaterials } = req.body;
     const activeYear = await getActiveAcademicYear();
     
+    const classDoc = await Class.findById(classId);
+    if (!classDoc) return res.status(404).json({ success: false, message: 'Class not found' });
+    
     const teacherAssignments = await TeacherAssignment.find({ teacherId: req.user._id })
       .populate('standardId', 'name')
       .populate('sectionId', 'name');
