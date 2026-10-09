@@ -26,6 +26,7 @@ const TeacherClassSessionWorkflow = () => {
   const [lessonLog, setLessonLog] = useState({ lessonLog: '', pagesCovered: '', teachingMethod: 'Board', teacherNotes: '' });
   const [homework, setHomework] = useState({ title: '', description: '', dueDate: '', priority: 'normal' });
   const [submitting, setSubmitting] = useState(false);
+  const [syllabusChapters, setSyllabusChapters] = useState([]);
 
   useEffect(() => {
     fetchSession();
@@ -73,6 +74,14 @@ const TeacherClassSessionWorkflow = () => {
           teachingMethod: data.teachingMethod || 'Board',
           teacherNotes: data.teacherNotes || ''
         });
+
+        try {
+          const subj = encodeURIComponent(data.subject || 'Class Teacher');
+          const sylRes = await api.get(`/syllabus/class/${classId}/subject/${subj}`);
+          setSyllabusChapters(sylRes.data.data || []);
+        } catch (e) {
+          console.error("Failed to load syllabus");
+        }
 
         // Determine starting step
         if (data.sessionStatus === 'COMPLETED') setCurrentStep(4);
@@ -290,13 +299,28 @@ const TeacherClassSessionWorkflow = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Chapter / Unit</label>
-                    <input 
-                      type="text" 
-                      value={classRecord.chapter}
-                      onChange={e => setClassRecord({...classRecord, chapter: e.target.value})}
-                      placeholder="E.g. Fractions"
-                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                    />
+                    {syllabusChapters.length > 0 ? (
+                      <select 
+                        value={classRecord.chapter}
+                        onChange={e => setClassRecord({...classRecord, chapter: e.target.value})}
+                        className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                      >
+                        <option value="">Select Chapter</option>
+                        {syllabusChapters.map(chap => (
+                          <option key={chap._id} value={`Chapter ${chap.chapterNumber}: ${chap.chapterTitle}`}>
+                            Chapter {chap.chapterNumber}: {chap.chapterTitle}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input 
+                        type="text" 
+                        value={classRecord.chapter}
+                        onChange={e => setClassRecord({...classRecord, chapter: e.target.value})}
+                        placeholder="E.g. Fractions"
+                        className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                      />
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Topic</label>
