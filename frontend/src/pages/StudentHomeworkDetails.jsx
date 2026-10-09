@@ -15,7 +15,6 @@ const StudentHomeworkDetails = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [answerText, setAnswerText] = useState('');
-  const [file, setFile] = useState(null);
   
   const navigate = useNavigate();
 
@@ -50,16 +49,9 @@ const StudentHomeworkDetails = () => {
     setError('');
     setSuccess('');
     
-    if (file && file.size > 3 * 1024 * 1024) {
-      setError("Homework file must be 3 MB or less.");
-      setSubmitting(false);
-      return;
-    }
-    
     try {
       const formData = new FormData();
       if (answerText) formData.append('answerText', answerText);
-      if (file) formData.append('file', file);
       
       const res = await api.post(`/homework/${id}/submit`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
@@ -169,18 +161,7 @@ const StudentHomeworkDetails = () => {
                     />
                   </div>
                   
-                  <div className="mb-6">
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
-                      Upload Photo / Document <span className="text-gray-500 font-normal ml-2">(Max 3 MB)</span>
-                    </label>
-                    <input 
-                      type="file" 
-                      accept="image/*,application/pdf,.doc,.docx"
-                      capture="environment"
-                      onChange={(e) => setFile(e.target.files[0])}
-                      className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-light file:text-primary hover:file:bg-red-200"
-                    />
-                  </div>
+
                   
                   <div className="flex gap-4">
                     <button 
