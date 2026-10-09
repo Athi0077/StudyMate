@@ -7,7 +7,8 @@ export const initSocket = (token) => {
     socket.disconnect();
   }
   
-  socket = io(import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'https://studymate-wbb6.onrender.com', {
+  const socketUrl = (import.meta.env.VITE_API_URL || '').replace('/api', '');
+  socket = io(socketUrl, {
     auth: {
       token
     }
