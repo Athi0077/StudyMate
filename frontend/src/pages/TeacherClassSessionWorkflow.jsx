@@ -7,9 +7,8 @@ import { ChevronLeft, CheckCircle, Circle, Users, FileText, BookOpen, Clock, Pla
 
 const STEPS = [
   { id: 1, title: 'Attendance', key: 'ATTENDANCE_COMPLETED' },
-  { id: 2, title: 'Class Record', key: 'CLASS_RECORD_COMPLETED' },
-  { id: 3, title: 'Lesson Log', key: 'LESSON_LOG_COMPLETED' },
-  { id: 4, title: 'Homework', key: 'HOMEWORK_COMPLETED' }
+  { id: 2, title: 'Period Log', key: 'LESSON_LOG_COMPLETED' },
+  { id: 3, title: 'Homework', key: 'HOMEWORK_COMPLETED' }
 ];
 
 const TeacherClassSessionWorkflow = () => {
@@ -76,10 +75,10 @@ const TeacherClassSessionWorkflow = () => {
         });
 
         // Determine starting step
-        if (data.sessionStatus === 'COMPLETED') setCurrentStep(5);
-        else if (data.sessionStatus === 'HOMEWORK_COMPLETED') setCurrentStep(5);
-        else if (data.sessionStatus === 'LESSON_LOG_COMPLETED') setCurrentStep(4);
-        else if (data.sessionStatus === 'CLASS_RECORD_COMPLETED') setCurrentStep(3);
+        if (data.sessionStatus === 'COMPLETED') setCurrentStep(4);
+        else if (data.sessionStatus === 'HOMEWORK_COMPLETED') setCurrentStep(4);
+        else if (data.sessionStatus === 'LESSON_LOG_COMPLETED') setCurrentStep(3);
+        else if (data.sessionStatus === 'CLASS_RECORD_COMPLETED') setCurrentStep(2);
         else if (data.sessionStatus === 'ATTENDANCE_COMPLETED') setCurrentStep(2);
         else setCurrentStep(1);
       }
@@ -113,29 +112,16 @@ const TeacherClassSessionWorkflow = () => {
     }
   };
 
-  const submitClassRecord = async () => {
+  const submitPeriodLog = async () => {
     setSubmitting(true);
     try {
       await api.put(`/class-sessions/${sessionId}/class-record`, classRecord);
-      toast.success('Class Record saved');
+      await api.put(`/class-sessions/${sessionId}/lesson-log`, lessonLog);
+      toast.success('Period Log saved');
       setCurrentStep(3);
       fetchSession();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to save class record');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const submitLessonLog = async () => {
-    setSubmitting(true);
-    try {
-      await api.put(`/class-sessions/${sessionId}/lesson-log`, lessonLog);
-      toast.success('Lesson Log saved');
-      setCurrentStep(4);
-      fetchSession();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to save lesson log');
+      toast.error(err.response?.data?.message || 'Failed to save period log');
     } finally {
       setSubmitting(false);
     }
@@ -156,10 +142,9 @@ const TeacherClassSessionWorkflow = () => {
         // Skip homework
         toast.success('Homework step skipped');
       }
-      
       // Complete session
       await api.put(`/class-sessions/${sessionId}/complete`);
-      setCurrentStep(5);
+      setCurrentStep(4);
       fetchSession();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to assign homework');
@@ -191,7 +176,7 @@ const TeacherClassSessionWorkflow = () => {
               </p>
             </div>
           </div>
-          {currentStep === 5 && (
+          {currentStep === 4 && (
             <span className="bg-green-100 text-green-700 px-4 py-2 rounded-xl font-bold flex items-center gap-2">
               <CheckCircle className="w-5 h-5" /> Completed
             </span>
@@ -203,7 +188,7 @@ const TeacherClassSessionWorkflow = () => {
           <div className="flex items-center justify-between relative">
             <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-full h-1 bg-gray-100 -z-10"></div>
             {STEPS.map((step, idx) => {
-              const isCompleted = currentStep > step.id || currentStep === 5;
+              const isCompleted = currentStep > step.id || currentStep === 4;
               const isActive = currentStep === step.id;
               return (
                 <div key={step.id} className="flex flex-col items-center bg-white px-2">
@@ -293,69 +278,115 @@ const TeacherClassSessionWorkflow = () => {
             </div>
           )}
 
-          {/* STEP 2: CLASS RECORD */}
+          {/* STEP 2: PERIOD LOG */}
           {currentStep === 2 && (
             <div className="space-y-6">
               <h3 className="text-xl font-extrabold text-gray-900 flex items-center gap-2 mb-6">
-                <BookOpen className="w-6 h-6 text-primary" /> Class Record
+                <BookOpen className="w-6 h-6 text-primary" /> Period Log
               </h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Chapter / Unit</label>
-                  <input 
-                    type="text" 
-                    value={classRecord.chapter}
-                    onChange={e => setClassRecord({...classRecord, chapter: e.target.value})}
-                    placeholder="E.g. Fractions"
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                  />
+              <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100 space-y-6">
+                <h4 className="text-lg font-bold text-gray-800 border-b border-gray-200 pb-2">Class Record</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Chapter / Unit</label>
+                    <input 
+                      type="text" 
+                      value={classRecord.chapter}
+                      onChange={e => setClassRecord({...classRecord, chapter: e.target.value})}
+                      placeholder="E.g. Fractions"
+                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Topic</label>
+                    <input 
+                      type="text" 
+                      value={classRecord.topic}
+                      onChange={e => setClassRecord({...classRecord, topic: e.target.value})}
+                      placeholder="E.g. Addition of fractions"
+                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                    />
+                  </div>
                 </div>
+
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Topic</label>
-                  <input 
-                    type="text" 
-                    value={classRecord.topic}
-                    onChange={e => setClassRecord({...classRecord, topic: e.target.value})}
-                    placeholder="E.g. Addition of fractions"
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                  />
+                  <label className="block text-sm font-bold text-gray-700 mb-2">What was taught?</label>
+                  <textarea 
+                    rows="3"
+                    value={classRecord.classRecord}
+                    onChange={e => setClassRecord({...classRecord, classRecord: e.target.value})}
+                    placeholder="Summarize what was taught during this period..."
+                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  ></textarea>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">What was taught?</label>
-                <textarea 
-                  rows="4"
-                  value={classRecord.classRecord}
-                  onChange={e => setClassRecord({...classRecord, classRecord: e.target.value})}
-                  placeholder="Summarize what was taught during this period..."
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                ></textarea>
-              </div>
+              <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100 space-y-6">
+                <h4 className="text-lg font-bold text-gray-800 border-b border-gray-200 pb-2">Lesson Details</h4>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Description / Activities</label>
+                  <textarea 
+                    rows="3"
+                    value={lessonLog.lessonLog}
+                    onChange={e => setLessonLog({...lessonLog, lessonLog: e.target.value})}
+                    placeholder="E.g. Students practiced addition and solved problems on the board."
+                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  ></textarea>
+                </div>
 
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Lesson Status</label>
-                <div className="flex gap-4">
-                  {['Completed', 'Partially Completed', 'Not Completed'].map(status => (
-                    <label key={status} className="flex items-center gap-2 cursor-pointer">
-                      <input 
-                        type="radio" 
-                        name="lessonStatus" 
-                        value={status}
-                        checked={classRecord.lessonStatus === status}
-                        onChange={e => setClassRecord({...classRecord, lessonStatus: e.target.value})}
-                        className="w-4 h-4 text-primary focus:ring-primary border-gray-300"
-                      />
-                      <span className="text-sm font-medium text-gray-700">{status}</span>
-                    </label>
-                  ))}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Pages Covered (Optional)</label>
+                    <input 
+                      type="text" 
+                      value={lessonLog.pagesCovered}
+                      onChange={e => setLessonLog({...lessonLog, pagesCovered: e.target.value})}
+                      placeholder="E.g. Pages 45-48"
+                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Teaching Method</label>
+                    <select 
+                      value={lessonLog.teachingMethod}
+                      onChange={e => setLessonLog({...lessonLog, teachingMethod: e.target.value})}
+                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                    >
+                      <option value="Board">Board / Chalk & Talk</option>
+                      <option value="Discussion">Discussion</option>
+                      <option value="Activity">Activity</option>
+                      <option value="Practical">Practical / Lab</option>
+                      <option value="Video">Video / Multimedia</option>
+                      <option value="Group Work">Group Work</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Lesson Status</label>
+                  <div className="flex gap-4">
+                    {['Completed', 'Partially Completed', 'Not Completed'].map(status => (
+                      <label key={status} className="flex items-center gap-2 cursor-pointer">
+                        <input 
+                          type="radio" 
+                          name="lessonStatus" 
+                          value={status}
+                          checked={classRecord.lessonStatus === status}
+                          onChange={e => setClassRecord({...classRecord, lessonStatus: e.target.value})}
+                          className="w-4 h-4 text-primary focus:ring-primary border-gray-300"
+                        />
+                        <span className="text-sm font-medium text-gray-700">{status}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
               </div>
 
               <div className="flex justify-end pt-6 border-t border-gray-100">
                 <button 
-                  onClick={submitClassRecord}
+                  onClick={submitPeriodLog}
                   disabled={submitting}
                   className="btn-primary px-8 py-3 rounded-xl font-bold flex items-center gap-2"
                 >
@@ -365,78 +396,8 @@ const TeacherClassSessionWorkflow = () => {
             </div>
           )}
 
-          {/* STEP 3: LESSON LOG */}
+          {/* STEP 3: HOMEWORK */}
           {currentStep === 3 && (
-            <div className="space-y-6">
-              <h3 className="text-xl font-extrabold text-gray-900 flex items-center gap-2 mb-6">
-                <FileText className="w-6 h-6 text-primary" /> Lesson Log
-              </h3>
-              
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Description / Activities</label>
-                <textarea 
-                  rows="3"
-                  value={lessonLog.lessonLog}
-                  onChange={e => setLessonLog({...lessonLog, lessonLog: e.target.value})}
-                  placeholder="E.g. Students practiced addition and solved problems on the board."
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                ></textarea>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Pages Covered (Optional)</label>
-                  <input 
-                    type="text" 
-                    value={lessonLog.pagesCovered}
-                    onChange={e => setLessonLog({...lessonLog, pagesCovered: e.target.value})}
-                    placeholder="E.g. Pages 45-48"
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Teaching Method</label>
-                  <select 
-                    value={lessonLog.teachingMethod}
-                    onChange={e => setLessonLog({...lessonLog, teachingMethod: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                  >
-                    <option value="Board">Board / Chalk & Talk</option>
-                    <option value="Discussion">Discussion</option>
-                    <option value="Activity">Activity</option>
-                    <option value="Practical">Practical / Lab</option>
-                    <option value="Video">Video / Multimedia</option>
-                    <option value="Group Work">Group Work</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Teacher Notes (Internal)</label>
-                <textarea 
-                  rows="2"
-                  value={lessonLog.teacherNotes}
-                  onChange={e => setLessonLog({...lessonLog, teacherNotes: e.target.value})}
-                  placeholder="Notes for yourself or the principal..."
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                ></textarea>
-              </div>
-
-              <div className="flex justify-end pt-6 border-t border-gray-100">
-                <button 
-                  onClick={submitLessonLog}
-                  disabled={submitting}
-                  className="btn-primary px-8 py-3 rounded-xl font-bold flex items-center gap-2"
-                >
-                  {submitting ? 'Saving...' : 'Save & Continue'}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 4: HOMEWORK */}
-          {currentStep === 4 && (
             <div className="space-y-6">
               <h3 className="text-xl font-extrabold text-gray-900 flex items-center gap-2 mb-6">
                 <BookOpen className="w-6 h-6 text-primary" /> Assign Homework
@@ -513,7 +474,7 @@ const TeacherClassSessionWorkflow = () => {
           )}
 
           {/* COMPLETED */}
-          {currentStep === 5 && (
+          {currentStep === 4 && (
             <div className="py-12 flex flex-col items-center justify-center text-center">
               <div className="w-24 h-24 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-6">
                 <CheckCircle className="w-12 h-12" />
@@ -529,11 +490,7 @@ const TeacherClassSessionWorkflow = () => {
                   <span className="font-bold text-green-600">✓ Completed</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500 font-medium">Class Record</span>
-                  <span className="font-bold text-green-600">✓ Completed</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500 font-medium">Lesson Log</span>
+                  <span className="text-gray-500 font-medium">Period Log</span>
                   <span className="font-bold text-green-600">✓ Completed</span>
                 </div>
                 <div className="flex justify-between">
